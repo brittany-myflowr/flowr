@@ -1,0 +1,701 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+
+import { defaultFlowerColor } from '@/constants/flowerColors';
+import { createId } from '@/lib/createId';
+import { defaultScheduleForTimeOfDay } from '@/constants/schedules';
+import {
+  type DailyCompletionMap,
+  snapshotTodayCompletion,
+} from '@/lib/completion';
+import {
+  buildPersistedState,
+  clearPersistedState,
+  loadPersistedState,
+  savePersistedState,
+  type LocalCredentials,
+} from '@/lib/persistence';
+import type { Category } from '@/constants/categories';
+import { formatDateKey } from '@/lib/dateKey';
+import type {
+  CycleSettings,
+  Product,
+  Routine,
+  Schedule,
+  ScheduleFrequency,
+  Step,
+  StepReminder,
+  TimeOfDay,
+  User,
+} from '@/types';
+import { DEFAULT_CYCLE_SETTINGS } from '@/types';
+import {
+  EMPTY_TODAY_STEP_ORDERS,
+  type TodayStepOrderMap,
+} from '@/lib/todayOrder';
+import {
+  cancelStepReminderNotification,
+  syncAllStepReminders,
+  syncStepReminderNotification,
+} from '@/lib/notifications';
+import * as Notifications from 'expo-notifications';
+
+export type CreateRoutineInput = {
+  name: string;
+  category: Category;
+  timeOfDay: TimeOfDay;
+  frequency: ScheduleFrequency;
+  stepNames: string[];
+};
+
+export type AddStepInput = {
+  name: string;
+  note?: string;
+  schedule?: Schedule;
+};
+
+type SignUpInput = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+};
+
+type SignInInput = {
+  email: string;
+  password: string;
+};
+
+type UpdateAccountInput = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  flowerColorName: string;
+};
+
+type AppStoreValue = {
+  hydrated: boolean;
+  isLoggedIn: boolean;
+  user: User | null;
+  routines: Routine[];
+  products: Product[];
+  dailyCompletions: DailyCompletionMap;
+  cycleSettings: CycleSettings;
+  todayStepOrders: TodayStepOrderMap;
+  pendingAddStepSchedule: Schedule | null;
+  signUp: (input: SignUpInput) => string | null;
+  signIn: (input: SignInInput) => string | null;
+  signOut: () => void;
+  updateUser: (updates: Partial<User>) => void;
+  updateAccount: (input: UpdateAccountInput) => string | null;
+  resetAllData: () => Promise<void>;
+  addRoutine: (input: CreateRoutineInput) => Routine;
+  toggleRoutineActive: (id: string) => void;
+  removeRoutine: (id: string) => void;
+  reorderSteps: (routineId: string, steps: Step[]) => void;
+  reorderTodaySteps: (timeOfDay: TimeOfDay, stepIds: string[]) => void;
+  removeStep: (routineId: string, stepId: string) => void;
+  updateStep: (
+    routineId: string,
+    stepId: string,
+    updates: Partial<Pick<Step, 'name' | 'note' | 'productName' | 'productId' | 'done' | 'reminder'>>,
+  ) => void;
+  updateStepReminder: (
+    routineId: string,
+    stepId: string,
+    reminder: StepReminder,
+  ) => Promise<boolean>;
+  toggleStepDone: (routineId: string, stepId: string) => void;
+  addStep: (routineId: string, input: AddStepInput) => Step | null;
+  updateRoutineSchedule: (routineId: string, schedule: Schedule) => void;
+  updateStepSchedule: (routineId: string, stepId: string, schedule: Schedule) => void;
+  setPendingAddStepSchedule: (schedule: Schedule | null) => void;
+  consumePendingAddStepSchedule: () => Schedule | null;
+  addProduct: (input: Omit<Product, 'id'>) => Product;
+  updateProduct: (id: string, updates: Partial<Omit<Product, 'id'>>) => void;
+  removeProduct: (id: string) => void;
+  tagStepProduct: (routineId: string, stepId: string, productId: string | null) => void;
+  updateCycleSettings: (updates: Partial<CycleSettings>) => void;
+  setCycleEnabled: (enabled: boolean) => void;
+};
+
+const AppStoreContext = createContext<AppStoreValue | null>(null);
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+export function AppStoreProvider({ children }: { children: React.ReactNode }) {
+  const [hydrated, setHydrated] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [credentials, setCredentials] = useState<LocalCredentials | null>(null);
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [dailyCompletions, setDailyCompletions] = useState<DailyCompletionMap>({});
+  const [cycleSettings, setCycleSettings] = useState<CycleSettings>(DEFAULT_CYCLE_SETTINGS);
+  const [todayStepOrders, setTodayStepOrders] =
+    useState<TodayStepOrderMap>(EMPTY_TODAY_STEP_ORDERS);
+  const [pendingAddStepSchedule, setPendingAddStepSchedule] = useState<Schedule | null>(null);
+  const skipNextSave = useRef(true);
+  const remindersSyncedRef = useRef(false);
+
+  useEffect(() => {
+    loadPersistedState().then((state) => {
+      setIsLoggedIn(state.isLoggedIn);
+      setUser(state.user);
+      setCredentials(state.credentials);
+      setRoutines(state.routines);
+      setProducts(state.products);
+      setDailyCompletions(state.dailyCompletions ?? {});
+      setCycleSettings(state.cycleSettings ?? DEFAULT_CYCLE_SETTINGS);
+      setTodayStepOrders(state.todayStepOrders ?? EMPTY_TODAY_STEP_ORDERS);
+      setHydrated(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (skipNextSave.current) {
+      skipNextSave.current = false;
+      return;
+    }
+
+    void savePersistedState(
+      buildPersistedState({
+        isLoggedIn,
+        user,
+        credentials,
+        routines,
+        products,
+        dailyCompletions,
+        cycleSettings,
+        todayStepOrders,
+      }),
+    );
+  }, [
+    hydrated,
+    isLoggedIn,
+    user,
+    credentials,
+    routines,
+    products,
+    dailyCompletions,
+    cycleSettings,
+    todayStepOrders,
+  ]);
+
+  useEffect(() => {
+    if (!hydrated || remindersSyncedRef.current) return;
+    remindersSyncedRef.current = true;
+    void syncAllStepReminders(routines);
+  }, [hydrated, routines]);
+
+  const signUp = useCallback(
+    (input: SignUpInput): string | null => {
+      const email = normalizeEmail(input.email);
+      const firstName = input.firstName.trim();
+      const lastName = input.lastName.trim();
+
+      if (!firstName) return 'First name is required.';
+      if (!email) return 'Email is required.';
+      if (input.password.length < 8) return 'Password must be at least 8 characters.';
+
+      if (credentials) {
+        return 'An account already exists on this device. Log in instead.';
+      }
+
+      const nextUser: User = {
+        firstName,
+        lastName,
+        email,
+        flowerColorName: defaultFlowerColor.name,
+      };
+
+      setUser(nextUser);
+      setCredentials({ email, password: input.password });
+      setIsLoggedIn(true);
+      return null;
+    },
+    [credentials],
+  );
+
+  const signIn = useCallback(
+    (input: SignInInput): string | null => {
+      const email = normalizeEmail(input.email);
+
+      if (!email || !input.password) return 'Email and password are required.';
+      if (!credentials || !user) return 'No account found. Sign up first.';
+      if (credentials.email !== email || credentials.password !== input.password) {
+        return 'Email or password is incorrect.';
+      }
+
+      setIsLoggedIn(true);
+      return null;
+    },
+    [credentials, user],
+  );
+
+  const signOut = useCallback(() => {
+    setIsLoggedIn(false);
+  }, []);
+
+  const updateUser = useCallback((updates: Partial<User>) => {
+    setUser((current) => (current ? { ...current, ...updates } : current));
+  }, []);
+
+  const updateAccount = useCallback(
+    (input: UpdateAccountInput): string | null => {
+      const firstName = input.firstName.trim();
+      const lastName = input.lastName.trim();
+      const email = normalizeEmail(input.email);
+      const flowerColorName = input.flowerColorName.trim();
+
+      if (!firstName) return 'First name is required.';
+      if (!email) return 'Email is required.';
+
+      setUser((current) =>
+        current
+          ? {
+              ...current,
+              firstName,
+              lastName,
+              email,
+              flowerColorName,
+            }
+          : current,
+      );
+
+      setCredentials((current) => (current ? { ...current, email } : current));
+      return null;
+    },
+    [],
+  );
+
+  const resetAllData = useCallback(async () => {
+    await clearPersistedState();
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    remindersSyncedRef.current = false;
+    setIsLoggedIn(false);
+    setUser(null);
+    setCredentials(null);
+    setRoutines([]);
+    setProducts([]);
+    setDailyCompletions({});
+    setCycleSettings(DEFAULT_CYCLE_SETTINGS);
+    setTodayStepOrders(EMPTY_TODAY_STEP_ORDERS);
+    setPendingAddStepSchedule(null);
+  }, []);
+
+  const addRoutine = useCallback((input: CreateRoutineInput) => {
+    const routineId = createId('routine');
+    const steps: Step[] = input.stepNames
+      .map((name) => name.trim())
+      .filter(Boolean)
+      .map((name) => ({
+        id: createId('step'),
+        name,
+        category: input.category,
+        done: false,
+      }));
+
+    const routine: Routine = {
+      id: routineId,
+      name: input.name.trim(),
+      category: input.category,
+      timeOfDay: input.timeOfDay,
+      active: true,
+      steps,
+      schedule: {
+        ...defaultScheduleForTimeOfDay(input.timeOfDay),
+        frequency: input.frequency,
+      },
+    };
+
+    setRoutines((current) => [...current, routine]);
+    return routine;
+  }, []);
+
+  const toggleRoutineActive = useCallback((id: string) => {
+    setRoutines((current) =>
+      current.map((routine) =>
+        routine.id === id ? { ...routine, active: !routine.active } : routine,
+      ),
+    );
+  }, []);
+
+  const removeRoutine = useCallback((id: string) => {
+    setRoutines((current) => {
+      const routine = current.find((item) => item.id === id);
+      routine?.steps.forEach((step) => {
+        void cancelStepReminderNotification(step.id);
+      });
+      return current.filter((routine) => routine.id !== id);
+    });
+  }, []);
+
+  const reorderSteps = useCallback((routineId: string, steps: Step[]) => {
+    setRoutines((current) =>
+      current.map((routine) => (routine.id === routineId ? { ...routine, steps } : routine)),
+    );
+  }, []);
+
+  const reorderTodaySteps = useCallback((timeOfDay: TimeOfDay, stepIds: string[]) => {
+    setTodayStepOrders((current) => ({
+      ...current,
+      [timeOfDay]: stepIds,
+    }));
+  }, []);
+
+  const removeStep = useCallback((routineId: string, stepId: string) => {
+    void cancelStepReminderNotification(stepId);
+    setRoutines((current) =>
+      current.map((routine) =>
+        routine.id === routineId
+          ? { ...routine, steps: routine.steps.filter((step) => step.id !== stepId) }
+          : routine,
+      ),
+    );
+  }, []);
+
+  const updateStep = useCallback(
+    (
+      routineId: string,
+      stepId: string,
+      updates: Partial<Pick<Step, 'name' | 'note' | 'productName' | 'productId' | 'done' | 'reminder'>>,
+    ) => {
+      setRoutines((current) =>
+        current.map((routine) =>
+          routine.id === routineId
+            ? {
+                ...routine,
+                steps: routine.steps.map((step) =>
+                  step.id === stepId ? { ...step, ...updates } : step,
+                ),
+              }
+            : routine,
+        ),
+      );
+    },
+    [],
+  );
+
+  const updateStepReminder = useCallback(
+    async (routineId: string, stepId: string, reminder: StepReminder): Promise<boolean> => {
+      const routine = routines.find((item) => item.id === routineId);
+      const step = routine?.steps.find((item) => item.id === stepId);
+      if (!routine || !step) return false;
+
+      const nextStep: Step = { ...step, reminder };
+
+      setRoutines((current) =>
+        current.map((item) =>
+          item.id === routineId
+            ? {
+                ...item,
+                steps: item.steps.map((entry) => (entry.id === stepId ? nextStep : entry)),
+              }
+            : item,
+        ),
+      );
+
+      return syncStepReminderNotification(nextStep, routine);
+    },
+    [routines],
+  );
+
+  const toggleStepDone = useCallback((routineId: string, stepId: string) => {
+    setRoutines((current) => {
+      const next = current.map((routine) =>
+        routine.id === routineId
+          ? {
+              ...routine,
+              steps: routine.steps.map((step) =>
+                step.id === stepId ? { ...step, done: !step.done } : step,
+              ),
+            }
+          : routine,
+      );
+
+      setDailyCompletions((existing) => snapshotTodayCompletion(next, existing));
+      return next;
+    });
+  }, []);
+
+  const addStep = useCallback((routineId: string, input: AddStepInput) => {
+    const trimmedName = input.name.trim();
+    if (!trimmedName) return null;
+
+    let created: Step | null = null;
+
+    setRoutines((current) =>
+      current.map((routine) => {
+        if (routine.id !== routineId) return routine;
+
+        created = {
+          id: createId('step'),
+          name: trimmedName,
+          note: input.note?.trim() || undefined,
+          category: routine.category,
+          done: false,
+          schedule: input.schedule,
+        };
+
+        return { ...routine, steps: [...routine.steps, created] };
+      }),
+    );
+
+    return created;
+  }, []);
+
+  const consumePendingAddStepSchedule = useCallback(() => {
+    let schedule: Schedule | null = null;
+    setPendingAddStepSchedule((current) => {
+      schedule = current;
+      return null;
+    });
+    return schedule;
+  }, []);
+
+  const updateRoutineSchedule = useCallback((routineId: string, schedule: Schedule) => {
+    setRoutines((current) =>
+      current.map((routine) =>
+        routine.id === routineId
+          ? { ...routine, timeOfDay: schedule.timeOfDay, schedule }
+          : routine,
+      ),
+    );
+  }, []);
+
+  const updateStepSchedule = useCallback(
+    (routineId: string, stepId: string, schedule: Schedule) => {
+      setRoutines((current) =>
+        current.map((routine) =>
+          routine.id === routineId
+            ? {
+                ...routine,
+                steps: routine.steps.map((step) =>
+                  step.id === stepId ? { ...step, schedule } : step,
+                ),
+              }
+            : routine,
+        ),
+      );
+    },
+    [],
+  );
+
+  const addProduct = useCallback((input: Omit<Product, 'id'>) => {
+    const product: Product = { ...input, id: createId('product') };
+    setProducts((current) => [...current, product]);
+    return product;
+  }, []);
+
+  const updateProduct = useCallback((id: string, updates: Partial<Omit<Product, 'id'>>) => {
+    setProducts((current) =>
+      current.map((product) => (product.id === id ? { ...product, ...updates } : product)),
+    );
+  }, []);
+
+  const removeProduct = useCallback((id: string) => {
+    setProducts((current) => current.filter((product) => product.id !== id));
+    setRoutines((current) =>
+      current.map((routine) => ({
+        ...routine,
+        steps: routine.steps.map((step) =>
+          step.productId === id
+            ? { ...step, productId: undefined, productName: undefined }
+            : step,
+        ),
+      })),
+    );
+  }, []);
+
+  const tagStepProduct = useCallback(
+    (routineId: string, stepId: string, productId: string | null) => {
+      setRoutines((current) =>
+        current.map((routine) => {
+          if (routine.id !== routineId) return routine;
+
+          return {
+            ...routine,
+            steps: routine.steps.map((step) => {
+              if (step.id !== stepId) return step;
+
+              if (!productId) {
+                return { ...step, productId: undefined, productName: undefined };
+              }
+
+              const product = products.find((item) => item.id === productId);
+              if (!product) return step;
+
+              return {
+                ...step,
+                productId: product.id,
+                productName: product.name,
+              };
+            }),
+          };
+        }),
+      );
+    },
+    [products],
+  );
+
+  const updateCycleSettings = useCallback((updates: Partial<CycleSettings>) => {
+    setCycleSettings((current) => ({ ...current, ...updates }));
+  }, []);
+
+  const setCycleEnabled = useCallback((enabled: boolean) => {
+    setCycleSettings((current) => ({
+      ...current,
+      enabled,
+      lastPeriodStart:
+        enabled && !current.lastPeriodStart ? formatDateKey(new Date()) : current.lastPeriodStart,
+    }));
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      hydrated,
+      isLoggedIn,
+      user,
+      routines,
+      products,
+      dailyCompletions,
+      cycleSettings,
+      todayStepOrders,
+      pendingAddStepSchedule,
+      signUp,
+      signIn,
+      signOut,
+      updateUser,
+      updateAccount,
+      resetAllData,
+      addRoutine,
+      toggleRoutineActive,
+      removeRoutine,
+      reorderSteps,
+      reorderTodaySteps,
+      removeStep,
+      updateStep,
+      updateStepReminder,
+      toggleStepDone,
+      addStep,
+      updateRoutineSchedule,
+      updateStepSchedule,
+      setPendingAddStepSchedule,
+      consumePendingAddStepSchedule,
+      addProduct,
+      updateProduct,
+      removeProduct,
+      tagStepProduct,
+      updateCycleSettings,
+      setCycleEnabled,
+    }),
+    [
+      hydrated,
+      isLoggedIn,
+      user,
+      routines,
+      products,
+      dailyCompletions,
+      cycleSettings,
+      todayStepOrders,
+      pendingAddStepSchedule,
+      signUp,
+      signIn,
+      signOut,
+      updateUser,
+      updateAccount,
+      resetAllData,
+      addRoutine,
+      toggleRoutineActive,
+      removeRoutine,
+      reorderSteps,
+      reorderTodaySteps,
+      removeStep,
+      updateStep,
+      updateStepReminder,
+      toggleStepDone,
+      addStep,
+      updateRoutineSchedule,
+      updateStepSchedule,
+      consumePendingAddStepSchedule,
+      addProduct,
+      updateProduct,
+      removeProduct,
+      tagStepProduct,
+      updateCycleSettings,
+      setCycleEnabled,
+    ],
+  );
+
+  return <AppStoreContext.Provider value={value}>{children}</AppStoreContext.Provider>;
+}
+
+export function useAppStore() {
+  const context = useContext(AppStoreContext);
+  if (!context) {
+    throw new Error('useAppStore must be used within AppStoreProvider');
+  }
+  return context;
+}
+
+export function useAuth() {
+  const { isLoggedIn, user, signUp, signIn, signOut, updateUser, updateAccount, resetAllData } =
+    useAppStore();
+  return { isLoggedIn, user, signUp, signIn, signOut, updateUser, updateAccount, resetAllData };
+}
+
+export function useCycleSettings() {
+  const { cycleSettings, updateCycleSettings, setCycleEnabled } = useAppStore();
+  return { cycleSettings, updateCycleSettings, setCycleEnabled };
+}
+
+export function useRoutines() {
+  const store = useAppStore();
+  return {
+    routines: store.routines,
+    addRoutine: store.addRoutine,
+    toggleRoutineActive: store.toggleRoutineActive,
+    removeRoutine: store.removeRoutine,
+    reorderSteps: store.reorderSteps,
+    reorderTodaySteps: store.reorderTodaySteps,
+    removeStep: store.removeStep,
+    updateStep: store.updateStep,
+    updateStepReminder: store.updateStepReminder,
+    toggleStepDone: store.toggleStepDone,
+    tagStepProduct: store.tagStepProduct,
+    addStep: store.addStep,
+    updateRoutineSchedule: store.updateRoutineSchedule,
+    updateStepSchedule: store.updateStepSchedule,
+    pendingAddStepSchedule: store.pendingAddStepSchedule,
+    setPendingAddStepSchedule: store.setPendingAddStepSchedule,
+    consumePendingAddStepSchedule: store.consumePendingAddStepSchedule,
+  };
+}
+
+export function useRoutine(id: string) {
+  const { routines } = useRoutines();
+  return routines.find((routine) => routine.id === id);
+}
+
+export function useProducts() {
+  const { products, addProduct, updateProduct, removeProduct } = useAppStore();
+  return { products, addProduct, updateProduct, removeProduct };
+}
+
+export function useProduct(id: string) {
+  const { products } = useAppStore();
+  return products.find((product) => product.id === id);
+}
+
+export { formatFrequency, formatTimeOfDay } from '@/constants/schedules';

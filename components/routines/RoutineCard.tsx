@@ -1,0 +1,193 @@
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { Daisy } from '@/components/brand';
+import { Badge } from '@/components/ui/Badge';
+import { Toggle } from '@/components/ui/Toggle';
+import { categoryColors, type Category } from '@/constants/categories';
+import { colors } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
+import {
+  formatFrequency,
+  formatTimeOfDay,
+} from '@/providers/RoutinesProvider';
+import type { Routine, ScheduleFrequency } from '@/types';
+
+type RoutineCardProps = {
+  routine: Routine;
+  onPress?: () => void;
+  onToggleActive?: () => void;
+};
+
+export function RoutineCard({ routine, onPress, onToggleActive }: RoutineCardProps) {
+  const categoryColor = categoryColors[routine.category];
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.card, !routine.active && styles.cardInactive]}
+    >
+      <View style={styles.headerRow}>
+        <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
+          <Daisy color={categoryColor} size={16} />
+        </View>
+        <View style={styles.meta}>
+          <Text style={styles.name}>{routine.name}</Text>
+          <Text style={styles.subtitle}>
+            {routine.steps.length} steps · {routine.category}
+          </Text>
+        </View>
+        <Toggle value={routine.active} onValueChange={onToggleActive} />
+      </View>
+
+      <View style={styles.scheduleChip}>
+        <Text style={styles.scheduleText}>
+          {formatFrequency(routine.schedule.frequency)} · Edit
+        </Text>
+      </View>
+
+      <View style={styles.badges}>
+        {routine.steps.slice(0, 3).map((step) => (
+          <Badge key={step.id} label={step.name} color={colors.gray} backgroundColor={colors.inputBg} />
+        ))}
+      </View>
+    </Pressable>
+  );
+}
+
+type RoutineReviewCardProps = {
+  name: string;
+  category: Category;
+  frequency: ScheduleFrequency;
+  timeOfDay: Routine['timeOfDay'];
+  steps: string[];
+};
+
+export function RoutineReviewCard({
+  name,
+  category,
+  frequency,
+  timeOfDay,
+  steps,
+}: RoutineReviewCardProps) {
+  const categoryColor = categoryColors[category];
+
+  return (
+    <View style={styles.reviewCard}>
+      <View style={styles.headerRow}>
+        <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
+          <Daisy color={categoryColor} size={16} />
+        </View>
+        <View style={styles.meta}>
+          <Text style={styles.name}>{name}</Text>
+          <Text style={styles.subtitle}>
+            {formatFrequency(frequency)} · {formatTimeOfDay(timeOfDay)}
+          </Text>
+        </View>
+      </View>
+
+      {steps.map((step, index) => (
+        <View key={`${step}-${index}`} style={styles.reviewStep}>
+          <View style={styles.stepNumber}>
+            <Text style={styles.stepNumberText}>{index + 1}</Text>
+          </View>
+          <Text style={styles.reviewStepName}>{step}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cardInactive: {
+    opacity: 0.55,
+  },
+  reviewCard: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  iconWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  meta: {
+    flex: 1,
+  },
+  name: {
+    fontFamily: fonts.lora,
+    fontSize: 12,
+    color: colors.navy,
+  },
+  subtitle: {
+    marginTop: 1,
+    fontFamily: fonts.dmSans,
+    fontSize: 9,
+    color: colors.muted,
+  },
+  scheduleChip: {
+    alignSelf: 'flex-start',
+    marginTop: 6,
+    backgroundColor: colors.light,
+    borderWidth: 1,
+    borderColor: '#c8d9e6',
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  scheduleText: {
+    fontFamily: fonts.dmSans,
+    fontSize: 8,
+    color: colors.blue,
+  },
+  badges: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 5,
+  },
+  reviewStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    paddingVertical: 5,
+    borderTopWidth: 1,
+    borderTopColor: colors.inputBg,
+  },
+  stepNumber: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.light,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepNumberText: {
+    fontFamily: fonts.dmSansSemiBold,
+    fontSize: 8,
+    color: colors.blue,
+    fontWeight: '600',
+  },
+  reviewStepName: {
+    fontFamily: fonts.lora,
+    fontSize: 11,
+    color: colors.navy,
+  },
+});
