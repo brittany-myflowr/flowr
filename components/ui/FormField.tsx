@@ -5,6 +5,7 @@ import { Input } from './Input';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import type { TextInputProps } from 'react-native';
+import { s, fs } from '@/lib/scale';
 
 type FormFieldProps = {
   label: string;
@@ -62,19 +63,19 @@ export function FormField({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 12,
+    marginBottom: s(12),
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 5,
+    marginBottom: s(5),
   },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
+    gap: s(4),
   },
 });

@@ -13,6 +13,7 @@ import { fonts } from '@/constants/typography';
 import { filterProducts, getProductCategoryFilters } from '@/lib/filterProducts';
 import { getLinkedStepNames } from '@/lib/productLinks';
 import { useAppStore, useProducts } from '@/providers/AppStore';
+import { s, fs } from '@/lib/scale';
 
 export default function ProductsScreen() {
   const router = useRouter();
@@ -43,7 +44,7 @@ export default function ProductsScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: 18 + insets.top }]}>
+      <View style={[styles.header, { paddingTop: s(18) + insets.top }]}>
         <Text style={styles.title}>My Products</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
@@ -124,53 +125,53 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   header: {
-    paddingHorizontal: 14,
-    paddingBottom: 6,
+    paddingHorizontal: s(14),
+    paddingBottom: s(6),
   },
   title: {
     fontFamily: fonts.lora,
-    fontSize: 20,
+    fontSize: fs(20),
     color: colors.navy,
   },
   subtitle: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
   },
   filters: {
-    paddingHorizontal: 10,
-    paddingBottom: 6,
-    gap: 4,
+    paddingHorizontal: s(10),
+    paddingBottom: s(6),
+    gap: s(4),
   },
   content: {
-    paddingHorizontal: 10,
-    paddingBottom: 24,
+    paddingHorizontal: s(10),
+    paddingBottom: s(24),
   },
   emptyCard: {
     backgroundColor: colors.white,
-    borderRadius: 12,
+    borderRadius: s(12),
     borderWidth: 1,
     borderColor: colors.border,
-    padding: 16,
-    marginHorizontal: 4,
+    padding: s(16),
+    marginHorizontal: s(4),
   },
   emptyTitle: {
     fontFamily: fonts.lora,
-    fontSize: 16,
+    fontSize: fs(16),
     color: colors.navy,
-    marginBottom: 6,
+    marginBottom: s(6),
   },
   emptyBody: {
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.gray,
-    lineHeight: 18,
+    lineHeight: fs(18),
   },
   emptyButton: {
-    marginTop: 14,
+    marginTop: s(14),
   },
   addButton: {
-    marginTop: 4,
+    marginTop: s(4),
   },
 });

@@ -4,6 +4,7 @@ import Svg, { Circle, Line } from 'react-native-svg';
 import { CloseIcon } from '@/components/icons/ActionIcons';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type ProductSearchBarProps = {
   value: string;
@@ -13,7 +14,7 @@ type ProductSearchBarProps = {
 
 function SearchIcon() {
   return (
-    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+    <Svg width={s(14)} height={s(14)} viewBox="0 0 24 24" fill="none">
       <Circle cx={11} cy={11} r={7} stroke={colors.muted} strokeWidth={1.8} />
       <Line
         x1={16.5}
@@ -48,7 +49,7 @@ export function ProductSearchBar({
       />
       {value.length > 0 ? (
         <Pressable onPress={() => onChangeText('')} hitSlop={8}>
-          <CloseIcon size={12} color={colors.muted} />
+          <CloseIcon size={s(12)} color={colors.muted} />
         </Pressable>
       ) : null}
     </View>
@@ -59,21 +60,21 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
+    gap: s(8),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(9),
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: s(10),
     backgroundColor: colors.white,
-    marginHorizontal: 10,
-    marginBottom: 6,
+    marginHorizontal: s(10),
+    marginBottom: s(6),
   },
   input: {
     flex: 1,
     fontFamily: fonts.dmSans,
-    fontSize: 12,
+    fontSize: fs(12),
     color: colors.navy,
-    padding: 0,
+    padding: s(0),
   },
 });

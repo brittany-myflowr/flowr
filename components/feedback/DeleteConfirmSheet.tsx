@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type DeleteConfirmSheetProps = {
   visible: boolean;
@@ -33,7 +34,7 @@ export function DeleteConfirmSheet({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onCancel}>
       <View style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onCancel} />
-        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 36) }]}>
+        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, s(36)) }]}>
           <View style={styles.handle} />
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.message}>{message}</Text>
@@ -60,10 +61,10 @@ const styles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: colors.bg,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 18,
-    paddingTop: 0,
+    borderTopLeftRadius: s(20),
+    borderTopRightRadius: s(20),
+    paddingHorizontal: s(18),
+    paddingTop: s(0),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.15,
@@ -71,52 +72,52 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
+    width: s(36),
+    height: vs(4),
+    borderRadius: s(2),
     backgroundColor: colors.border,
     alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 18,
+    marginTop: s(12),
+    marginBottom: s(18),
   },
   title: {
     fontFamily: fonts.lora,
-    fontSize: 20,
+    fontSize: fs(20),
     color: colors.navy,
-    marginBottom: 6,
+    marginBottom: s(6),
   },
   message: {
     fontFamily: fonts.dmSans,
-    fontSize: 12,
+    fontSize: fs(12),
     color: colors.gray,
-    lineHeight: 19,
-    marginBottom: 20,
+    lineHeight: fs(19),
+    marginBottom: s(20),
   },
   deleteButton: {
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: vs(12),
+    borderRadius: s(10),
     backgroundColor: colors.danger,
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: s(8),
   },
   deleteLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
-    letterSpacing: 2,
+    fontSize: fs(9),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.white,
   },
   cancelButton: {
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: vs(12),
+    borderRadius: s(10),
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
   },
   cancelLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
-    letterSpacing: 2,
+    fontSize: fs(9),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.gray,
   },

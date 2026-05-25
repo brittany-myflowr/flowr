@@ -8,6 +8,7 @@ import { fonts } from '@/constants/typography';
 import { useCalendarStats } from '@/hooks/useCalendarStats';
 import { useTodayProgressByTimeOfDay } from '@/hooks/useTodayProgressByTimeOfDay';
 import { useRoutines } from '@/providers/AppStore';
+import { s, vs, fs } from '@/lib/scale';
 
 const MONTH_WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -28,7 +29,7 @@ export default function CalendarScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: 18 + insets.top }]}>
+      <View style={[styles.header, { paddingTop: s(18) + insets.top }]}>
         <Text style={styles.title}>My Calendar</Text>
         <Text style={styles.subtitle}>Your consistency</Text>
       </View>
@@ -158,91 +159,91 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   header: {
-    paddingHorizontal: 14,
-    paddingBottom: 8,
+    paddingHorizontal: s(14),
+    paddingBottom: s(8),
   },
   title: {
     fontFamily: fonts.lora,
-    fontSize: 20,
+    fontSize: fs(20),
     color: colors.navy,
   },
   subtitle: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
   },
   content: {
-    paddingHorizontal: 10,
-    paddingBottom: 24,
+    paddingHorizontal: s(10),
+    paddingBottom: s(24),
   },
   emptyCard: {
     backgroundColor: colors.white,
-    borderRadius: 12,
+    borderRadius: s(12),
     borderWidth: 1,
     borderColor: colors.border,
-    padding: 16,
-    marginHorizontal: 4,
+    padding: s(16),
+    marginHorizontal: s(4),
   },
   emptyTitle: {
     fontFamily: fonts.lora,
-    fontSize: 16,
+    fontSize: fs(16),
     color: colors.navy,
-    marginBottom: 6,
+    marginBottom: s(6),
   },
   emptyBody: {
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.gray,
-    lineHeight: 18,
+    lineHeight: fs(18),
   },
   statsRow: {
     flexDirection: 'row',
-    gap: 5,
-    marginBottom: 8,
+    gap: s(5),
+    marginBottom: s(8),
   },
   statCard: {
     flex: 1,
     backgroundColor: colors.white,
-    borderRadius: 10,
+    borderRadius: s(10),
     borderWidth: 1,
     borderColor: colors.border,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
+    paddingVertical: vs(8),
+    paddingHorizontal: s(4),
     alignItems: 'center',
   },
   statValue: {
     fontFamily: fonts.lora,
-    fontSize: 16,
+    fontSize: fs(16),
     color: colors.navy,
   },
   statLabel: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 7,
-    letterSpacing: 1,
+    fontSize: fs(7),
+    letterSpacing: s(1),
     textTransform: 'uppercase',
     color: colors.muted,
   },
   weekRow: {
     flexDirection: 'row',
-    gap: 3,
-    marginBottom: 8,
+    gap: s(3),
+    marginBottom: s(8),
   },
   weekCell: {
     flex: 1,
     alignItems: 'center',
-    gap: 2,
+    gap: s(2),
   },
   weekLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 6,
+    fontSize: fs(6),
     color: colors.muted,
   },
   dayCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: s(22),
+    height: vs(22),
+    borderRadius: s(11),
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
@@ -262,7 +263,7 @@ const styles = StyleSheet.create({
   },
   dayNumber: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.gray,
   },
   dayNumberToday: {
@@ -272,9 +273,9 @@ const styles = StyleSheet.create({
     color: colors.blue,
   },
   weekDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    width: s(4),
+    height: vs(4),
+    borderRadius: s(2),
   },
   weekDotComplete: {
     backgroundColor: colors.blue,
@@ -284,34 +285,34 @@ const styles = StyleSheet.create({
   },
   todayEmpty: {
     backgroundColor: colors.white,
-    borderRadius: 10,
+    borderRadius: s(10),
     borderWidth: 1,
     borderColor: colors.border,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 6,
+    paddingHorizontal: s(12),
+    paddingVertical: vs(10),
+    marginBottom: s(6),
   },
   todayEmptyText: {
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.gray,
   },
   monthCard: {
     backgroundColor: colors.white,
-    borderRadius: 10,
+    borderRadius: s(10),
     borderWidth: 1,
     borderColor: colors.border,
-    padding: 10,
+    padding: s(10),
   },
   monthWeekdayRow: {
     flexDirection: 'row',
-    marginBottom: 3,
+    marginBottom: s(3),
   },
   monthWeekdayLabel: {
     flex: 1,
     textAlign: 'center',
     fontFamily: fonts.dmSans,
-    fontSize: 6,
+    fontSize: fs(6),
     color: colors.muted,
   },
   monthGrid: {
@@ -323,12 +324,12 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 2,
+    padding: s(2),
   },
   monthDay: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: s(24),
+    height: vs(24),
+    borderRadius: s(12),
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
@@ -336,7 +337,7 @@ const styles = StyleSheet.create({
   },
   monthDayText: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.gray,
   },
 });

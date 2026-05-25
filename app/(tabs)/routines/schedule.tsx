@@ -10,6 +10,7 @@ import { colors } from '@/constants/colors';
 import { useRoutine, useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
 import type { Schedule } from '@/types';
+import { s } from '@/lib/scale';
 
 export default function ScheduleEditorScreen() {
   const router = useRouter();
@@ -102,11 +103,11 @@ const styles = StyleSheet.create({
   },
   centered: {
     justifyContent: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: s(14),
   },
   content: {
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingHorizontal: s(14),
+    paddingTop: s(12),
+    paddingBottom: s(24),
   },
 });

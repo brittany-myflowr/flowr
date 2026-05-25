@@ -1,18 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppleSignInButton } from '@/components/auth/AppleSignInButton';
+import { AuthFormLayout } from '@/components/auth/AuthFormLayout';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
-import { AuthHeader } from '@/components/auth/AuthHeader';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Divider } from '@/components/ui/Divider';
 import { FormField } from '@/components/ui/FormField';
@@ -21,6 +13,7 @@ import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { useAuth } from '@/providers/AppStore';
 import { signInWithApplePlaceholder, signInWithGooglePlaceholder } from '@/lib/socialAuth';
+import { s, vs, fs } from '@/lib/scale';
 
 export default function LogInScreen() {
   const router = useRouter();
@@ -40,83 +33,64 @@ export default function LogInScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <AuthHeader subtitle="Welcome back" />
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <AuthFormLayout headerSubtitle="Welcome back">
+      <View style={styles.backLink}>
+        <TextLink onPress={() => router.replace('/(auth)/splash')}>← Back</TextLink>
+      </View>
+
+      <FormField
+        label="Email"
+        placeholder="you@email.com"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+      />
+      <FormField
+        label="Password"
+        placeholder="Your password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+
+      <TextLink
+        align="right"
+        onPress={() => router.push('/(auth)/forgot-password')}
       >
-        <View style={styles.backLink}>
-          <TextLink onPress={() => router.replace('/(auth)/splash')}>← Back</TextLink>
-        </View>
+        Forgot password?
+      </TextLink>
 
-        <FormField
-          label="Email"
-          placeholder="you@email.com"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-        />
-        <FormField
-          label="Password"
-          placeholder="Your password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+      {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <TextLink
-          align="right"
-          onPress={() => router.push('/(auth)/forgot-password')}
-        >
-          Forgot password?
-        </TextLink>
+      <View style={styles.spacer} />
+      <FullWidthButton label="Log In" onPress={handleSubmit} />
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+      <Divider label="or" />
+      <AppleSignInButton onPress={signInWithApplePlaceholder} />
+      <GoogleSignInButton onPress={signInWithGooglePlaceholder} />
 
-        <View style={styles.spacer} />
-        <FullWidthButton label="Log In" onPress={handleSubmit} />
-
-        <Divider label="or" />
-        <AppleSignInButton onPress={signInWithApplePlaceholder} />
-        <GoogleSignInButton onPress={signInWithGooglePlaceholder} />
-
-        <Pressable onPress={() => router.push('/(auth)/sign-up')} style={styles.footerLink}>
-          <Text style={styles.footerText}>
-            Don&apos;t have an account?{' '}
-            <Text style={styles.footerAction}>Sign up</Text>
-          </Text>
-        </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      <Pressable onPress={() => router.push('/(auth)/sign-up')} style={styles.footerLink}>
+        <Text style={styles.footerText}>
+          Don&apos;t have an account?{' '}
+          <Text style={styles.footerAction}>Sign up</Text>
+        </Text>
+      </Pressable>
+    </AuthFormLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    paddingHorizontal: 14,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
   backLink: {
-    marginBottom: 12,
+    marginBottom: s(12),
   },
   spacer: {
-    height: 14,
-    marginTop: -6,
+    height: vs(14),
+    marginTop: s(-6),
   },
   error: {
-    marginTop: 10,
+    marginTop: s(10),
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.danger,
   },
   footerLink: {
@@ -124,7 +98,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.muted,
   },
   footerAction: {

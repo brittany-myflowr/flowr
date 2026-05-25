@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type BadgeProps = {
   label: string;
@@ -23,12 +24,12 @@ export function Badge({
 
 const styles = StyleSheet.create({
   badge: {
-    borderRadius: 5,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
+    borderRadius: s(5),
+    paddingHorizontal: s(6),
+    paddingVertical: vs(1),
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
   },
 });

@@ -18,6 +18,7 @@ import {
   shiftReminderTime,
 } from '@/lib/stepReminders';
 import type { StepReminder, TimeOfDay } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 type StepReminderSheetProps = {
   visible: boolean;
@@ -53,7 +54,7 @@ export function StepReminderSheet({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onCancel}>
       <View style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onCancel} />
-        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 36) }]}>
+        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, s(36)) }]}>
           <View style={styles.handle} />
           <Text style={styles.title}>Step Reminder</Text>
           <Text style={styles.subtitle}>
@@ -118,10 +119,10 @@ const styles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: colors.bg,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 18,
-    paddingTop: 0,
+    borderTopLeftRadius: s(20),
+    borderTopRightRadius: s(20),
+    paddingHorizontal: s(18),
+    paddingTop: s(0),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.15,
@@ -129,25 +130,25 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
+    width: s(36),
+    height: vs(4),
+    borderRadius: s(2),
     backgroundColor: colors.border,
     alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 18,
+    marginTop: s(12),
+    marginBottom: s(18),
   },
   title: {
     fontFamily: fonts.lora,
-    fontSize: 20,
+    fontSize: fs(20),
     color: colors.navy,
-    marginBottom: 4,
+    marginBottom: s(4),
   },
   subtitle: {
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.gray,
-    marginBottom: 16,
+    marginBottom: s(16),
   },
   stepName: {
     color: colors.navy,
@@ -157,41 +158,41 @@ const styles = StyleSheet.create({
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: s(12),
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 12,
+    borderRadius: s(10),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(10),
+    marginBottom: s(12),
   },
   toggleCopy: {
     flex: 1,
   },
   toggleTitle: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: 12,
+    fontSize: fs(12),
     color: colors.navy,
     fontWeight: '600',
   },
   toggleSubtitle: {
-    marginTop: 2,
+    marginTop: s(2),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.gray,
-    lineHeight: 14,
+    lineHeight: fs(14),
   },
   timeBlock: {
-    marginBottom: 16,
+    marginBottom: s(16),
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 6,
+    marginBottom: s(6),
   },
   timeRow: {
     flexDirection: 'row',
@@ -200,14 +201,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    borderRadius: s(10),
+    paddingHorizontal: s(10),
+    paddingVertical: vs(8),
   },
   timeButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: s(28),
+    height: vs(28),
+    borderRadius: s(8),
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
@@ -216,18 +217,18 @@ const styles = StyleSheet.create({
   },
   timeButtonText: {
     fontFamily: fonts.dmSans,
-    fontSize: 16,
+    fontSize: fs(16),
     color: colors.navy,
-    lineHeight: 18,
+    lineHeight: fs(18),
   },
   timeValue: {
     flex: 1,
     textAlign: 'center',
     fontFamily: fonts.lora,
-    fontSize: 16,
+    fontSize: fs(16),
     color: colors.navy,
   },
   spacer: {
-    height: 8,
+    height: vs(8),
   },
 });

@@ -4,6 +4,7 @@ import { BellIcon, CheckIcon, CloseIcon, DragHandleIcon } from '@/components/ico
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import type { Step } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 type RoutineStepRowProps = {
   step: Step;
@@ -112,7 +113,7 @@ export function RoutineStepRow({
         </Pressable>
         {step.productName ? (
           <View style={styles.productChip}>
-            <CheckIcon size={10} color={colors.blue} />
+            <CheckIcon size={s(10)} color={colors.blue} />
             <Text style={styles.chipText}>{step.productName}</Text>
           </View>
         ) : (
@@ -128,27 +129,27 @@ export function RoutineStepRow({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: 10,
+    borderRadius: s(10),
     borderWidth: 1,
     borderColor: colors.border,
-    marginBottom: 7,
+    marginBottom: s(7),
     overflow: 'hidden',
   },
   mainRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    gap: s(8),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(10),
   },
   reorderActions: {
     flexDirection: 'row',
-    gap: 2,
+    gap: s(2),
   },
   reorderButton: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
+    width: s(22),
+    height: vs(22),
+    borderRadius: s(6),
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
@@ -160,20 +161,20 @@ const styles = StyleSheet.create({
   },
   reorderLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 12,
+    fontSize: fs(12),
     color: colors.navy,
   },
   stepNumber: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: s(20),
+    height: vs(20),
+    borderRadius: s(10),
     backgroundColor: colors.light,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepNumberText: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.blue,
     fontWeight: '600',
   },
@@ -182,25 +183,25 @@ const styles = StyleSheet.create({
   },
   stepName: {
     fontFamily: fonts.lora,
-    fontSize: 13,
+    fontSize: fs(13),
     color: colors.navy,
   },
   stepInput: {
     fontFamily: fonts.lora,
-    fontSize: 13,
+    fontSize: fs(13),
     color: colors.navy,
-    padding: 0,
+    padding: s(0),
   },
   editHint: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 8,
+    fontSize: fs(8),
     color: '#c8d9e6',
   },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: s(10),
     opacity: 0.5,
   },
   actionsActive: {
@@ -209,45 +210,45 @@ const styles = StyleSheet.create({
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingBottom: 8,
+    gap: s(5),
+    paddingHorizontal: s(12),
+    paddingBottom: s(8),
   },
   scheduleChip: {
     backgroundColor: colors.light,
     borderWidth: 1,
     borderColor: '#c8d9e6',
-    borderRadius: 7,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    borderRadius: s(7),
+    paddingHorizontal: s(8),
+    paddingVertical: vs(3),
   },
   productChip: {
     backgroundColor: colors.light,
     borderWidth: 1,
     borderColor: '#c8d9e6',
-    borderRadius: 7,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    borderRadius: s(7),
+    paddingHorizontal: s(8),
+    paddingVertical: vs(3),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: s(3),
   },
   tagProductChip: {
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: '#c8d9e6',
-    borderRadius: 7,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    borderRadius: s(7),
+    paddingHorizontal: s(8),
+    paddingVertical: vs(3),
   },
   chipText: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
+    fontSize: fs(8),
     color: colors.blue,
   },
   tagProductText: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
+    fontSize: fs(8),
     color: colors.muted,
   },
 });

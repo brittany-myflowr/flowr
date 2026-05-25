@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Daisy } from '@/components/brand';
+import { BrandMark } from '@/components/brand';
 import { PolicyLinkRow } from '@/components/profile/ProfileInfoRows';
 import {
   ProfileScreenShell,
@@ -9,14 +9,13 @@ import {
 } from '@/components/profile/ProfileScreenShell';
 import {
   APP_DESCRIPTION,
-  APP_NAME,
   APP_VERSION,
   PRIVACY_POLICY_URL,
   TERMS_URL,
 } from '@/constants/appInfo';
 import { colors } from '@/constants/colors';
-import { fonts } from '@/constants/typography';
 import { openExternalUrl } from '@/lib/appLinking';
+import { s, fs } from '@/lib/scale';
 
 export default function AboutScreen() {
   const router = useRouter();
@@ -24,10 +23,14 @@ export default function AboutScreen() {
   return (
     <ProfileScreenShell title="About flowr" subtitle="App">
       <View style={styles.card}>
-        <View style={aboutStyles.hero}>
-          <Daisy color={colors.blue} size={36} />
-          <Text style={aboutStyles.wordmark}>{APP_NAME}</Text>
-        </View>
+        <BrandMark
+          direction="row"
+          flowerSize={s(36)}
+          logoSize={fs(22)}
+          color={colors.blue}
+          logoColor={colors.navy}
+          style={aboutStyles.hero}
+        />
         <Text style={styles.meta}>Version {APP_VERSION}</Text>
         <Text style={[styles.paragraph, styles.paragraphLast]}>{APP_DESCRIPTION}</Text>
       </View>
@@ -53,16 +56,6 @@ export default function AboutScreen() {
 
 const aboutStyles = StyleSheet.create({
   hero: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 6,
-  },
-  wordmark: {
-    fontFamily: fonts.lora,
-    fontSize: 22,
-    fontStyle: 'italic',
-    color: colors.navy,
-    transform: [{ skewX: '-8deg' }],
+    marginBottom: s(6),
   },
 });

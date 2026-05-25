@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { s, vs } from '@/lib/scale';
 
 type ToggleProps = {
   value: boolean;
@@ -20,9 +21,9 @@ export function Toggle({ value, onValueChange }: ToggleProps) {
 
 const styles = StyleSheet.create({
   track: {
-    width: 36,
-    height: 20,
-    borderRadius: 10,
+    width: s(36),
+    height: vs(20),
+    borderRadius: s(10),
     justifyContent: 'center',
   },
   trackOn: {
@@ -33,9 +34,9 @@ const styles = StyleSheet.create({
   },
   thumb: {
     position: 'absolute',
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: s(16),
+    height: vs(16),
+    borderRadius: s(8),
     backgroundColor: colors.white,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -44,9 +45,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   thumbOn: {
-    right: 2,
+    right: s(2),
   },
   thumbOff: {
-    left: 2,
+    left: s(2),
   },
 });

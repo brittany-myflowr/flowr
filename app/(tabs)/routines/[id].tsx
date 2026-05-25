@@ -13,6 +13,7 @@ import { fonts } from '@/constants/typography';
 import { useRoutine, useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
 import type { Step, StepReminder } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 type DeleteTarget =
   | { type: 'step'; stepId: string; stepName: string }
@@ -209,14 +210,14 @@ const styles = StyleSheet.create({
   },
   centered: {
     justifyContent: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: s(14),
   },
   reorderBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: s(14),
+    paddingVertical: vs(8),
     backgroundColor: colors.light,
     borderBottomWidth: 1,
     borderBottomColor: '#c8d9e6',
@@ -224,24 +225,24 @@ const styles = StyleSheet.create({
   reorderBannerText: {
     flex: 1,
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.blue,
   },
   reorderDone: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.navy,
     fontWeight: '600',
   },
   listContent: {
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    paddingBottom: 24,
+    paddingHorizontal: s(12),
+    paddingTop: s(10),
+    paddingBottom: s(24),
   },
   footer: {
-    marginTop: 4,
+    marginTop: s(4),
   },
   footerSpacer: {
-    height: 8,
+    height: vs(8),
   },
 });

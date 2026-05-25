@@ -21,6 +21,7 @@ import { defaultFlowerColor } from '@/constants/flowerColors';
 import { getFlowerColorByName } from '@/lib/flowerColor';
 import { useAuth } from '@/providers/AppStore';
 import { useToast } from '@/providers/ToastProvider';
+import { s, vs, fs } from '@/lib/scale';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -86,7 +87,7 @@ export default function EditProfileScreen() {
               },
             ]}
           >
-            <Daisy color={selectedColor.stroke} size={24} />
+            <Daisy color={selectedColor.stroke} size={s(24)} />
           </View>
           <View>
             <Text style={styles.previewName}>{firstName.trim() || user.firstName}</Text>
@@ -141,67 +142,67 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   header: {
-    paddingHorizontal: 14,
-    paddingBottom: 12,
+    paddingHorizontal: s(14),
+    paddingBottom: s(12),
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   back: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
-    marginBottom: 8,
+    marginBottom: s(8),
   },
   profilePreview: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: s(12),
   },
   avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: s(46),
+    height: vs(46),
+    borderRadius: s(23),
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
   previewName: {
     fontFamily: fonts.lora,
-    fontSize: 16,
+    fontSize: fs(16),
     color: colors.navy,
   },
   previewEmail: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.muted,
   },
   content: {
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingHorizontal: s(14),
+    paddingTop: s(12),
+    paddingBottom: s(24),
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 10,
+    marginBottom: s(10),
   },
   colorSectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 8,
-    marginTop: 4,
+    marginBottom: s(8),
+    marginTop: s(4),
   },
   error: {
-    marginBottom: 10,
+    marginBottom: s(10),
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.danger,
   },
 });

@@ -4,6 +4,7 @@ import { Daisy } from '@/components/brand';
 import { flowerColors, type FlowerColor } from '@/constants/flowerColors';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type FlowerColorPickerProps = {
   selectedName: string;
@@ -31,7 +32,7 @@ export function FlowerColorPicker({ selectedName, onSelect }: FlowerColorPickerP
                 },
               ]}
             >
-              <Daisy color={color.stroke} size={17} />
+              <Daisy color={color.stroke} size={s(17)} />
             </Pressable>
           );
         })}
@@ -47,22 +48,22 @@ export function FlowerColorPicker({ selectedName, onSelect }: FlowerColorPickerP
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: s(12),
+    padding: s(12),
     borderWidth: 1,
     borderColor: colors.border,
-    marginBottom: 12,
+    marginBottom: s(12),
   },
   swatches: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 7,
-    marginBottom: 8,
+    gap: s(7),
+    marginBottom: s(8),
   },
   swatch: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: s(34),
+    height: vs(34),
+    borderRadius: s(17),
     borderWidth: 2,
     borderColor: 'transparent',
     alignItems: 'center',
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
   },
   selectedLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.muted,
     textAlign: 'center',
   },

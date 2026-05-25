@@ -21,6 +21,7 @@ import type { PhaseKey } from '@/constants/phases';
 import { defaultEndDate, todayIsoDate } from '@/lib/schedule';
 import { useCycleSettings } from '@/providers/AppStore';
 import type { Schedule, ScheduleFrequency } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 const CYCLE_FREQUENCY_OPTION = { value: 'cycle' as const, label: 'Cycle Phase' };
 
@@ -233,47 +234,47 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light,
     borderWidth: 1,
     borderColor: '#c8d9e6',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 12,
+    borderRadius: s(10),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(10),
+    marginBottom: s(12),
   },
   previewLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 2,
+    marginBottom: s(2),
   },
   previewValue: {
     fontFamily: fonts.lora,
-    fontSize: 14,
+    fontSize: fs(14),
     color: colors.navy,
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 6,
+    marginBottom: s(6),
   },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
-    marginBottom: 12,
+    gap: s(4),
+    marginBottom: s(12),
   },
   endsRow: {
     flexDirection: 'row',
-    gap: 6,
-    marginBottom: 12,
+    gap: s(6),
+    marginBottom: s(12),
   },
   endsButton: {
     flex: 1,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: vs(8),
+    borderRadius: s(8),
     borderWidth: 1,
     alignItems: 'center',
   },
@@ -287,7 +288,7 @@ const styles = StyleSheet.create({
   },
   endsLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
   },
   endsLabelDefault: {
     color: colors.gray,
@@ -296,6 +297,6 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   footer: {
-    marginTop: 4,
+    marginTop: s(4),
   },
 });

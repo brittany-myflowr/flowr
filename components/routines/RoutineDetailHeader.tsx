@@ -9,6 +9,7 @@ import {
   formatTimeOfDay,
 } from '@/providers/RoutinesProvider';
 import type { Routine } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 type RoutineDetailHeaderProps = {
   routine: Routine;
@@ -31,7 +32,7 @@ export function RoutineDetailHeader({
 
       <View style={styles.titleRow}>
         <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
-          <Daisy color={categoryColor} size={18} />
+          <Daisy color={categoryColor} size={s(18)} />
         </View>
         <View style={styles.meta}>
           <Text style={styles.name}>{routine.name}</Text>
@@ -53,29 +54,29 @@ export function RoutineDetailHeader({
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 18,
-    paddingHorizontal: 14,
-    paddingBottom: 10,
+    paddingTop: s(18),
+    paddingHorizontal: s(14),
+    paddingBottom: s(10),
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     backgroundColor: colors.bg,
   },
   back: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
-    marginBottom: 8,
+    marginBottom: s(8),
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 8,
+    gap: s(10),
+    marginBottom: s(8),
   },
   iconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: s(36),
+    height: vs(36),
+    borderRadius: s(10),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -84,13 +85,13 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: fonts.lora,
-    fontSize: 16,
+    fontSize: fs(16),
     color: colors.navy,
   },
   subtitle: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.muted,
   },
   scheduleChip: {
@@ -98,13 +99,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light,
     borderWidth: 1,
     borderColor: '#c8d9e6',
-    borderRadius: 7,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    borderRadius: s(7),
+    paddingHorizontal: s(10),
+    paddingVertical: vs(4),
   },
   scheduleText: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.blue,
   },
 });

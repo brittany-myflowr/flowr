@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type ScheduleDefaultRowProps = {
   label: string;
@@ -24,37 +25,37 @@ export function ScheduleDefaultRow({ label, onCustomize }: ScheduleDefaultRowPro
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 12,
+    marginBottom: s(12),
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 5,
+    marginBottom: s(5),
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: vs(10),
+    paddingHorizontal: s(12),
     backgroundColor: colors.light,
-    borderRadius: 10,
+    borderRadius: s(10),
     borderWidth: 1,
     borderColor: '#c8d9e6',
-    gap: 8,
+    gap: s(8),
   },
   value: {
     flex: 1,
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.navy,
   },
   customize: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
     textDecorationLine: 'underline',
     flexShrink: 0,

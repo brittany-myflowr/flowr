@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 export type ToastVariant = 'success' | 'destructive';
 
@@ -32,7 +33,7 @@ const TOAST_DURATION_MS = 2000;
 function ToastBanner({ toast }: { toast: ToastState }) {
   const insets = useSafeAreaInsets();
   const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(-12)).current;
+  const translateY = useRef(new Animated.Value(s(-12))).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -57,7 +58,7 @@ function ToastBanner({ toast }: { toast: ToastState }) {
         styles.toast,
         isDestructive ? styles.toastDestructive : styles.toastSuccess,
         {
-          top: insets.top + 8,
+          top: insets.top + s(8),
           opacity,
           transform: [{ translateY }],
         },
@@ -108,12 +109,12 @@ export function useToast() {
 const styles = StyleSheet.create({
   toast: {
     position: 'absolute',
-    left: 16,
-    right: 16,
+    left: s(16),
+    right: s(16),
     zIndex: 9999,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
+    paddingHorizontal: s(16),
+    paddingVertical: vs(8),
+    borderRadius: s(16),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
@@ -129,8 +130,8 @@ const styles = StyleSheet.create({
   },
   message: {
     fontFamily: fonts.dmSans,
-    fontSize: 11,
-    letterSpacing: 0.5,
+    fontSize: fs(11),
+    letterSpacing: s(0.5),
     color: colors.white,
     textAlign: 'center',
   },

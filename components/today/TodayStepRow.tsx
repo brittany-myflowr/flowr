@@ -6,6 +6,7 @@ import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import type { PhaseKey } from '@/constants/phases';
 import type { Step } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 type TodayStepRowProps = {
   step: Step;
@@ -56,7 +57,7 @@ export function TodayStepRow({
         </View>
       ) : (
         <View style={[styles.checkbox, step.done && styles.checkboxDone]}>
-          {step.done ? <CheckIcon size={12} color={colors.white} /> : null}
+          {step.done ? <CheckIcon size={s(12)} color={colors.white} /> : null}
         </View>
       )}
 
@@ -95,27 +96,27 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10,
+    gap: s(10),
     backgroundColor: colors.white,
-    borderRadius: 10,
+    borderRadius: s(10),
     borderWidth: 1,
     borderColor: colors.border,
-    paddingHorizontal: 12,
-    paddingVertical: 11,
-    marginBottom: 7,
+    paddingHorizontal: s(12),
+    paddingVertical: vs(11),
+    marginBottom: s(7),
   },
   cardDone: {
     opacity: 0.72,
   },
   reorderActions: {
     flexDirection: 'row',
-    gap: 2,
-    marginTop: 1,
+    gap: s(2),
+    marginTop: s(1),
   },
   reorderButton: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
+    width: s(22),
+    height: vs(22),
+    borderRadius: s(6),
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
@@ -127,18 +128,18 @@ const styles = StyleSheet.create({
   },
   reorderLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 12,
+    fontSize: fs(12),
     color: colors.navy,
   },
   checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: s(22),
+    height: vs(22),
+    borderRadius: s(11),
     borderWidth: 1.5,
     borderColor: '#c8d9e6',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 1,
+    marginTop: s(1),
   },
   checkboxDone: {
     backgroundColor: colors.blue,
@@ -149,7 +150,7 @@ const styles = StyleSheet.create({
   },
   stepName: {
     fontFamily: fonts.lora,
-    fontSize: 14,
+    fontSize: fs(14),
     color: colors.navy,
   },
   stepNameDone: {
@@ -158,20 +159,20 @@ const styles = StyleSheet.create({
   },
   routineName: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.blue,
   },
   meta: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
-    gap: 3,
-    marginTop: 2,
+    gap: s(3),
+    marginTop: s(2),
   },
   productName: {
-    marginTop: 2,
+    marginTop: s(2),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.muted,
   },
 });

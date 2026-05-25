@@ -12,6 +12,7 @@ import { fonts } from '@/constants/typography';
 import { useProducts, useRoutine, useRoutines } from '@/providers/AppStore';
 import { useToast } from '@/providers/ToastProvider';
 import { suggestProductsForStep } from '@/lib/suggestProductsForStep';
+import { s, vs, fs } from '@/lib/scale';
 
 export default function TagProductScreen() {
   const router = useRouter();
@@ -147,18 +148,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   centered: {
-    paddingHorizontal: 14,
+    paddingHorizontal: s(14),
   },
   content: {
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    paddingBottom: 24,
+    paddingHorizontal: s(12),
+    paddingTop: s(10),
+    paddingBottom: s(24),
   },
   stepLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
-    marginBottom: 10,
+    marginBottom: s(10),
   },
   stepName: {
     color: colors.navy,
@@ -167,37 +168,37 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 8,
+    marginBottom: s(8),
   },
   emptyCard: {
     backgroundColor: colors.white,
-    borderRadius: 10,
+    borderRadius: s(10),
     borderWidth: 1,
     borderColor: colors.border,
-    padding: 14,
-    marginBottom: 10,
+    padding: s(14),
+    marginBottom: s(10),
   },
   emptyTitle: {
     fontFamily: fonts.lora,
-    fontSize: 14,
+    fontSize: fs(14),
     color: colors.navy,
-    marginBottom: 4,
+    marginBottom: s(4),
   },
   emptyBody: {
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.gray,
-    lineHeight: 17,
+    lineHeight: fs(17),
   },
   addLink: {
-    marginTop: 4,
-    marginBottom: 10,
-    paddingVertical: 9,
-    borderRadius: 10,
+    marginTop: s(4),
+    marginBottom: s(10),
+    paddingVertical: vs(9),
+    borderRadius: s(10),
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: '#c8d9e6',
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
   },
   addLinkText: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
   },
 });

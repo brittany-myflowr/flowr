@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import type { TodayPeriodProgress } from '@/hooks/useTodayProgressByTimeOfDay';
+import { s, vs, fs } from '@/lib/scale';
 
 type TodayProgressCardProps = {
   period: TodayPeriodProgress;
@@ -41,10 +42,10 @@ export function TodayProgressCard({ period }: TodayProgressCardProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 6,
+    borderRadius: s(10),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(10),
+    marginBottom: s(6),
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -52,39 +53,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 5,
+    marginBottom: s(5),
   },
   title: {
     fontFamily: fonts.lora,
-    fontSize: 13,
+    fontSize: fs(13),
     color: colors.navy,
   },
   count: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
   },
   track: {
-    height: 4,
-    borderRadius: 4,
+    height: vs(4),
+    borderRadius: s(4),
     backgroundColor: '#f0f0ee',
-    marginBottom: 6,
+    marginBottom: s(6),
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
     backgroundColor: colors.blue,
-    borderRadius: 4,
+    borderRadius: s(4),
   },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
+    gap: s(4),
   },
   chip: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 8,
+    paddingHorizontal: s(7),
+    paddingVertical: vs(2),
+    borderRadius: s(8),
     borderWidth: 1,
   },
   chipDone: {
@@ -97,7 +98,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
+    fontSize: fs(8),
   },
   chipTextDone: {
     color: colors.blue,

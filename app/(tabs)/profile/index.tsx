@@ -16,6 +16,7 @@ import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { getFlowerColorByName } from '@/lib/flowerColor';
 import { useAuth } from '@/providers/AppStore';
+import { s, fs } from '@/lib/scale';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: 18 + insets.top }]}>
+      <View style={[styles.header, { paddingTop: s(18) + insets.top }]}>
         <Text style={styles.title}>My Profile</Text>
       </View>
 
@@ -87,7 +88,7 @@ export default function ProfileScreen() {
         <Text style={styles.sectionLabel}>App</Text>
         <ProfileMenuRow
           label="About flowr"
-          icon={<Daisy color={colors.muted} size={16} />}
+          icon={<Daisy color={colors.muted} size={s(16)} />}
           onPress={() => router.push('/(tabs)/profile/about')}
         />
         <ProfileMenuRow
@@ -122,34 +123,34 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   header: {
-    paddingHorizontal: 14,
-    paddingBottom: 8,
+    paddingHorizontal: s(14),
+    paddingBottom: s(8),
   },
   title: {
     fontFamily: fonts.lora,
-    fontSize: 20,
+    fontSize: fs(20),
     color: colors.navy,
   },
   content: {
-    paddingHorizontal: 10,
-    paddingBottom: 24,
+    paddingHorizontal: s(10),
+    paddingBottom: s(24),
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 5,
-    marginTop: 4,
+    marginBottom: s(5),
+    marginTop: s(4),
   },
   devSectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.dangerLight,
-    marginBottom: 5,
-    marginTop: 10,
+    marginBottom: s(5),
+    marginTop: s(10),
   },
 });

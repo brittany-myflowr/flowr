@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/Badge';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import type { Product, Verdict } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 export const verdictColors: Record<Verdict, string> = {
   'Love It': colors.blue,
@@ -69,7 +70,7 @@ export function ProductPickRow({ product, selected = false, onPress }: ProductPi
           {product.verdict}
         </Text>
       </View>
-      {selected ? <CheckIcon size={14} color={colors.blue} /> : null}
+      {selected ? <CheckIcon size={s(14)} color={colors.blue} /> : null}
     </Pressable>
   );
 }
@@ -77,72 +78,72 @@ export function ProductPickRow({ product, selected = false, onPress }: ProductPi
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 6,
+    borderRadius: s(10),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(10),
+    marginBottom: s(6),
     borderWidth: 1,
     borderColor: colors.border,
   },
   name: {
     fontFamily: fonts.lora,
-    fontSize: 13,
+    fontSize: fs(13),
     color: colors.navy,
   },
   brand: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.muted,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    marginTop: 3,
+    gap: s(5),
+    marginTop: s(3),
   },
   category: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 1,
+    fontSize: fs(8),
+    letterSpacing: s(1),
     textTransform: 'uppercase',
     color: colors.muted,
   },
   dot: {
     color: colors.border,
-    fontSize: 8,
+    fontSize: fs(8),
   },
   verdict: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     fontWeight: '500',
   },
   notesBox: {
-    marginTop: 4,
+    marginTop: s(4),
     backgroundColor: colors.inputBg,
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 4,
+    borderRadius: s(6),
+    paddingHorizontal: s(7),
+    paddingVertical: vs(4),
   },
   notes: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.gray,
   },
   linkedSteps: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
-    marginTop: 5,
+    gap: s(4),
+    marginTop: s(5),
   },
   pickRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.white,
-    borderRadius: 10,
-    paddingHorizontal: 11,
-    paddingVertical: 9,
-    marginBottom: 5,
+    borderRadius: s(10),
+    paddingHorizontal: s(11),
+    paddingVertical: vs(9),
+    marginBottom: s(5),
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -155,13 +156,13 @@ const styles = StyleSheet.create({
   },
   pickName: {
     fontFamily: fonts.lora,
-    fontSize: 12,
+    fontSize: fs(12),
     color: colors.navy,
   },
   pickVerdict: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     fontWeight: '500',
   },
 });

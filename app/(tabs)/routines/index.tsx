@@ -12,6 +12,7 @@ import { fonts } from '@/constants/typography';
 import { formatTimeOfDay, useRoutines } from '@/providers/RoutinesProvider';
 import { useCycleSettings } from '@/providers/AppStore';
 import type { TimeOfDay } from '@/types';
+import { s, fs } from '@/lib/scale';
 
 const TIME_OF_DAY_ORDER: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
 
@@ -46,7 +47,7 @@ export default function RoutinesScreen() {
   if (routines.length === 0) {
     return (
       <View style={styles.screen}>
-        <View style={[styles.header, { paddingTop: 18 + insets.top }]}>
+        <View style={[styles.header, { paddingTop: s(18) + insets.top }]}>
           <Text style={styles.title}>My Routines</Text>
           <Text style={styles.subtitle}>0 active of 0 total</Text>
         </View>
@@ -60,7 +61,7 @@ export default function RoutinesScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: 18 + insets.top }]}>
+      <View style={[styles.header, { paddingTop: s(18) + insets.top }]}>
         <Text style={styles.title}>My Routines</Text>
         <Text style={styles.subtitle}>
           {activeCount} active of {routines.length} total
@@ -106,35 +107,35 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   header: {
-    paddingHorizontal: 14,
-    paddingBottom: 8,
+    paddingHorizontal: s(14),
+    paddingBottom: s(8),
   },
   title: {
     fontFamily: fonts.lora,
-    fontSize: 20,
+    fontSize: fs(20),
     color: colors.navy,
   },
   subtitle: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
   },
   emptyContent: {
     flex: 1,
-    paddingHorizontal: 14,
-    paddingTop: 8,
-    paddingBottom: 24,
+    paddingHorizontal: s(14),
+    paddingTop: s(8),
+    paddingBottom: s(24),
   },
   listContent: {
-    paddingHorizontal: 10,
-    paddingBottom: 24,
+    paddingHorizontal: s(10),
+    paddingBottom: s(24),
   },
   createButton: {
-    marginTop: 4,
-    marginBottom: 8,
+    marginTop: s(4),
+    marginBottom: s(8),
   },
   cycleSection: {
-    marginTop: 4,
+    marginTop: s(4),
   },
 });

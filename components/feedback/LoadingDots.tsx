@@ -1,12 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
+import { s } from '@/lib/scale';
 
 type LoadingDotsProps = {
   color?: string;
   size?: number;
 };
 
-export function LoadingDots({ color = 'rgba(255,255,255,0.4)', size = 6 }: LoadingDotsProps) {
+export function LoadingDots({ color = 'rgba(255,255,255,0.4)', size = s(6) }: LoadingDotsProps) {
   const opacities = useRef([0, 1, 2].map(() => new Animated.Value(0.4))).current;
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export function LoadingDots({ color = 'rgba(255,255,255,0.4)', size = 6 }: Loadi
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    gap: 6,
+    gap: s(6),
     justifyContent: 'center',
   },
   dot: {},

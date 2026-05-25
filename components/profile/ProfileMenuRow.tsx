@@ -4,6 +4,7 @@ import { Daisy } from '@/components/brand';
 import { ChevronRightIcon } from '@/components/icons/ProfileIcons';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type ProfileMenuRowProps = {
   label: string;
@@ -54,7 +55,7 @@ export function ProfileUserCard({
   return (
     <View style={styles.card}>
       <View style={[styles.avatar, { backgroundColor: flowerBg, borderColor: `${flowerStroke}66` }]}>
-        <Daisy color={flowerStroke} size={22} />
+        <Daisy color={flowerStroke} size={s(22)} />
       </View>
       <View style={styles.copy}>
         <Text style={styles.name}>{firstName}</Text>
@@ -71,12 +72,12 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: s(10),
     backgroundColor: colors.white,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 5,
+    borderRadius: s(10),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(10),
+    marginBottom: s(5),
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
   label: {
     flex: 1,
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.navy,
   },
   labelDanger: {
@@ -97,24 +98,24 @@ const styles = StyleSheet.create({
   },
   trailing: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.dangerLight,
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: s(12),
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: s(12),
+    padding: s(14),
     borderWidth: 1,
     borderColor: colors.border,
-    marginBottom: 10,
+    marginBottom: s(10),
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: s(44),
+    height: vs(44),
+    borderRadius: s(22),
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
@@ -124,26 +125,26 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: fonts.lora,
-    fontSize: 15,
+    fontSize: fs(15),
     color: colors.navy,
   },
   email: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.blue,
   },
   editButton: {
     backgroundColor: colors.light,
     borderWidth: 1,
     borderColor: '#c8d9e6',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    borderRadius: s(8),
+    paddingHorizontal: s(10),
+    paddingVertical: vs(5),
   },
   editLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.blue,
   },
 });

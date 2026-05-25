@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type DividerProps = {
   label?: string;
@@ -21,18 +22,18 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginVertical: 8,
+    gap: s(8),
+    marginVertical: vs(8),
   },
   line: {
     flex: 1,
-    height: 1,
+    height: vs(1),
     backgroundColor: colors.border,
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 7,
-    letterSpacing: 2,
+    fontSize: fs(7),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
   },

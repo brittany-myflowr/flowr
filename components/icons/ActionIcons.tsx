@@ -1,13 +1,14 @@
 import Svg, { Circle, Line, Path } from 'react-native-svg';
 
 import { colors } from '@/constants/colors';
+import { s } from '@/lib/scale';
 
 type IconProps = {
   size?: number;
   color?: string;
 };
 
-export function DragHandleIcon({ size = 10, color = '#d1d5db' }: IconProps) {
+export function DragHandleIcon({ size = s(10), color = '#d1d5db' }: IconProps) {
   const height = size * 1.4;
   const positions = [2, 7, 12];
 
@@ -23,7 +24,7 @@ export function DragHandleIcon({ size = 10, color = '#d1d5db' }: IconProps) {
   );
 }
 
-export function BellIcon({ size = 13, color = colors.border }: IconProps) {
+export function BellIcon({ size = s(13), color = colors.border }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -44,7 +45,7 @@ export function BellIcon({ size = 13, color = colors.border }: IconProps) {
   );
 }
 
-export function CloseIcon({ size = 11, color = colors.border }: IconProps) {
+export function CloseIcon({ size = s(11), color = colors.border }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Line x1={18} y1={6} x2={6} y2={18} stroke={color} strokeWidth={2} strokeLinecap="round" />
@@ -53,7 +54,7 @@ export function CloseIcon({ size = 11, color = colors.border }: IconProps) {
   );
 }
 
-export function CheckIcon({ size = 10, color = colors.blue }: IconProps) {
+export function CheckIcon({ size = s(10), color = colors.blue }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path

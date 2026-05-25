@@ -19,6 +19,7 @@ import { colors } from '@/constants/colors';
 import { useProduct, useProducts } from '@/providers/AppStore';
 import { useToast } from '@/providers/ToastProvider';
 import type { Verdict } from '@/types';
+import { s } from '@/lib/scale';
 
 const FORM_CATEGORIES: Category[] = [
   'Skincare',
@@ -150,14 +151,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   centered: {
-    paddingHorizontal: 14,
+    paddingHorizontal: s(14),
   },
   content: {
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingHorizontal: s(14),
+    paddingTop: s(12),
+    paddingBottom: s(24),
   },
   deleteButton: {
-    marginTop: 8,
+    marginTop: s(8),
   },
 });

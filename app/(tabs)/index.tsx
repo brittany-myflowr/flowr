@@ -19,6 +19,7 @@ import {
 } from '@/lib/todayOrder';
 import { useAuth, useAppStore, useRoutines } from '@/providers/AppStore';
 import type { TimeOfDay } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 export default function TodayScreen() {
   const router = useRouter();
@@ -127,16 +128,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   content: {
-    paddingHorizontal: 14,
-    paddingTop: 16,
-    paddingBottom: 24,
+    paddingHorizontal: s(14),
+    paddingTop: s(16),
+    paddingBottom: s(24),
   },
   reorderBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: s(14),
+    paddingVertical: vs(8),
     backgroundColor: colors.light,
     borderBottomWidth: 1,
     borderBottomColor: '#c8d9e6',
@@ -144,42 +145,42 @@ const styles = StyleSheet.create({
   reorderBannerText: {
     flex: 1,
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.blue,
   },
   reorderDone: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.navy,
     fontWeight: '600',
   },
   reorderLinkWrap: {
     alignSelf: 'flex-end',
-    marginBottom: 8,
+    marginBottom: s(8),
   },
   reorderLink: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.blue,
     textDecorationLine: 'underline',
   },
   emptyCard: {
     backgroundColor: colors.white,
-    borderRadius: 12,
+    borderRadius: s(12),
     borderWidth: 1,
     borderColor: colors.border,
-    padding: 16,
+    padding: s(16),
   },
   emptyTitle: {
     fontFamily: fonts.lora,
-    fontSize: 16,
+    fontSize: fs(16),
     color: colors.navy,
-    marginBottom: 6,
+    marginBottom: s(6),
   },
   emptyBody: {
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.gray,
-    lineHeight: 18,
+    lineHeight: fs(18),
   },
 });

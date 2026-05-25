@@ -4,6 +4,7 @@ import { PhaseFlower } from '@/components/brand';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import type { CyclePhaseInfo } from '@/lib/cycle';
+import { s, vs, fs } from '@/lib/scale';
 
 type CyclePhaseBannerProps = {
   phaseInfo: CyclePhaseInfo;
@@ -13,7 +14,7 @@ type CyclePhaseBannerProps = {
 export function CyclePhaseBanner({ phaseInfo, onDetails }: CyclePhaseBannerProps) {
   return (
     <View style={[styles.banner, { backgroundColor: `${phaseInfo.color}22`, borderColor: `${phaseInfo.color}44` }]}>
-      <PhaseFlower color={phaseInfo.color} size={18} />
+      <PhaseFlower color={phaseInfo.color} size={s(18)} />
       <View style={styles.copy}>
         <Text style={styles.title}>
           {phaseInfo.label} Phase · Day {phaseInfo.dayInCycle}
@@ -33,9 +34,9 @@ const styles = StyleSheet.create({
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    gap: s(8),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(8),
     borderBottomWidth: 1,
   },
   copy: {
@@ -43,19 +44,19 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: 10,
+    fontSize: fs(10),
     fontWeight: '600',
     color: colors.navy,
   },
   subtitle: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.gray,
   },
   details: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.blue,
     textDecorationLine: 'underline',
   },

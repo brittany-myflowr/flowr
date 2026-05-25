@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, fs } from '@/lib/scale';
 
 type SubPageHeaderProps = {
   title: string;
@@ -29,34 +30,34 @@ export function SubPageHeader({
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 18,
-    paddingHorizontal: 14,
-    paddingBottom: 10,
+    paddingTop: s(18),
+    paddingHorizontal: s(14),
+    paddingBottom: s(10),
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     backgroundColor: colors.bg,
   },
   back: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
-    marginBottom: 6,
+    marginBottom: s(6),
   },
   backDisabled: {
     opacity: 0.5,
   },
   subtitle: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 2,
+    marginBottom: s(2),
   },
   title: {
     fontFamily: fonts.lora,
-    fontSize: 18,
+    fontSize: fs(18),
     color: colors.navy,
-    lineHeight: 22,
+    lineHeight: fs(22),
   },
 });

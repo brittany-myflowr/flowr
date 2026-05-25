@@ -11,6 +11,7 @@ import {
 } from '@/components/icons/TabIcons';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 const TAB_CONFIG = {
   index: { label: 'Today', Icon: SunIcon },
@@ -26,7 +27,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 14) }]}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, s(16)) }]}>
       {state.routes.map((route, index) => {
         const config = TAB_CONFIG[route.name as TabRouteName];
         if (!config) return null;
@@ -57,7 +58,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             accessibilityLabel={descriptors[route.key].options.title ?? label}
           >
             <View style={[styles.iconWrap, !isFocused && styles.iconInactive]}>
-              <Icon size={18} color={color} />
+              <Icon size={s(22)} color={color} />
             </View>
             <Text style={[styles.label, isFocused ? styles.labelActive : styles.labelInactive]}>
               {label}
@@ -75,15 +76,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(250,250,248,0.97)',
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    paddingTop: 6,
+    paddingTop: s(10),
+    minHeight: vs(56),
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    gap: 2,
+    gap: s(4),
+    paddingVertical: s(2),
   },
   iconWrap: {
-    height: 20,
+    height: vs(28),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -92,8 +95,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 7,
-    letterSpacing: 1,
+    fontSize: fs(10),
+    letterSpacing: s(0.5),
     textTransform: 'uppercase',
   },
   labelActive: {

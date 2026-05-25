@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '@/constants/colors';
 import { WEEKDAY_LABELS } from '@/constants/schedules';
 import { fonts } from '@/constants/typography';
+import { s, fs } from '@/lib/scale';
 
 type WeekDayPickerProps = {
   selectedDays: number[];
@@ -41,13 +42,13 @@ export function WeekDayPicker({ selectedDays, onChange }: WeekDayPickerProps) {
 const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
-    gap: 4,
-    marginBottom: 12,
+    gap: s(4),
+    marginBottom: s(12),
   },
   day: {
     flex: 1,
     aspectRatio: 1,
-    borderRadius: 6,
+    borderRadius: s(6),
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -62,7 +63,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
   },
   labelDefault: {
     color: colors.gray,

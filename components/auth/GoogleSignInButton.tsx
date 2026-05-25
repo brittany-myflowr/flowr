@@ -3,6 +3,7 @@ import Svg, { Path } from 'react-native-svg';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type GoogleSignInButtonProps = {
   onPress?: () => void;
@@ -10,7 +11,7 @@ type GoogleSignInButtonProps = {
 
 function GoogleLogo() {
   return (
-    <Svg width={16} height={16} viewBox="0 0 24 24">
+    <Svg width={s(16)} height={s(16)} viewBox="0 0 24 24">
       <Path
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
         fill="#4285F4"
@@ -46,24 +47,24 @@ export function GoogleSignInButton({ onPress }: GoogleSignInButtonProps) {
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: 11,
-    paddingHorizontal: 14,
-    borderRadius: 10,
+    paddingVertical: vs(11),
+    paddingHorizontal: s(14),
+    borderRadius: s(10),
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.white,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    marginBottom: 12,
+    gap: s(8),
+    marginBottom: s(12),
   },
   pressed: {
     opacity: 0.85,
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.navy,
   },
 });

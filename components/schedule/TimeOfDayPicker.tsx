@@ -6,6 +6,7 @@ import { TIME_OF_DAY_OPTIONS } from '@/constants/schedules';
 import { formatTimeOfDay } from '@/constants/schedules';
 import type { TimeOfDay } from '@/types';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type TimeOfDayPickerProps = {
   value: TimeOfDay;
@@ -39,14 +40,14 @@ export function TimeOfDayPicker({ value, onChange }: TimeOfDayPickerProps) {
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    gap: 6,
-    marginBottom: 12,
+    gap: s(6),
+    marginBottom: s(12),
   },
   tile: {
     flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    borderRadius: 10,
+    paddingVertical: vs(8),
+    paddingHorizontal: s(4),
+    borderRadius: s(10),
     borderWidth: 1.5,
     alignItems: 'center',
   },
@@ -59,11 +60,11 @@ const styles = StyleSheet.create({
     borderColor: colors.navy,
   },
   icon: {
-    marginBottom: 3,
+    marginBottom: s(3),
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     textAlign: 'center',
   },
   labelDefault: {

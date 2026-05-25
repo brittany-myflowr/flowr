@@ -20,6 +20,7 @@ import { fonts } from '@/constants/typography';
 import { useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
 import type { Schedule } from '@/types';
+import { s, fs } from '@/lib/scale';
 
 export default function AddStepScreen() {
   const router = useRouter();
@@ -147,19 +148,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   centered: {
-    paddingHorizontal: 14,
+    paddingHorizontal: s(14),
   },
   content: {
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingHorizontal: s(14),
+    paddingTop: s(12),
+    paddingBottom: s(24),
   },
   emptyText: {
     fontFamily: fonts.dmSans,
-    fontSize: 12,
+    fontSize: fs(12),
     color: colors.gray,
-    lineHeight: 19,
-    marginBottom: 16,
-    paddingHorizontal: 14,
+    lineHeight: fs(19),
+    marginBottom: s(16),
+    paddingHorizontal: s(14),
   },
 });

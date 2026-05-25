@@ -2,6 +2,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { fonts } from '@/constants/typography';
+import { s } from '@/lib/scale';
 
 type ProgressRingProps = {
   percent: number;
@@ -14,8 +15,8 @@ type ProgressRingProps = {
 
 export function ProgressRing({
   percent,
-  size = 104,
-  strokeWidth = 5,
+  size = s(104),
+  strokeWidth = s(5),
   trackColor = 'rgba(255,255,255,0.2)',
   progressColor = 'rgba(255,255,255,0.9)',
   labelColor = '#fff',

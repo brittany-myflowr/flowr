@@ -11,6 +11,7 @@ import {
   formatTimeOfDay,
 } from '@/providers/RoutinesProvider';
 import type { Routine, ScheduleFrequency } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 type RoutineCardProps = {
   routine: Routine;
@@ -28,7 +29,7 @@ export function RoutineCard({ routine, onPress, onToggleActive }: RoutineCardPro
     >
       <View style={styles.headerRow}>
         <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
-          <Daisy color={categoryColor} size={16} />
+          <Daisy color={categoryColor} size={s(16)} />
         </View>
         <View style={styles.meta}>
           <Text style={styles.name}>{routine.name}</Text>
@@ -75,7 +76,7 @@ export function RoutineReviewCard({
     <View style={styles.reviewCard}>
       <View style={styles.headerRow}>
         <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
-          <Daisy color={categoryColor} size={16} />
+          <Daisy color={categoryColor} size={s(16)} />
         </View>
         <View style={styles.meta}>
           <Text style={styles.name}>{name}</Text>
@@ -100,9 +101,9 @@ export function RoutineReviewCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 6,
+    borderRadius: s(10),
+    padding: s(10),
+    marginBottom: s(6),
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -111,20 +112,20 @@ const styles = StyleSheet.create({
   },
   reviewCard: {
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: s(12),
+    padding: s(12),
     borderWidth: 1,
     borderColor: colors.border,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: s(8),
   },
   iconWrap: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
+    width: s(30),
+    height: vs(30),
+    borderRadius: s(8),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -133,61 +134,61 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: fonts.lora,
-    fontSize: 12,
+    fontSize: fs(12),
     color: colors.navy,
   },
   subtitle: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.muted,
   },
   scheduleChip: {
     alignSelf: 'flex-start',
-    marginTop: 6,
+    marginTop: s(6),
     backgroundColor: colors.light,
     borderWidth: 1,
     borderColor: '#c8d9e6',
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
+    borderRadius: s(6),
+    paddingHorizontal: s(7),
+    paddingVertical: vs(3),
   },
   scheduleText: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
+    fontSize: fs(8),
     color: colors.blue,
   },
   badges: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
-    marginTop: 5,
+    gap: s(4),
+    marginTop: s(5),
   },
   reviewStep: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    paddingVertical: 5,
+    gap: s(7),
+    paddingVertical: vs(5),
     borderTopWidth: 1,
     borderTopColor: colors.inputBg,
   },
   stepNumber: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: s(16),
+    height: vs(16),
+    borderRadius: s(8),
     backgroundColor: colors.light,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepNumberText: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: 8,
+    fontSize: fs(8),
     color: colors.blue,
     fontWeight: '600',
   },
   reviewStepName: {
     fontFamily: fonts.lora,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.navy,
   },
 });

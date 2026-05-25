@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type SelectableTileProps = {
   label: string;
@@ -25,9 +26,9 @@ export function SelectableTile({ label, selected = false, onPress }: SelectableT
 const styles = StyleSheet.create({
   tile: {
     flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    borderRadius: 10,
+    paddingVertical: vs(10),
+    paddingHorizontal: s(4),
+    borderRadius: s(10),
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     textAlign: 'center',
   },
   labelDefault: {

@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Toggle } from '@/components/ui/Toggle';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, fs } from '@/lib/scale';
 
 type CycleSyncCardProps = {
   enabled: boolean;
@@ -30,26 +31,26 @@ export function CycleSyncCard({ enabled, onToggle, onPress }: CycleSyncCardProps
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: 10,
-    padding: 12,
+    borderRadius: s(10),
+    padding: s(12),
     borderWidth: 1,
     borderColor: colors.border,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: s(10),
   },
   copy: {
     flex: 1,
   },
   title: {
     fontFamily: fonts.lora,
-    fontSize: 14,
+    fontSize: fs(14),
     color: colors.navy,
   },
   subtitle: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
   },
 });

@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Daisy, Logo } from '@/components/brand';
+import { BrandMark } from '@/components/brand';
 import { GradientBackground } from '@/components/ui/GradientBackground';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
 import type { TimeOfDay } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 const TIME_OF_DAY_LABELS: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
 
@@ -47,21 +48,29 @@ export function TimeOfDayHeader({
   };
 
   return (
-    <GradientBackground variant={actualTimeOfDay} style={[styles.header, { paddingTop: 18 + insets.top }]}>
+    <GradientBackground variant={actualTimeOfDay} style={[styles.header, { paddingTop: s(18) + insets.top }]}>
       {brandPlacement === 'corner' ? (
-        <View style={[styles.brandCorner, { top: insets.top + 18 }]}>
-          <Daisy color="rgba(255,255,255,0.75)" size={13} />
-          <Logo size={13} color="rgba(255,255,255,0.75)" />
+        <View style={[styles.brandCorner, { top: insets.top + s(18) }]}>
+          <BrandMark
+            direction="row"
+            flowerSize={s(13)}
+            logoSize={s(13)}
+            color="rgba(255,255,255,0.75)"
+          />
         </View>
       ) : null}
 
       <ProgressRing percent={percent} />
 
       {brandPlacement === 'center' ? (
-        <View style={styles.brandCenter}>
-          <Daisy color="rgba(255,255,255,0.95)" size={12} />
-          <Logo size={12} color="rgba(255,255,255,0.7)" />
-        </View>
+        <BrandMark
+          direction="row"
+          flowerSize={s(12)}
+          logoSize={s(12)}
+          color="rgba(255,255,255,0.95)"
+          logoColor="rgba(255,255,255,0.7)"
+          style={styles.brandCenter}
+        />
       ) : null}
 
       {greeting ? <Text style={styles.greeting}>{greeting}</Text> : null}
@@ -104,46 +113,40 @@ export function getTimeOfDayGreeting(timeOfDay: TimeOfDay, firstName?: string) {
 
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: 14,
-    paddingBottom: 14,
+    paddingHorizontal: s(14),
+    paddingBottom: s(14),
     alignItems: 'center',
   },
   brandCorner: {
     position: 'absolute',
-    left: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
+    left: s(14),
   },
   brandCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 6,
-    marginBottom: 6,
+    marginTop: s(6),
+    marginBottom: s(6),
   },
   greeting: {
     fontFamily: fonts.lora,
-    fontSize: 14,
+    fontSize: fs(14),
     color: colors.white,
     textAlign: 'center',
-    marginBottom: 2,
+    marginBottom: s(2),
   },
   stepsLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: 'rgba(255,255,255,0.7)',
   },
   tabs: {
     flexDirection: 'row',
     width: '100%',
-    marginTop: 8,
+    marginTop: s(8),
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.15)',
   },
   tab: {
     flex: 1,
-    paddingVertical: 6,
+    paddingVertical: vs(6),
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
@@ -152,8 +155,8 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 1,
+    fontSize: fs(8),
+    letterSpacing: s(1),
     textTransform: 'uppercase',
     color: 'rgba(255,255,255,0.5)',
     textAlign: 'center',

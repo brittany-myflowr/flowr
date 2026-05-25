@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type ChipProps = {
   label: string;
@@ -36,14 +37,14 @@ export function Chip({ label, selected = false, small = false, onPress }: ChipPr
 
 const styles = StyleSheet.create({
   chip: {
-    paddingHorizontal: 11,
-    paddingVertical: 5,
-    borderRadius: 14,
+    paddingHorizontal: s(11),
+    paddingVertical: vs(5),
+    borderRadius: s(14),
     borderWidth: 1,
   },
   chipSmall: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: s(8),
+    paddingVertical: vs(3),
   },
   chipDefault: {
     backgroundColor: colors.white,
@@ -55,10 +56,10 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
   },
   labelSmall: {
-    fontSize: 8,
+    fontSize: fs(8),
   },
   labelDefault: {
     color: colors.gray,

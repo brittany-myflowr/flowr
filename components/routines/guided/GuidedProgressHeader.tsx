@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 const STEP_TITLES = [
   'Name your routine',
@@ -43,9 +44,9 @@ export function GuidedProgressHeader({ step, onBack }: GuidedProgressHeaderProps
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 18,
-    paddingHorizontal: 14,
-    paddingBottom: 10,
+    paddingTop: s(18),
+    paddingHorizontal: s(14),
+    paddingBottom: s(10),
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     backgroundColor: colors.bg,
@@ -54,12 +55,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: s(10),
   },
   back: {
-    width: 52,
+    width: s(52),
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
   },
   backHidden: {
@@ -68,32 +69,32 @@ const styles = StyleSheet.create({
   progress: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: s(4),
   },
   progressBar: {
-    height: 3,
-    width: 12,
-    borderRadius: 2,
+    height: vs(3),
+    width: s(12),
+    borderRadius: s(2),
     backgroundColor: colors.border,
   },
   progressComplete: {
     backgroundColor: colors.navy,
   },
   progressCurrent: {
-    width: 18,
+    width: s(18),
     backgroundColor: colors.blue,
   },
   stepCount: {
-    width: 52,
+    width: s(52),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.muted,
     textAlign: 'right',
   },
   title: {
     fontFamily: fonts.lora,
-    fontSize: 16,
+    fontSize: fs(16),
     color: colors.navy,
-    lineHeight: 20,
+    lineHeight: fs(20),
   },
 });
