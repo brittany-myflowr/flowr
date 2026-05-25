@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 
 export const APP_NAME = 'flowr';
 export const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
-export const FEEDBACK_EMAIL = 'hello@flowr.com';
+export const FEEDBACK_EMAIL = 'hello@myflowr.co';
 export const FEEDBACK_SUBJECT = 'flowr feedback';
 
 export const TERMS_URL = 'https://flowr.app/terms';
