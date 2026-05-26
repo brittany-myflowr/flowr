@@ -25,8 +25,17 @@ export default function ProfileScreen() {
   const flowerColor = getFlowerColorByName(user?.flowerColorName);
 
   const handleSignOut = () => {
-    signOut();
-    router.replace('/(auth)/splash');
+    Alert.alert('Log out?', 'You will need to sign in again to access your account.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Log Out',
+        style: 'destructive',
+        onPress: () => {
+          signOut();
+          router.replace('/(auth)/splash');
+        },
+      },
+    ]);
   };
 
   const handleReset = () => {
