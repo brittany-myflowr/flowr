@@ -1,14 +1,24 @@
 import { useMemo } from 'react';
 
+import type { Category } from '@/constants/categories';
 import { formatTimeOfDay } from '@/constants/schedules';
 import { useTodayProgress } from '@/hooks/useTodaySteps';
-import type { TodayStep } from '@/hooks/useTodaySteps';
+import { groupTodayStepsByRoutine } from '@/lib/todayGroups';
 import type { TimeOfDay } from '@/types';
+
+export type TodayRoutinePeriodProgress = {
+  routineId: string;
+  routineName: string;
+  category: Category;
+  done: number;
+  total: number;
+  isFullyComplete: boolean;
+};
 
 export type TodayPeriodProgress = {
   timeOfDay: TimeOfDay;
   label: string;
-  steps: TodayStep[];
+  routines: TodayRoutinePeriodProgress[];
   done: number;
   total: number;
   percent: number;
@@ -28,13 +38,25 @@ export function useTodayProgressByTimeOfDay(date = new Date()) {
       evening,
     } as const;
 
-    return TIME_OF_DAY_ORDER.map((timeOfDay) => ({
-      timeOfDay,
-      label: formatTimeOfDay(timeOfDay),
-      steps: byTimeOfDay[timeOfDay].steps,
-      done: byTimeOfDay[timeOfDay].done,
-      total: byTimeOfDay[timeOfDay].total,
-      percent: byTimeOfDay[timeOfDay].percent,
-    }));
+    return TIME_OF_DAY_ORDER.map((timeOfDay) => {
+      const progress = byTimeOfDay[timeOfDay];
+      const routines = groupTodayStepsByRoutine(progress.steps).map((group) => ({
+        routineId: group.routine.id,
+        routineName: group.routine.name,
+        category: group.routine.category,
+        done: group.doneCount,
+        total: group.totalCount,
+        isFullyComplete: group.isFullyComplete,
+      }));
+
+      return {
+        timeOfDay,
+        label: formatTimeOfDay(timeOfDay),
+        routines,
+        done: progress.done,
+        total: progress.total,
+        percent: progress.percent,
+      };
+    });
   }, [morning, afternoon, evening]);
 }

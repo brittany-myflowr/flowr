@@ -11,7 +11,8 @@ import { s, vs, fs } from '@/lib/scale';
 
 type TodayStepRowProps = {
   step: Step;
-  routineName: string;
+  routineName?: string;
+  showRoutineName?: boolean;
   phaseKeys?: PhaseKey[];
   reorderMode?: boolean;
   index?: number;
@@ -24,7 +25,8 @@ type TodayStepRowProps = {
 
 export function TodayStepRow({
   step,
-  routineName,
+  routineName = '',
+  showRoutineName = true,
   phaseKeys,
   reorderMode = false,
   index = 0,
@@ -70,12 +72,14 @@ export function TodayStepRow({
 
       <View style={styles.copy}>
         <Text style={[styles.stepName, step.done && styles.stepNameDone]}>{step.name}</Text>
-        <View style={styles.meta}>
-          <Text style={styles.routineName}>{routineName}</Text>
-          {phaseKeys?.map((phaseKey) => (
-            <PhaseChip key={phaseKey} phaseKey={phaseKey} />
-          ))}
-        </View>
+        {showRoutineName || phaseKeys?.length || step.productName ? (
+          <View style={styles.meta}>
+            {showRoutineName ? <Text style={styles.routineName}>{routineName}</Text> : null}
+            {phaseKeys?.map((phaseKey) => (
+              <PhaseChip key={phaseKey} phaseKey={phaseKey} />
+            ))}
+          </View>
+        ) : null}
         {step.productName ? (
           <Text style={styles.productName}>{step.productName}</Text>
         ) : null}
@@ -165,7 +169,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stepName: {
-    fontFamily: fonts.cardTitle,
+    fontFamily: fonts.dmSans,
     fontSize: fs(14),
     color: colors.navy,
   },

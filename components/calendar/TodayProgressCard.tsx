@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import type { TodayPeriodProgress } from '@/hooks/useTodayProgressByTimeOfDay';
@@ -24,16 +25,32 @@ export function TodayProgressCard({ period }: TodayProgressCardProps) {
       </View>
 
       <View style={styles.chips}>
-        {period.steps.map(({ step }) => (
-          <View
-            key={step.id}
-            style={[styles.chip, step.done ? styles.chipDone : styles.chipPending]}
-          >
-            <Text style={[styles.chipText, step.done ? styles.chipTextDone : styles.chipTextPending]}>
-              {step.name}
-            </Text>
-          </View>
-        ))}
+        {period.routines.map((routine) => {
+          const categoryColor = categoryColors[routine.category];
+
+          return (
+            <View
+              key={routine.routineId}
+              style={[
+                styles.chip,
+                {
+                  backgroundColor: `${categoryColor}28`,
+                  borderColor: categoryColor,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.chipText,
+                  { color: categoryColor },
+                  routine.isFullyComplete && styles.chipTextComplete,
+                ]}
+              >
+                {routine.routineName}
+              </Text>
+            </View>
+          );
+        })}
       </View>
     </View>
   );
@@ -88,22 +105,11 @@ const styles = StyleSheet.create({
     borderRadius: s(8),
     borderWidth: 1,
   },
-  chipDone: {
-    backgroundColor: colors.light,
-    borderColor: '#c8d9e6',
-  },
-  chipPending: {
-    backgroundColor: colors.inputBg,
-    borderColor: colors.border,
-  },
   chipText: {
     fontFamily: fonts.dmSans,
     fontSize: fs(9.5),
   },
-  chipTextDone: {
-    color: colors.blue,
-  },
-  chipTextPending: {
-    color: colors.gray,
+  chipTextComplete: {
+    opacity: 0.65,
   },
 });

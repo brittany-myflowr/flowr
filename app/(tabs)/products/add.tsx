@@ -1,5 +1,5 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -41,6 +41,16 @@ export default function AddProductScreen() {
   const [categoryIndex, setCategoryIndex] = useState(0);
   const [verdict, setVerdict] = useState<Verdict>('Love It');
   const [notes, setNotes] = useState('');
+
+  useFocusEffect(
+    useCallback(() => {
+      setName('');
+      setBrand('');
+      setCategoryIndex(0);
+      setVerdict('Love It');
+      setNotes('');
+    }, []),
+  );
 
   const handleSave = () => {
     if (!name.trim() || !brand.trim()) return;
