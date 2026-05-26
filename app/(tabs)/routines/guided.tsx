@@ -18,7 +18,6 @@ import {
   GuidedStepCard,
   type GuidedStepDraft,
 } from '@/components/routines/guided/GuidedStepCard';
-import { StepReminderSheet } from '@/components/routines/StepReminderSheet';
 import { RoutineReviewCard } from '@/components/routines/RoutineCard';
 import { ScheduleEditorForm } from '@/components/schedule/ScheduleEditorForm';
 import { Chip } from '@/components/ui/Chip';
@@ -39,7 +38,7 @@ import {
 import { fonts } from '@/constants/typography';
 import { useProducts, useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
-import type { Schedule, StepReminder } from '@/types';
+import type { Schedule } from '@/types';
 import { s, vs } from '@/lib/scale';
 
 export default function GuidedSetupScreen() {
@@ -47,7 +46,6 @@ export default function GuidedSetupScreen() {
   const insets = useSafeAreaInsets();
   const {
     addRoutine,
-    updateStepReminder,
     consumePendingGuidedStepScheduleResult,
     consumePendingGuidedStepProductResult,
     setPendingGuidedStepScheduleInit,
@@ -62,7 +60,6 @@ export default function GuidedSetupScreen() {
     normalizeSchedule(defaultScheduleForTimeOfDay('morning')),
   );
   const [steps, setSteps] = useState<GuidedStepDraft[]>([]);
-  const [reminderIndex, setReminderIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (step === 3 && steps.length === 0) {
@@ -104,8 +101,7 @@ export default function GuidedSetupScreen() {
         entry.name.trim().length > 0 ||
         entry.note.trim().length > 0 ||
         entry.schedule ||
-        entry.productId ||
-        entry.reminder?.enabled,
+        entry.productId,
     ) ||
     step > 1;
 
@@ -134,13 +130,13 @@ export default function GuidedSetupScreen() {
     handleExit();
   };
 
-  const goNext = async () => {
+  const goNext = () => {
     if (step < 4) {
       setStep((current) => current + 1);
       return;
     }
 
-    const routine = addRoutine({
+    addRoutine({
       name,
       category,
       schedule: routineSchedule,
@@ -149,23 +145,8 @@ export default function GuidedSetupScreen() {
         note: entry.note.trim() || undefined,
         schedule: entry.schedule ?? undefined,
         productId: entry.productId ?? undefined,
-        reminder: entry.reminder,
       })),
     });
-
-    for (const createdStep of routine.steps) {
-      if (createdStep.reminder?.enabled) {
-        const synced = await updateStepReminder(
-          routine.id,
-          createdStep.id,
-          createdStep.reminder,
-        );
-        if (!synced) {
-          showToast('Enable notifications in Settings');
-          break;
-        }
-      }
-    }
 
     showToast('Routine created');
     router.replace('/(tabs)/routines');
@@ -229,7 +210,6 @@ export default function GuidedSetupScreen() {
       scheduleLabel: entry.schedule
         ? formatSchedulePreview(entry.schedule)
         : undefined,
-      reminderEnabled: entry.reminder?.enabled,
     };
   });
 
@@ -239,8 +219,6 @@ export default function GuidedSetupScreen() {
       : step === 3
         ? validSteps.length > 0
         : true;
-
-  const reminderDraft = reminderIndex !== null ? steps[reminderIndex] : undefined;
 
   return (
     <KeyboardAvoidingView
@@ -302,7 +280,7 @@ export default function GuidedSetupScreen() {
         {step === 3 ? (
           <>
             <Text style={styles.helper}>
-              Add each action with its name, note, schedule, product, and reminder.
+              Add each action with its name, note, schedule, and product.
             </Text>
             {steps.map((entry, index) => {
               const product = entry.productId
@@ -320,12 +298,10 @@ export default function GuidedSetupScreen() {
                   draft={entry}
                   scheduleLabel={scheduleLabel}
                   productName={product?.name}
-                  reminderEnabled={entry.reminder?.enabled}
                   onChangeName={(value) => updateStepDraft(index, { name: value })}
                   onChangeNote={(value) => updateStepDraft(index, { note: value })}
                   onCustomizeSchedule={() => openScheduleCustomizer(index)}
                   onTagProduct={() => openTagProduct(index)}
-                  onSetReminder={() => setReminderIndex(index)}
                   onRemove={() => removeStep(index)}
                 />
               );
@@ -353,21 +329,6 @@ export default function GuidedSetupScreen() {
           />
         </View>
       </ScrollView>
-
-      {reminderDraft && reminderIndex !== null ? (
-        <StepReminderSheet
-          visible
-          stepName={reminderDraft.name.trim() || `Step ${reminderIndex + 1}`}
-          routineName={name.trim() || 'New routine'}
-          reminder={reminderDraft.reminder}
-          timeOfDay={routineSchedule.timeOfDay}
-          onSave={(reminder: StepReminder) => {
-            updateStepDraft(reminderIndex, { reminder });
-            setReminderIndex(null);
-          }}
-          onCancel={() => setReminderIndex(null)}
-        />
-      ) : null}
     </KeyboardAvoidingView>
   );
 }

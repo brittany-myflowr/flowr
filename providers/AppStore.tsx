@@ -31,7 +31,6 @@ import type {
   Schedule,
   ScheduleFrequency,
   Step,
-  StepReminder,
   TimeOfDay,
   User,
 } from '@/types';
@@ -40,19 +39,12 @@ import {
   EMPTY_TODAY_STEP_ORDERS,
   type TodayStepOrderMap,
 } from '@/lib/todayOrder';
-import {
-  cancelStepReminderNotification,
-  syncAllStepReminders,
-  syncStepReminderNotification,
-} from '@/lib/notifications';
-import * as Notifications from 'expo-notifications';
 
 export type CreateRoutineStepInput = {
   name: string;
   note?: string;
   schedule?: Schedule;
   productId?: string;
-  reminder?: StepReminder;
 };
 
 export type CreateRoutineInput = {
@@ -115,13 +107,8 @@ type AppStoreValue = {
   updateStep: (
     routineId: string,
     stepId: string,
-    updates: Partial<Pick<Step, 'name' | 'note' | 'productName' | 'productId' | 'done' | 'reminder'>>,
+    updates: Partial<Pick<Step, 'name' | 'note' | 'productName' | 'productId' | 'done'>>,
   ) => void;
-  updateStepReminder: (
-    routineId: string,
-    stepId: string,
-    reminder: StepReminder,
-  ) => Promise<boolean>;
   toggleStepDone: (routineId: string, stepId: string) => void;
   addStep: (routineId: string, input: AddStepInput) => Step | null;
   updateRoutine: (
@@ -185,7 +172,6 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     productId: string | null;
   } | null>(null);
   const skipNextSave = useRef(true);
-  const remindersSyncedRef = useRef(false);
 
   useEffect(() => {
     loadPersistedState().then((state) => {
@@ -231,12 +217,6 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     cycleSettings,
     todayStepOrders,
   ]);
-
-  useEffect(() => {
-    if (!hydrated || remindersSyncedRef.current) return;
-    remindersSyncedRef.current = true;
-    void syncAllStepReminders(routines);
-  }, [hydrated, routines]);
 
   const signUp = useCallback(
     (input: SignUpInput): string | null => {
@@ -321,8 +301,6 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
   const resetAllData = useCallback(async () => {
     await clearPersistedState();
-    await Notifications.cancelAllScheduledNotificationsAsync();
-    remindersSyncedRef.current = false;
     setIsLoggedIn(false);
     setUser(null);
     setCredentials(null);
@@ -346,7 +324,6 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
           note: stepInput.note?.trim(),
           schedule: stepInput.schedule,
           productId: stepInput.productId,
-          reminder: stepInput.reminder,
         }))
         .filter((stepInput) => stepInput.name.length > 0)
         .map((stepInput) => {
@@ -363,7 +340,6 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
             schedule: stepInput.schedule,
             productId: product?.id,
             productName: product?.name,
-            reminder: stepInput.reminder,
           };
         });
 
@@ -394,13 +370,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const removeRoutine = useCallback((id: string) => {
-    setRoutines((current) => {
-      const routine = current.find((item) => item.id === id);
-      routine?.steps.forEach((step) => {
-        void cancelStepReminderNotification(step.id);
-      });
-      return current.filter((routine) => routine.id !== id);
-    });
+    setRoutines((current) => current.filter((routine) => routine.id !== id));
   }, []);
 
   const reorderSteps = useCallback((routineId: string, steps: Step[]) => {
@@ -417,7 +387,6 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const removeStep = useCallback((routineId: string, stepId: string) => {
-    void cancelStepReminderNotification(stepId);
     setRoutines((current) =>
       current.map((routine) =>
         routine.id === routineId
@@ -431,7 +400,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     (
       routineId: string,
       stepId: string,
-      updates: Partial<Pick<Step, 'name' | 'note' | 'productName' | 'productId' | 'done' | 'reminder'>>,
+      updates: Partial<Pick<Step, 'name' | 'note' | 'productName' | 'productId' | 'done'>>,
     ) => {
       setRoutines((current) =>
         current.map((routine) =>
@@ -447,30 +416,6 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       );
     },
     [],
-  );
-
-  const updateStepReminder = useCallback(
-    async (routineId: string, stepId: string, reminder: StepReminder): Promise<boolean> => {
-      const routine = routines.find((item) => item.id === routineId);
-      const step = routine?.steps.find((item) => item.id === stepId);
-      if (!routine || !step) return false;
-
-      const nextStep: Step = { ...step, reminder };
-
-      setRoutines((current) =>
-        current.map((item) =>
-          item.id === routineId
-            ? {
-                ...item,
-                steps: item.steps.map((entry) => (entry.id === stepId ? nextStep : entry)),
-              }
-            : item,
-        ),
-      );
-
-      return syncStepReminderNotification(nextStep, routine);
-    },
-    [routines],
   );
 
   const toggleStepDone = useCallback((routineId: string, stepId: string) => {
@@ -703,7 +648,6 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       reorderTodaySteps,
       removeStep,
       updateStep,
-      updateStepReminder,
       toggleStepDone,
       addStep,
       updateRoutine,
@@ -750,7 +694,6 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       reorderTodaySteps,
       removeStep,
       updateStep,
-      updateStepReminder,
       toggleStepDone,
       addStep,
       updateRoutine,
@@ -802,7 +745,6 @@ export function useRoutines() {
     reorderTodaySteps: store.reorderTodaySteps,
     removeStep: store.removeStep,
     updateStep: store.updateStep,
-    updateStepReminder: store.updateStepReminder,
     toggleStepDone: store.toggleStepDone,
     tagStepProduct: store.tagStepProduct,
     addStep: store.addStep,

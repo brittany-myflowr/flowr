@@ -64,7 +64,6 @@ export type RoutineReviewStep = {
   note?: string;
   productName?: string;
   scheduleLabel?: string;
-  reminderEnabled?: boolean;
 };
 
 type RoutineReviewCardProps = {
@@ -107,9 +106,6 @@ export function RoutineReviewCard({
             ) : null}
             {step.scheduleLabel ? (
               <Text style={styles.reviewStepMeta}>{step.scheduleLabel}</Text>
-            ) : null}
-            {step.reminderEnabled ? (
-              <Text style={styles.reviewStepMeta}>Reminder on</Text>
             ) : null}
           </View>
         </View>

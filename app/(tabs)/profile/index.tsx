@@ -3,7 +3,6 @@ import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Daisy } from '@/components/brand';
 import {
-  BellOutlineIcon,
   CardOutlineIcon,
   LogOutOutlineIcon,
   MessageOutlineIcon,
@@ -68,11 +67,6 @@ export default function ProfileScreen() {
         ) : null}
 
         <Text style={styles.sectionLabel}>Account</Text>
-        <ProfileMenuRow
-          label="Notifications"
-          icon={<BellOutlineIcon />}
-          onPress={() => router.push('/(tabs)/profile/notifications')}
-        />
         <ProfileMenuRow
           label="Manage Subscription"
           icon={<CardOutlineIcon />}

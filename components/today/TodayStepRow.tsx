@@ -59,9 +59,13 @@ export function TodayStepRow({
           </Pressable>
         </View>
       ) : (
-        <View style={[styles.checkbox, step.done && styles.checkboxDone]}>
+        <Pressable
+          onPress={onToggle}
+          hitSlop={s(8)}
+          style={[styles.checkbox, step.done && styles.checkboxDone]}
+        >
           {step.done ? <CheckIcon size={s(12)} color={colors.white} /> : null}
-        </View>
+        </Pressable>
       )}
 
       <View style={styles.copy}>
@@ -79,7 +83,7 @@ export function TodayStepRow({
     </>
   );
 
-  const cardStyle = [styles.card, step.done && styles.cardDone];
+  const cardStyle = styles.card;
 
   if (reorderMode) {
     return (
@@ -91,12 +95,7 @@ export function TodayStepRow({
   }
 
   return (
-    <Pressable
-      onPress={onToggle}
-      onLongPress={onLongPress}
-      delayLongPress={250}
-      style={cardStyle}
-    >
+    <Pressable onLongPress={onLongPress} delayLongPress={250} style={cardStyle}>
       <View style={[styles.categoryBar, { backgroundColor: categoryColor }]} />
       <View style={styles.cardBody}>{content}</View>
     </Pressable>
@@ -124,9 +123,6 @@ const styles = StyleSheet.create({
     gap: s(10),
     paddingHorizontal: s(12),
     paddingVertical: vs(11),
-  },
-  cardDone: {
-    opacity: 0.72,
   },
   reorderActions: {
     flexDirection: 'row',

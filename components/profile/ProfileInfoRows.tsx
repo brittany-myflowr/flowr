@@ -2,34 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
-import {
-  getNotificationPermissionLabel,
-  type NotificationPermissionStatus,
-} from '@/hooks/useNotificationPermission';
 import { s, vs, fs } from '@/lib/scale';
-
-type PermissionStatusRowProps = {
-  status: NotificationPermissionStatus;
-};
-
-const STATUS_COLORS: Record<NotificationPermissionStatus, string> = {
-  allowed: colors.blue,
-  denied: colors.danger,
-  not_determined: colors.muted,
-};
-
-export function PermissionStatusRow({ status }: PermissionStatusRowProps) {
-  return (
-    <View style={styles.row}>
-      <Text style={styles.label}>Permission Status</Text>
-      <View style={[styles.badge, { backgroundColor: `${STATUS_COLORS[status]}22` }]}>
-        <Text style={[styles.badgeText, { color: STATUS_COLORS[status] }]}>
-          {getNotificationPermissionLabel(status)}
-        </Text>
-      </View>
-    </View>
-  );
-}
 
 type PlanOptionCardProps = {
   label: string;
@@ -89,29 +62,6 @@ export function PolicyLinkRow({ label, onPress, first = false }: PolicyLinkRowPr
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: s(10),
-  },
-  label: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(8),
-    letterSpacing: s(2),
-    textTransform: 'uppercase',
-    color: colors.muted,
-  },
-  badge: {
-    borderRadius: s(999),
-    paddingHorizontal: s(10),
-    paddingVertical: vs(4),
-  },
-  badgeText: {
-    fontFamily: fonts.dmSansSemiBold,
-    fontSize: fs(10),
-    fontWeight: '600',
-  },
   planCard: {
     flexDirection: 'row',
     alignItems: 'center',

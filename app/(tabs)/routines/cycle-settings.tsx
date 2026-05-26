@@ -70,7 +70,12 @@ export default function CycleSettingsScreen() {
               <Text style={styles.currentPhaseLabel}>Currently In</Text>
               <Text style={styles.currentPhaseTitle}>{phaseInfo.label} Phase</Text>
               <Text style={styles.currentPhaseMeta}>
-                Day {phaseInfo.dayInCycle} of {phaseInfo.cycleLength} · {phaseInfo.description}
+                Day {phaseInfo.dayInCycle} of {phaseInfo.cycleLength}
+                {phaseInfo.daysRemaining === 0
+                  ? ' · Last day of cycle'
+                  : ` · ${phaseInfo.daysRemaining} day${phaseInfo.daysRemaining === 1 ? '' : 's'} remaining`}
+                {' · '}
+                {phaseInfo.description}
               </Text>
             </View>
           </View>

@@ -19,7 +19,13 @@ export function CyclePhaseBanner({ phaseInfo, onDetails }: CyclePhaseBannerProps
         <Text style={styles.title}>
           {phaseInfo.label} Phase · Day {phaseInfo.dayInCycle}
         </Text>
-        <Text style={styles.subtitle}>{phaseInfo.description}</Text>
+        <Text style={styles.subtitle}>
+          {phaseInfo.daysRemaining === 0
+            ? 'Last day of cycle'
+            : `${phaseInfo.daysRemaining} day${phaseInfo.daysRemaining === 1 ? '' : 's'} remaining`}
+          {' · '}
+          {phaseInfo.description}
+        </Text>
       </View>
       {onDetails ? (
         <Pressable onPress={onDetails}>

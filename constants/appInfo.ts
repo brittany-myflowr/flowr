@@ -9,7 +9,7 @@ export const TERMS_URL = 'https://flowr.app/terms';
 export const PRIVACY_POLICY_URL = 'https://flowr.app/privacy';
 
 export const APP_DESCRIPTION =
-  'flowr helps you build and track self-care routines — from skincare and wellness to daily habits — with optional cycle syncing and gentle reminders.';
+  'flowr helps you build and track self-care routines — from skincare and wellness to daily habits — with optional cycle syncing.';
 
 export type PremiumPlan = {
   id: PremiumPlanId;

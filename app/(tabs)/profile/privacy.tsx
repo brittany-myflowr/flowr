@@ -44,17 +44,13 @@ export default function PrivacyScreen() {
           Account details you provide (name and email), routines, products, cycle settings, and
           completion history. This data is stored locally on your device.
         </Text>
-        <Text style={[styles.paragraph, styles.paragraphLast]}>
-          If you enable step reminders, iOS notification permissions are used to deliver alerts at
-          the times you choose.
-        </Text>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>How it&apos;s used</Text>
         <Text style={styles.paragraph}>
           Your data powers your personal flowr experience — showing today&apos;s steps, tracking
-          progress, syncing routines to your cycle, and sending optional reminders.
+          progress, and syncing routines to your cycle.
         </Text>
         <Text style={[styles.paragraph, styles.paragraphLast]}>
           We do not sell your data. Cloud sync and analytics may be added in future releases with

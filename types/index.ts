@@ -13,12 +13,6 @@ export type ScheduleFrequency =
   | 'custom'
   | 'cycle';
 
-export type StepReminder = {
-  enabled: boolean;
-  hour: number;
-  minute: number;
-};
-
 export type Step = {
   id: string;
   name: string;
@@ -28,7 +22,6 @@ export type Step = {
   productId?: string;
   productName?: string;
   schedule?: Schedule;
-  reminder?: StepReminder;
 };
 
 export type Routine = {

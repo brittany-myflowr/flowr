@@ -6,17 +6,29 @@ export type CyclePhaseInfo = {
   phase: PhaseKey;
   dayInCycle: number;
   cycleLength: number;
+  daysRemaining: number;
   label: string;
   description: string;
   color: string;
 };
 
-/** Reference new moon used for lunar sync (always 28-day cycle from nearest new moon). */
-const LUNAR_REFERENCE = new Date(2024, 0, 11);
+/** Known reference new moon: January 6, 2000. Lunar cycles are 28 days from each new moon. */
+const LUNAR_REFERENCE_NEW_MOON = new Date(2000, 0, 6);
+const LUNAR_CYCLE_LENGTH = 28;
+
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
 
 function daysBetween(start: Date, end: Date) {
-  const ms = end.getTime() - start.getTime();
+  const ms = startOfDay(end).getTime() - startOfDay(start).getTime();
   return Math.floor(ms / (1000 * 60 * 60 * 24));
+}
+
+function addDays(date: Date, days: number) {
+  const result = startOfDay(date);
+  result.setDate(result.getDate() + days);
+  return result;
 }
 
 function parseIsoDate(value: string): Date | null {
@@ -26,7 +38,7 @@ function parseIsoDate(value: string): Date | null {
   return new Date(year, month - 1, day);
 }
 
-function phaseForDay(dayInCycle: number, cycleLength: number, periodLength: number): PhaseKey {
+function menstrualPhaseForDay(dayInCycle: number, cycleLength: number, periodLength: number): PhaseKey {
   const menstrualEnd = Math.min(periodLength, cycleLength);
   const ovulationCenter = Math.round(cycleLength * 0.5);
   const ovulationStart = Math.max(menstrualEnd + 1, ovulationCenter - 1);
@@ -38,15 +50,31 @@ function phaseForDay(dayInCycle: number, cycleLength: number, periodLength: numb
   return 'luteal';
 }
 
-export function getDayInCycle(settings: CycleSettings, date = new Date()): number | null {
-  const cycleLength = settings.cycleLength || 28;
+function lunarPhaseForDay(dayInCycle: number): PhaseKey {
+  if (dayInCycle <= 5) return 'menstrual';
+  if (dayInCycle <= 14) return 'follicular';
+  if (dayInCycle <= 19) return 'ovulatory';
+  return 'luteal';
+}
 
+function getLunarDayInCycle(date: Date): number {
+  const daysSinceReference = daysBetween(LUNAR_REFERENCE_NEW_MOON, date);
+  const cyclesSinceReference = Math.floor(daysSinceReference / LUNAR_CYCLE_LENGTH);
+  const mostRecentNewMoon = addDays(
+    LUNAR_REFERENCE_NEW_MOON,
+    cyclesSinceReference * LUNAR_CYCLE_LENGTH,
+  );
+  const daysSinceNewMoon = daysBetween(mostRecentNewMoon, date);
+
+  return daysSinceNewMoon + 1;
+}
+
+export function getDayInCycle(settings: CycleSettings, date = new Date()): number | null {
   if (settings.method === 'lunar') {
-    const daysSinceReference = daysBetween(LUNAR_REFERENCE, date);
-    const mod = ((daysSinceReference % 28) + 28) % 28;
-    return mod + 1;
+    return getLunarDayInCycle(date);
   }
 
+  const cycleLength = settings.cycleLength || 28;
   const start = parseIsoDate(settings.lastPeriodStart);
   if (!start) return null;
 
@@ -62,17 +90,23 @@ export function getCurrentPhaseInfo(
 ): CyclePhaseInfo | null {
   if (!settings.enabled) return null;
 
-  const cycleLength = settings.cycleLength || 28;
+  const cycleLength =
+    settings.method === 'lunar' ? LUNAR_CYCLE_LENGTH : settings.cycleLength || 28;
   const dayInCycle = getDayInCycle(settings, date);
   if (!dayInCycle) return null;
 
-  const phase = phaseForDay(dayInCycle, cycleLength, settings.periodLength || 5);
+  const phase =
+    settings.method === 'lunar'
+      ? lunarPhaseForDay(dayInCycle)
+      : menstrualPhaseForDay(dayInCycle, cycleLength, settings.periodLength || 5);
   const meta = phases[phase];
+  const daysRemaining = cycleLength - dayInCycle;
 
   return {
     phase,
     dayInCycle,
     cycleLength,
+    daysRemaining,
     label: meta.label,
     description: meta.description,
     color: meta.color,

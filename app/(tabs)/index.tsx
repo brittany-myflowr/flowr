@@ -6,6 +6,8 @@ import { CyclePhaseBanner } from '@/components/cycle/CyclePhaseBanner';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { FirstRoutineCard } from '@/components/onboarding/FirstRoutineCard';
 import { TodayStepRow } from '@/components/today/TodayStepRow';
+import { FullWidthButton } from '@/components/ui/Button';
+import { Divider } from '@/components/ui/Divider';
 import {
   getTimeOfDayGreeting,
   TimeOfDayHeader,
@@ -20,6 +22,7 @@ import {
 } from '@/lib/todayOrder';
 import { useAuth, useAppStore, useRoutines } from '@/providers/AppStore';
 import type { TimeOfDay } from '@/types';
+import type { TodayStep } from '@/hooks/useTodaySteps';
 import { s, vs, fs } from '@/lib/scale';
 
 export default function TodayScreen() {
@@ -35,6 +38,15 @@ export default function TodayScreen() {
 
   const stepIds = useMemo(() => steps.map(({ step }) => step.id), [steps]);
 
+  const activeSteps = useMemo(
+    () => steps.filter(({ step }) => !step.done),
+    [steps],
+  );
+  const completedSteps = useMemo(
+    () => steps.filter(({ step }) => step.done),
+    [steps],
+  );
+
   const stepsLabel =
     total === 0 ? 'No steps for this time of day' : `${done} of ${total} steps done`;
 
@@ -46,6 +58,27 @@ export default function TodayScreen() {
   const moveStep = (fromIndex: number, toIndex: number) => {
     const order = syncTodayStepOrder(todayStepOrders[selectedTimeOfDay] ?? [], stepIds);
     reorderTodaySteps(selectedTimeOfDay, moveTodayStepOrder(order, fromIndex, toIndex));
+  };
+
+  const renderStepRow = ({ step, routine }: TodayStep, index: number, listLength: number) => {
+    const schedule = step.schedule ?? routine.schedule;
+    const phaseKeys = schedule.frequency === 'cycle' ? schedule.phases : undefined;
+
+    return (
+      <TodayStepRow
+        key={step.id}
+        step={step}
+        routineName={routine.name}
+        phaseKeys={phaseKeys}
+        reorderMode={reorderMode}
+        index={index}
+        total={listLength}
+        onToggle={() => toggleStepDone(routine.id, step.id)}
+        onLongPress={() => setReorderMode(true)}
+        onMoveUp={() => moveStep(index, index - 1)}
+        onMoveDown={() => moveStep(index, index + 1)}
+      />
+    );
   };
 
   return (
@@ -80,39 +113,45 @@ export default function TodayScreen() {
       >
         {routines.length === 0 ? (
           <FirstRoutineCard onGetStarted={() => router.push('/(tabs)/routines/guided')} />
-        ) : total === 0 ? (
-          <InlineEmptyCard
-            title="Nothing scheduled"
-            body={`No active steps are set for ${selectedTimeOfDay}. Check another time of day or add steps to your routines.`}
-          />
         ) : (
           <>
-            {!reorderMode && total > 1 ? (
-              <Pressable onPress={() => setReorderMode(true)} style={styles.reorderLinkWrap}>
-                <Text style={styles.reorderLink}>Reorder steps</Text>
-              </Pressable>
-            ) : null}
-            {steps.map(({ step, routine }, index) => {
-              const schedule = step.schedule ?? routine.schedule;
-              const phaseKeys =
-                schedule.frequency === 'cycle' ? schedule.phases : undefined;
-
-              return (
-                <TodayStepRow
-                  key={step.id}
-                  step={step}
-                  routineName={routine.name}
-                  phaseKeys={phaseKeys}
-                  reorderMode={reorderMode}
-                  index={index}
-                  total={steps.length}
-                  onToggle={() => toggleStepDone(routine.id, step.id)}
-                  onLongPress={() => setReorderMode(true)}
-                  onMoveUp={() => moveStep(index, index - 1)}
-                  onMoveDown={() => moveStep(index, index + 1)}
-                />
-              );
-            })}
+            {total === 0 ? (
+              <InlineEmptyCard
+                title="Nothing scheduled"
+                body={`No active steps are set for ${selectedTimeOfDay}. Check another time of day or add steps to your routines.`}
+              />
+            ) : (
+              <>
+                {!reorderMode && total > 1 ? (
+                  <Pressable onPress={() => setReorderMode(true)} style={styles.reorderLinkWrap}>
+                    <Text style={styles.reorderLink}>Reorder steps</Text>
+                  </Pressable>
+                ) : null}
+                {reorderMode
+                  ? steps.map((item, index) => renderStepRow(item, index, steps.length))
+                  : (
+                    <>
+                      {activeSteps.map((item, index) =>
+                        renderStepRow(item, index, activeSteps.length),
+                      )}
+                      {completedSteps.length > 0 ? (
+                        <>
+                          <Divider label="Completed" />
+                          {completedSteps.map((item, index) =>
+                            renderStepRow(item, index, completedSteps.length),
+                          )}
+                        </>
+                      ) : null}
+                    </>
+                  )}
+              </>
+            )}
+            <View style={styles.addStepButton}>
+              <FullWidthButton
+                label="+ Add a Step"
+                onPress={() => router.push('/(tabs)/routines/add-step')}
+              />
+            </View>
           </>
         )}
       </ScrollView>
@@ -165,5 +204,8 @@ const styles = StyleSheet.create({
     fontSize: fs(9),
     color: colors.blue,
     textDecorationLine: 'underline',
+  },
+  addStepButton: {
+    marginTop: s(12),
   },
 });

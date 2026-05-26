@@ -1,4 +1,5 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Daisy } from '@/components/brand';
 import { Chip } from '@/components/ui/Chip';
@@ -17,6 +18,7 @@ type RoutineDetailHeaderProps = {
   onBack?: () => void;
   onEditSchedule?: () => void;
   onCategoryChange?: (category: Category) => void;
+  onNameChange?: (name: string) => void;
 };
 
 export function RoutineDetailHeader({
@@ -24,8 +26,18 @@ export function RoutineDetailHeader({
   onBack,
   onEditSchedule,
   onCategoryChange,
+  onNameChange,
 }: RoutineDetailHeaderProps) {
   const categoryColor = categoryColors[routine.category];
+  const [isEditingName, setIsEditingName] = useState(false);
+
+  const finishEditingName = () => {
+    setIsEditingName(false);
+    const trimmed = routine.name.trim();
+    if (!trimmed && onNameChange) {
+      onNameChange('My Routine');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -37,12 +49,32 @@ export function RoutineDetailHeader({
         <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
           <Daisy color={categoryColor} size={s(18)} />
         </View>
-        <View style={styles.meta}>
-          <Text style={styles.name}>{routine.name}</Text>
-          <Text style={styles.subtitle}>
-            {routine.category} · {routine.steps.length} steps
-          </Text>
-        </View>
+        <Pressable
+          style={styles.meta}
+          onPress={onNameChange ? () => setIsEditingName(true) : undefined}
+        >
+          {isEditingName ? (
+            <TextInput
+              value={routine.name}
+              onChangeText={onNameChange}
+              onBlur={finishEditingName}
+              autoFocus
+              style={styles.nameInput}
+              placeholder="Routine name"
+              placeholderTextColor={colors.muted}
+            />
+          ) : (
+            <>
+              <Text style={styles.name}>{routine.name}</Text>
+              {onNameChange ? <Text style={styles.editHint}>tap to edit</Text> : null}
+            </>
+          )}
+          {!isEditingName ? (
+            <Text style={styles.subtitle}>
+              {routine.category} · {routine.steps.length} steps
+            </Text>
+          ) : null}
+        </Pressable>
       </View>
 
       <Pressable onPress={onEditSchedule} style={styles.scheduleChip}>
@@ -113,6 +145,18 @@ const styles = StyleSheet.create({
     fontFamily: fonts.lora,
     fontSize: fs(16),
     color: colors.navy,
+  },
+  nameInput: {
+    fontFamily: fonts.lora,
+    fontSize: fs(16),
+    color: colors.navy,
+    padding: 0,
+  },
+  editHint: {
+    marginTop: s(1),
+    fontFamily: fonts.dmSans,
+    fontSize: fs(8),
+    color: '#c8d9e6',
   },
   subtitle: {
     marginTop: s(1),

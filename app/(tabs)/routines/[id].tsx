@@ -6,25 +6,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
 import { RoutineDetailHeader } from '@/components/routines/RoutineDetailHeader';
 import { RoutineStepRow } from '@/components/routines/RoutineStepRow';
-import { StepReminderSheet } from '@/components/routines/StepReminderSheet';
 import { FullWidthButton } from '@/components/ui/Button';
 import { colors } from '@/constants/colors';
 import type { Category } from '@/constants/categories';
 import { fonts } from '@/constants/typography';
 import { useRoutine, useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
-import type { Step, StepReminder } from '@/types';
+import type { Step } from '@/types';
 import { s, vs, fs } from '@/lib/scale';
 
 type DeleteTarget =
   | { type: 'step'; stepId: string; stepName: string }
   | { type: 'routine' }
   | null;
-
-type ReminderTarget = {
-  stepId: string;
-  stepName: string;
-} | null;
 
 function moveStep(steps: Step[], from: number, to: number) {
   if (to < 0 || to >= steps.length || from === to) return steps;
@@ -39,14 +33,12 @@ export default function RoutineDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const routine = useRoutine(id);
-  const { reorderSteps, removeStep, removeRoutine, updateStep, updateStepReminder, updateRoutine } =
-    useRoutines();
+  const { reorderSteps, removeStep, removeRoutine, updateStep, updateRoutine } = useRoutines();
   const { showToast } = useToast();
 
   const [editingStepId, setEditingStepId] = useState<string | null>(null);
   const [reorderMode, setReorderMode] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
-  const [reminderTarget, setReminderTarget] = useState<ReminderTarget>(null);
 
   if (!routine) {
     return (
@@ -106,24 +98,6 @@ export default function RoutineDetailScreen() {
     });
   };
 
-  const reminderStep = reminderTarget
-    ? routine.steps.find((step) => step.id === reminderTarget.stepId)
-    : undefined;
-
-  const handleSaveReminder = async (reminder: StepReminder) => {
-    if (!reminderTarget) return;
-
-    const synced = await updateStepReminder(routine.id, reminderTarget.stepId, reminder);
-
-    if (reminder.enabled && !synced) {
-      showToast('Enable notifications in Settings');
-    } else {
-      showToast(reminder.enabled ? 'Reminder saved' : 'Reminder off');
-    }
-
-    setReminderTarget(null);
-  };
-
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <RoutineDetailHeader
@@ -134,6 +108,7 @@ export default function RoutineDetailScreen() {
           updateRoutine(routine.id, { category });
           showToast('Category updated');
         }}
+        onNameChange={(name) => updateRoutine(routine.id, { name })}
       />
 
       {reorderMode ? (
@@ -169,10 +144,6 @@ export default function RoutineDetailScreen() {
             }
             onCustomSchedule={() => openStepSchedule(step.id)}
             onTagProduct={() => openTagProduct(step.id)}
-            onReminder={() =>
-              setReminderTarget({ stepId: step.id, stepName: step.name })
-            }
-            reminderEnabled={step.reminder?.enabled ?? false}
           />
         ))}
 
@@ -193,16 +164,6 @@ export default function RoutineDetailScreen() {
         message={deleteMessage}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTarget(null)}
-      />
-
-      <StepReminderSheet
-        visible={reminderTarget !== null}
-        stepName={reminderTarget?.stepName ?? ''}
-        routineName={routine.name}
-        reminder={reminderStep?.reminder}
-        timeOfDay={reminderStep?.schedule?.timeOfDay ?? routine.schedule.timeOfDay}
-        onSave={handleSaveReminder}
-        onCancel={() => setReminderTarget(null)}
       />
     </View>
   );

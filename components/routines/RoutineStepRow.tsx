@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { BellIcon, CheckIcon, CloseIcon, DragHandleIcon } from '@/components/icons/ActionIcons';
+import { CheckIcon, CloseIcon, DragHandleIcon } from '@/components/icons/ActionIcons';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import type { Step } from '@/types';
@@ -21,8 +21,6 @@ type RoutineStepRowProps = {
   onDelete?: () => void;
   onTagProduct?: () => void;
   onCustomSchedule?: () => void;
-  onReminder?: () => void;
-  reminderEnabled?: boolean;
 };
 
 export function RoutineStepRow({
@@ -40,8 +38,6 @@ export function RoutineStepRow({
   onDelete,
   onTagProduct,
   onCustomSchedule,
-  onReminder,
-  reminderEnabled = false,
 }: RoutineStepRowProps) {
   return (
     <View style={styles.card}>
@@ -95,10 +91,7 @@ export function RoutineStepRow({
           )}
         </Pressable>
 
-        <View style={[styles.actions, reminderEnabled && styles.actionsActive]}>
-          <Pressable onPress={onReminder} hitSlop={8} disabled={!onReminder}>
-            <BellIcon color={reminderEnabled ? colors.blue : '#c8d9e6'} />
-          </Pressable>
+        <View style={styles.actions}>
           <Pressable onPress={onDelete} hitSlop={8}>
             <CloseIcon color="#c8d9e6" />
           </Pressable>
@@ -203,9 +196,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: s(10),
     opacity: 0.5,
-  },
-  actionsActive: {
-    opacity: 1,
   },
   chips: {
     flexDirection: 'row',

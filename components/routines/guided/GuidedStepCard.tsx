@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { BellIcon, CheckIcon, CloseIcon } from '@/components/icons/ActionIcons';
+import { CheckIcon, CloseIcon } from '@/components/icons/ActionIcons';
 import { colors } from '@/constants/colors';
 import { guidedFlowSizes, guidedFlowTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
@@ -11,7 +11,6 @@ export type GuidedStepDraft = {
   note: string;
   schedule: import('@/types').Schedule | null;
   productId: string | null;
-  reminder?: import('@/types').StepReminder;
 };
 
 export function createEmptyGuidedStepDraft(): GuidedStepDraft {
@@ -20,7 +19,6 @@ export function createEmptyGuidedStepDraft(): GuidedStepDraft {
     note: '',
     schedule: null,
     productId: null,
-    reminder: undefined,
   };
 }
 
@@ -30,12 +28,10 @@ type GuidedStepCardProps = {
   draft: GuidedStepDraft;
   scheduleLabel: string;
   productName?: string;
-  reminderEnabled?: boolean;
   onChangeName: (name: string) => void;
   onChangeNote: (note: string) => void;
   onCustomizeSchedule: () => void;
   onTagProduct: () => void;
-  onSetReminder: () => void;
   onRemove?: () => void;
 };
 
@@ -45,12 +41,10 @@ export function GuidedStepCard({
   draft,
   scheduleLabel,
   productName,
-  reminderEnabled = false,
   onChangeName,
   onChangeNote,
   onCustomizeSchedule,
   onTagProduct,
-  onSetReminder,
   onRemove,
 }: GuidedStepCardProps) {
   return (
@@ -61,9 +55,6 @@ export function GuidedStepCard({
         </View>
         <Text style={styles.headerLabel}>Step {index + 1}</Text>
         <View style={styles.headerActions}>
-          <Pressable onPress={onSetReminder} hitSlop={8}>
-            <BellIcon color={reminderEnabled ? colors.blue : '#c8d9e6'} />
-          </Pressable>
           {total > 1 && onRemove ? (
             <Pressable onPress={onRemove} hitSlop={8}>
               <CloseIcon color="#c8d9e6" />
