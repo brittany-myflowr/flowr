@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { CounterRow } from '@/components/cycle/SyncMethodPicker';
@@ -10,10 +9,10 @@ import { Chip } from '@/components/ui/Chip';
 import { FullWidthButton } from '@/components/ui/Button';
 import { colors } from '@/constants/colors';
 import {
-  cloneSchedule,
   END_OPTIONS,
   formatSchedulePreview,
   FREQUENCY_OPTIONS,
+  normalizeSchedule,
   type EndOption,
 } from '@/constants/schedules';
 import { fonts } from '@/constants/typography';
@@ -26,22 +25,23 @@ import { s, vs, fs } from '@/lib/scale';
 const CYCLE_FREQUENCY_OPTION = { value: 'cycle' as const, label: 'Cycle Phase' };
 
 type ScheduleEditorFormProps = {
-  initialSchedule: Schedule;
-  onSave: (schedule: Schedule) => void;
+  schedule: Schedule;
+  onScheduleChange: (schedule: Schedule) => void;
+  showSaveButton?: boolean;
+  onSave?: () => void;
 };
 
-function withStartDate(schedule: Schedule): Schedule {
-  return {
-    ...schedule,
-    startDate: schedule.startDate ?? todayIsoDate(),
-  };
-}
-
-export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFormProps) {
+export function ScheduleEditorForm({
+  schedule,
+  onScheduleChange,
+  showSaveButton = true,
+  onSave,
+}: ScheduleEditorFormProps) {
   const { cycleSettings } = useCycleSettings();
-  const [schedule, setSchedule] = useState<Schedule>(() =>
-    withStartDate(cloneSchedule(initialSchedule)),
-  );
+
+  const updateSchedule = (updater: (current: Schedule) => Schedule) => {
+    onScheduleChange(normalizeSchedule(updater(schedule)));
+  };
 
   const frequencyOptions = cycleSettings.enabled
     ? [...FREQUENCY_OPTIONS, CYCLE_FREQUENCY_OPTION]
@@ -54,7 +54,7 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
   const ends = schedule.ends ?? 'never';
 
   const setFrequency = (frequency: ScheduleFrequency) => {
-    setSchedule((current) => {
+    updateSchedule((current) => {
       const startDate = current.startDate ?? todayIsoDate();
 
       return {
@@ -80,7 +80,7 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
   };
 
   const togglePhase = (phase: PhaseKey) => {
-    setSchedule((current) => {
+    updateSchedule((current) => {
       const phases = current.phases ?? [];
       const next = phases.includes(phase)
         ? phases.filter((item) => item !== phase)
@@ -91,7 +91,7 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
   };
 
   const setEnds = (nextEnds: EndOption) => {
-    setSchedule((current) => {
+    updateSchedule((current) => {
       const startDate = current.startDate ?? todayIsoDate();
       const next: Schedule = { ...current, ends: nextEnds, startDate };
 
@@ -105,10 +105,6 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
 
       return next;
     });
-  };
-
-  const handleSave = () => {
-    onSave(withStartDate(schedule));
   };
 
   return (
@@ -125,7 +121,7 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
             key={option.value}
             label={option.label}
             selected={schedule.frequency === option.value}
-            small
+            form
             onPress={() => setFrequency(option.value)}
           />
         ))}
@@ -139,7 +135,7 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
           max={90}
           unit="days"
           onChange={(customIntervalDays) =>
-            setSchedule((current) => ({ ...current, customIntervalDays }))
+            updateSchedule((current) => ({ ...current, customIntervalDays }))
           }
         />
       ) : null}
@@ -149,7 +145,9 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
           <Text style={styles.sectionLabel}>On These Days</Text>
           <WeekDayPicker
             selectedDays={schedule.daysOfWeek ?? []}
-            onChange={(daysOfWeek) => setSchedule((current) => ({ ...current, daysOfWeek }))}
+            onChange={(daysOfWeek) =>
+              updateSchedule((current) => ({ ...current, daysOfWeek }))
+            }
           />
         </>
       ) : null}
@@ -167,13 +165,13 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
       <Text style={styles.sectionLabel}>Time of Day</Text>
       <TimeOfDayPicker
         value={schedule.timeOfDay}
-        onChange={(timeOfDay) => setSchedule((current) => ({ ...current, timeOfDay }))}
+        onChange={(timeOfDay) => updateSchedule((current) => ({ ...current, timeOfDay }))}
       />
 
       <DateStepperRow
         label="Start Date"
         value={schedule.startDate ?? todayIsoDate()}
-        onChange={(startDate) => setSchedule((current) => ({ ...current, startDate }))}
+        onChange={(startDate) => updateSchedule((current) => ({ ...current, startDate }))}
       />
 
       <Text style={styles.sectionLabel}>Ends</Text>
@@ -205,7 +203,7 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
         <DateStepperRow
           label="End Date"
           value={schedule.endDate ?? defaultEndDate(schedule.startDate ?? todayIsoDate())}
-          onChange={(endDate) => setSchedule((current) => ({ ...current, endDate }))}
+          onChange={(endDate) => updateSchedule((current) => ({ ...current, endDate }))}
         />
       ) : null}
 
@@ -217,14 +215,16 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
           max={365}
           unit="times"
           onChange={(endAfterCount) =>
-            setSchedule((current) => ({ ...current, endAfterCount }))
+            updateSchedule((current) => ({ ...current, endAfterCount }))
           }
         />
       ) : null}
 
-      <View style={styles.footer}>
-        <FullWidthButton label="Save Schedule" onPress={handleSave} />
-      </View>
+      {showSaveButton && onSave ? (
+        <View style={styles.footer}>
+          <FullWidthButton label="Save Schedule" onPress={onSave} />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: s(4),
+    gap: s(6),
     marginBottom: s(12),
   },
   endsRow: {

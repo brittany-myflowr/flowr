@@ -14,7 +14,7 @@ import {
   formatFrequency,
   formatTimeOfDay,
 } from '@/providers/RoutinesProvider';
-import type { Routine, ScheduleFrequency } from '@/types';
+import type { Routine } from '@/types';
 import { s, vs, fs } from '@/lib/scale';
 
 type RoutineCardProps = {
@@ -70,16 +70,14 @@ export type RoutineReviewStep = {
 type RoutineReviewCardProps = {
   name: string;
   category: Category;
-  frequency: ScheduleFrequency;
-  timeOfDay: Routine['timeOfDay'];
+  scheduleLabel: string;
   steps: RoutineReviewStep[];
 };
 
 export function RoutineReviewCard({
   name,
   category,
-  frequency,
-  timeOfDay,
+  scheduleLabel,
   steps,
 }: RoutineReviewCardProps) {
   const categoryColor = categoryColors[category];
@@ -92,9 +90,7 @@ export function RoutineReviewCard({
         </View>
         <View style={styles.meta}>
           <Text style={styles.reviewName}>{name}</Text>
-          <Text style={styles.reviewSubtitle}>
-            {formatFrequency(frequency)} · {formatTimeOfDay(timeOfDay)}
-          </Text>
+          <Text style={styles.reviewSubtitle}>{scheduleLabel}</Text>
         </View>
       </View>
 

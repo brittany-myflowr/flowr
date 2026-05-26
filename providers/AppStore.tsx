@@ -10,7 +10,7 @@ import {
 
 import { defaultFlowerColor } from '@/constants/flowerColors';
 import { createId } from '@/lib/createId';
-import { defaultScheduleForTimeOfDay } from '@/constants/schedules';
+import { defaultScheduleForTimeOfDay, normalizeSchedule } from '@/constants/schedules';
 import {
   type DailyCompletionMap,
   snapshotTodayCompletion,
@@ -58,8 +58,7 @@ export type CreateRoutineStepInput = {
 export type CreateRoutineInput = {
   name: string;
   category: Category;
-  timeOfDay: TimeOfDay;
-  frequency: ScheduleFrequency;
+  schedule: Schedule;
   steps: CreateRoutineStepInput[];
 };
 
@@ -368,17 +367,16 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
           };
         });
 
+      const routineSchedule = normalizeSchedule(input.schedule);
+
       const routine: Routine = {
         id: routineId,
         name: input.name.trim(),
         category: input.category,
-        timeOfDay: input.timeOfDay,
+        timeOfDay: routineSchedule.timeOfDay,
         active: true,
         steps,
-        schedule: {
-          ...defaultScheduleForTimeOfDay(input.timeOfDay),
-          frequency: input.frequency,
-        },
+        schedule: routineSchedule,
       };
 
       setRoutines((current) => [...current, routine]);

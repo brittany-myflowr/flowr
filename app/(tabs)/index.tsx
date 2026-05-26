@@ -52,7 +52,7 @@ export default function TodayScreen() {
     <View style={styles.screen}>
       <TimeOfDayHeader
         percent={percent}
-        greeting={getTimeOfDayGreeting(selectedTimeOfDay, user?.firstName)}
+        greeting={getTimeOfDayGreeting(actualTimeOfDay, user?.firstName)}
         stepsLabel={stepsLabel}
         selectedTimeOfDay={selectedTimeOfDay}
         onTimeOfDayChange={handleTimeOfDayChange}

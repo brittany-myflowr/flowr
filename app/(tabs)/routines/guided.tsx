@@ -1,5 +1,5 @@
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -20,13 +20,18 @@ import {
 } from '@/components/routines/guided/GuidedStepCard';
 import { StepReminderSheet } from '@/components/routines/StepReminderSheet';
 import { RoutineReviewCard } from '@/components/routines/RoutineCard';
+import { ScheduleEditorForm } from '@/components/schedule/ScheduleEditorForm';
 import { Chip } from '@/components/ui/Chip';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { SelectableTile } from '@/components/ui/SelectableTile';
 import { categories, type Category } from '@/constants/categories';
 import { colors } from '@/constants/colors';
-import { cloneSchedule, defaultScheduleForTimeOfDay, formatSchedulePreview } from '@/constants/schedules';
+import {
+  cloneSchedule,
+  defaultScheduleForTimeOfDay,
+  formatSchedulePreview,
+  normalizeSchedule,
+} from '@/constants/schedules';
 import {
   guidedFlowTypography,
   tabPageStyles,
@@ -34,27 +39,8 @@ import {
 import { fonts } from '@/constants/typography';
 import { useProducts, useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
-import type { ScheduleFrequency, StepReminder, TimeOfDay } from '@/types';
+import type { Schedule, StepReminder } from '@/types';
 import { s, vs } from '@/lib/scale';
-
-const FREQUENCIES: { value: ScheduleFrequency; label: string }[] = [
-  { value: 'daily', label: 'Every day' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'custom', label: 'Custom' },
-];
-
-const TIME_OF_DAY_OPTIONS: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
-
-function capitalize(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function buildRoutineDefaultSchedule(timeOfDay: TimeOfDay, frequency: ScheduleFrequency) {
-  return {
-    ...defaultScheduleForTimeOfDay(timeOfDay),
-    frequency,
-  };
-}
 
 export default function GuidedSetupScreen() {
   const router = useRouter();
@@ -72,15 +58,11 @@ export default function GuidedSetupScreen() {
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [category, setCategory] = useState<Category>('Skincare');
-  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('morning');
-  const [frequency, setFrequency] = useState<ScheduleFrequency>('daily');
+  const [routineSchedule, setRoutineSchedule] = useState<Schedule>(() =>
+    normalizeSchedule(defaultScheduleForTimeOfDay('morning')),
+  );
   const [steps, setSteps] = useState<GuidedStepDraft[]>([]);
   const [reminderIndex, setReminderIndex] = useState<number | null>(null);
-
-  const routineDefaultSchedule = useMemo(
-    () => buildRoutineDefaultSchedule(timeOfDay, frequency),
-    [timeOfDay, frequency],
-  );
 
   useEffect(() => {
     if (step === 3 && steps.length === 0) {
@@ -161,8 +143,7 @@ export default function GuidedSetupScreen() {
     const routine = addRoutine({
       name,
       category,
-      timeOfDay,
-      frequency,
+      schedule: routineSchedule,
       steps: validSteps.map((entry) => ({
         name: entry.name,
         note: entry.note.trim() || undefined,
@@ -209,7 +190,7 @@ export default function GuidedSetupScreen() {
     if (!entry) return;
 
     setPendingGuidedStepScheduleInit(
-      cloneSchedule(entry.schedule ?? routineDefaultSchedule),
+      cloneSchedule(entry.schedule ?? routineSchedule),
     );
     router.push({
       pathname: '/(tabs)/routines/schedule',
@@ -217,8 +198,6 @@ export default function GuidedSetupScreen() {
         guided: '1',
         stepIndex: String(index),
         stepName: entry.name.trim() || `Step ${index + 1}`,
-        timeOfDay,
-        frequency,
       },
     });
   };
@@ -309,32 +288,14 @@ export default function GuidedSetupScreen() {
         {step === 2 ? (
           <>
             <Text style={styles.helper}>
-              Sets the default schedule for the whole routine.
+              Sets the default schedule for the whole routine. Individual steps can customize
+              their own schedule later.
             </Text>
-            <View style={styles.tileRow}>
-              {TIME_OF_DAY_OPTIONS.map((option) => (
-                <SelectableTile
-                  key={option}
-                  label={capitalize(option)}
-                  selected={timeOfDay === option}
-                  large
-                  onPress={() => setTimeOfDay(option)}
-                />
-              ))}
-            </View>
-            <Text style={styles.fieldLabel}>How often?</Text>
-            <View style={styles.chips}>
-              {FREQUENCIES.map((item) => (
-                <Chip
-                  key={item.value}
-                  label={item.label}
-                  selected={frequency === item.value}
-                  small
-                  large
-                  onPress={() => setFrequency(item.value)}
-                />
-              ))}
-            </View>
+            <ScheduleEditorForm
+              schedule={routineSchedule}
+              onScheduleChange={setRoutineSchedule}
+              showSaveButton={false}
+            />
           </>
         ) : null}
 
@@ -349,7 +310,7 @@ export default function GuidedSetupScreen() {
                 : undefined;
               const scheduleLabel = entry.schedule
                 ? formatSchedulePreview(entry.schedule)
-                : `${formatSchedulePreview(routineDefaultSchedule)} (routine default)`;
+                : `${formatSchedulePreview(routineSchedule)} (routine default)`;
 
               return (
                 <GuidedStepCard
@@ -379,8 +340,7 @@ export default function GuidedSetupScreen() {
           <RoutineReviewCard
             name={name.trim()}
             category={category}
-            frequency={frequency}
-            timeOfDay={timeOfDay}
+            scheduleLabel={formatSchedulePreview(routineSchedule)}
             steps={reviewSteps}
           />
         ) : null}
@@ -400,7 +360,7 @@ export default function GuidedSetupScreen() {
           stepName={reminderDraft.name.trim() || `Step ${reminderIndex + 1}`}
           routineName={name.trim() || 'New routine'}
           reminder={reminderDraft.reminder}
-          timeOfDay={timeOfDay}
+          timeOfDay={routineSchedule.timeOfDay}
           onSave={(reminder: StepReminder) => {
             updateStepDraft(reminderIndex, { reminder });
             setReminderIndex(null);
@@ -443,11 +403,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: s(5),
     marginBottom: s(14),
-  },
-  tileRow: {
-    flexDirection: 'row',
-    gap: s(6),
-    marginBottom: s(12),
   },
   addStepButton: {
     paddingVertical: vs(10),
