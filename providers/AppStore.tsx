@@ -125,6 +125,10 @@ type AppStoreValue = {
   ) => Promise<boolean>;
   toggleStepDone: (routineId: string, stepId: string) => void;
   addStep: (routineId: string, input: AddStepInput) => Step | null;
+  updateRoutine: (
+    routineId: string,
+    updates: Partial<Pick<Routine, 'name' | 'category' | 'timeOfDay' | 'active'>>,
+  ) => void;
   updateRoutineSchedule: (routineId: string, schedule: Schedule) => void;
   updateStepSchedule: (routineId: string, stepId: string, schedule: Schedule) => void;
   setPendingAddStepSchedule: (schedule: Schedule | null) => void;
@@ -515,6 +519,31 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     return created;
   }, []);
 
+  const updateRoutine = useCallback(
+    (
+      routineId: string,
+      updates: Partial<Pick<Routine, 'name' | 'category' | 'timeOfDay' | 'active'>>,
+    ) => {
+      setRoutines((current) =>
+        current.map((routine) => {
+          if (routine.id !== routineId) return routine;
+
+          const nextRoutine = { ...routine, ...updates };
+
+          if (updates.category && updates.category !== routine.category) {
+            nextRoutine.steps = routine.steps.map((step) => ({
+              ...step,
+              category: updates.category!,
+            }));
+          }
+
+          return nextRoutine;
+        }),
+      );
+    },
+    [],
+  );
+
   const consumePendingAddStepSchedule = useCallback(() => {
     let schedule: Schedule | null = null;
     setPendingAddStepSchedule((current) => {
@@ -679,6 +708,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       updateStepReminder,
       toggleStepDone,
       addStep,
+      updateRoutine,
       updateRoutineSchedule,
       updateStepSchedule,
       setPendingAddStepSchedule,
@@ -725,6 +755,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       updateStepReminder,
       toggleStepDone,
       addStep,
+      updateRoutine,
       updateRoutineSchedule,
       updateStepSchedule,
       consumePendingAddStepSchedule,
@@ -777,6 +808,7 @@ export function useRoutines() {
     toggleStepDone: store.toggleStepDone,
     tagStepProduct: store.tagStepProduct,
     addStep: store.addStep,
+    updateRoutine: store.updateRoutine,
     updateRoutineSchedule: store.updateRoutineSchedule,
     updateStepSchedule: store.updateStepSchedule,
     pendingAddStepSchedule: store.pendingAddStepSchedule,

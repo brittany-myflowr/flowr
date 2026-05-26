@@ -1,7 +1,8 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Daisy } from '@/components/brand';
-import { categoryColors } from '@/constants/categories';
+import { Chip } from '@/components/ui/Chip';
+import { categories, categoryColors, type Category } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import {
@@ -15,12 +16,14 @@ type RoutineDetailHeaderProps = {
   routine: Routine;
   onBack?: () => void;
   onEditSchedule?: () => void;
+  onCategoryChange?: (category: Category) => void;
 };
 
 export function RoutineDetailHeader({
   routine,
   onBack,
   onEditSchedule,
+  onCategoryChange,
 }: RoutineDetailHeaderProps) {
   const categoryColor = categoryColors[routine.category];
 
@@ -48,6 +51,29 @@ export function RoutineDetailHeader({
           {formatTimeOfDay(routine.timeOfDay)} · Edit
         </Text>
       </Pressable>
+
+      <Text style={styles.fieldLabel}>Category</Text>
+      <ScrollView
+        horizontal
+        nestedScrollEnabled
+        showsHorizontalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.categoryRow}
+      >
+        {categories.map((category) => (
+          <Chip
+            key={category}
+            label={category}
+            selected={routine.category === category}
+            form
+            onPress={
+              onCategoryChange && routine.category !== category
+                ? () => onCategoryChange(category)
+                : undefined
+            }
+          />
+        ))}
+      </ScrollView>
     </View>
   );
 }
@@ -107,5 +133,20 @@ const styles = StyleSheet.create({
     fontFamily: fonts.dmSans,
     fontSize: fs(9),
     color: colors.blue,
+  },
+  fieldLabel: {
+    marginTop: s(10),
+    marginBottom: s(6),
+    fontFamily: fonts.dmSans,
+    fontSize: fs(8),
+    letterSpacing: s(2),
+    textTransform: 'uppercase',
+    color: colors.muted,
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: s(6),
+    paddingRight: s(4),
   },
 });

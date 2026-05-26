@@ -9,6 +9,7 @@ import { RoutineStepRow } from '@/components/routines/RoutineStepRow';
 import { StepReminderSheet } from '@/components/routines/StepReminderSheet';
 import { FullWidthButton } from '@/components/ui/Button';
 import { colors } from '@/constants/colors';
+import type { Category } from '@/constants/categories';
 import { fonts } from '@/constants/typography';
 import { useRoutine, useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
@@ -38,7 +39,7 @@ export default function RoutineDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const routine = useRoutine(id);
-  const { reorderSteps, removeStep, removeRoutine, updateStep, updateStepReminder } =
+  const { reorderSteps, removeStep, removeRoutine, updateStep, updateStepReminder, updateRoutine } =
     useRoutines();
   const { showToast } = useToast();
 
@@ -129,6 +130,10 @@ export default function RoutineDetailScreen() {
         routine={routine}
         onBack={() => router.back()}
         onEditSchedule={openRoutineSchedule}
+        onCategoryChange={(category: Category) => {
+          updateRoutine(routine.id, { category });
+          showToast('Category updated');
+        }}
       />
 
       {reorderMode ? (
