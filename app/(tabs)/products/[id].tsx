@@ -14,20 +14,13 @@ import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { VerdictPicker } from '@/components/products/VerdictPicker';
 import { FullWidthButton } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
-import { categories, type Category } from '@/constants/categories';
+import { categories } from '@/constants/categories';
 import { colors } from '@/constants/colors';
+import { resolveProductCategory } from '@/lib/filterProducts';
 import { useProduct, useProducts } from '@/providers/AppStore';
 import { useToast } from '@/providers/ToastProvider';
 import type { Verdict } from '@/types';
 import { s } from '@/lib/scale';
-
-const FORM_CATEGORIES: Category[] = [
-  'Skincare',
-  'Body Care',
-  'Hair Care',
-  'Nail Care',
-  'Supplements',
-];
 
 export default function EditProductScreen() {
   const router = useRouter();
@@ -48,7 +41,7 @@ export default function EditProductScreen() {
     if (!product) return;
     setName(product.name);
     setBrand(product.brand);
-    setCategoryIndex(Math.max(0, FORM_CATEGORIES.indexOf(product.category as Category)));
+    setCategoryIndex(Math.max(0, categories.indexOf(resolveProductCategory(product))));
     setVerdict(product.verdict);
     setNotes(product.notes ?? '');
   }, [product]);
@@ -70,7 +63,7 @@ export default function EditProductScreen() {
     updateProduct(product.id, {
       name: name.trim(),
       brand: brand.trim(),
-      category: FORM_CATEGORIES[categoryIndex],
+      category: categories[categoryIndex],
       verdict,
       notes: notes.trim() || undefined,
     });
@@ -110,7 +103,7 @@ export default function EditProductScreen() {
         />
         <FormField
           label="Category"
-          chips={FORM_CATEGORIES}
+          chips={categories}
           selectedChipIndex={categoryIndex}
           onChipPress={setCategoryIndex}
         />

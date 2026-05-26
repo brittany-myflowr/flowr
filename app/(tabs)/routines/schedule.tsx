@@ -1,35 +1,103 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRef } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { ScheduleEditorForm } from '@/components/schedule/ScheduleEditorForm';
 import { FullWidthButton } from '@/components/ui/Button';
-import { cloneSchedule } from '@/constants/schedules';
+import { cloneSchedule, defaultScheduleForTimeOfDay } from '@/constants/schedules';
 import { colors } from '@/constants/colors';
 import { useRoutine, useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
-import type { Schedule } from '@/types';
+import type { Schedule, ScheduleFrequency, TimeOfDay } from '@/types';
 import { s } from '@/lib/scale';
 
 export default function ScheduleEditorScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { routineId, stepId, draft } = useLocalSearchParams<{
-    routineId: string;
+  const {
+    routineId,
+    stepId,
+    draft,
+    guided,
+    stepIndex,
+    stepName,
+    timeOfDay,
+    frequency,
+  } = useLocalSearchParams<{
+    routineId?: string;
     stepId?: string;
     draft?: string;
+    guided?: string;
+    stepIndex?: string;
+    stepName?: string;
+    timeOfDay?: TimeOfDay;
+    frequency?: ScheduleFrequency;
   }>();
-  const routine = useRoutine(routineId);
+  const routineFromStore = useRoutine(routineId ?? '');
+  const routine = routineId ? routineFromStore : undefined;
   const {
     updateRoutineSchedule,
     updateStepSchedule,
     setPendingAddStepSchedule,
     pendingAddStepSchedule,
+    pendingGuidedStepScheduleInit,
+    setPendingGuidedStepScheduleResult,
+    setPendingGuidedStepScheduleInit,
   } = useRoutines();
   const { showToast } = useToast();
 
+  const isGuided = guided === '1';
   const isDraft = draft === '1';
+  const guidedInitialScheduleRef = useRef<Schedule | null>(null);
+
+  if (isGuided && guidedInitialScheduleRef.current === null) {
+    const guidedTimeOfDay = timeOfDay ?? 'morning';
+    const guidedFrequency = frequency ?? 'daily';
+    const fallback = {
+      ...defaultScheduleForTimeOfDay(guidedTimeOfDay),
+      frequency: guidedFrequency,
+    };
+    guidedInitialScheduleRef.current = cloneSchedule(
+      pendingGuidedStepScheduleInit ?? fallback,
+    );
+  }
+
+  if (isGuided && guidedInitialScheduleRef.current) {
+    const parsedStepIndex = Number(stepIndex ?? 0);
+
+    const handleGuidedSave = (schedule: Schedule) => {
+      setPendingGuidedStepScheduleResult({ stepIndex: parsedStepIndex, schedule });
+      setPendingGuidedStepScheduleInit(null);
+      router.back();
+    };
+
+    const handleGuidedBack = () => {
+      setPendingGuidedStepScheduleInit(null);
+      router.back();
+    };
+
+    return (
+      <View style={[styles.screen, { paddingTop: insets.top }]}>
+        <SubPageHeader
+          subtitle="Schedule"
+          title={stepName ? `${stepName} · Custom Schedule` : 'Step · Custom Schedule'}
+          onBack={handleGuidedBack}
+        />
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <ScheduleEditorForm
+            initialSchedule={guidedInitialScheduleRef.current}
+            onSave={handleGuidedSave}
+          />
+        </ScrollView>
+      </View>
+    );
+  }
 
   if (!routine) {
     return (

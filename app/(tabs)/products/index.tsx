@@ -1,108 +1,121 @@
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
+import { TabPageHeader } from '@/components/layout/TabPageHeader';
 import { ProductCard } from '@/components/products/ProductCard';
 import { ProductSearchBar } from '@/components/products/ProductSearchBar';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
-import type { Category } from '@/constants/categories';
-import { colors } from '@/constants/colors';
-import { fonts } from '@/constants/typography';
-import { filterProducts, getProductCategoryFilters } from '@/lib/filterProducts';
-import { getLinkedStepNames } from '@/lib/productLinks';
+import { tabPageStyles } from '@/constants/tabPageTypography';
+import {
+  filterProducts,
+  getProductCategoryFilters,
+  isProductCategoryFilter,
+  type ProductCategoryFilter,
+} from '@/lib/filterProducts';
+import { getProductTagLinks } from '@/lib/productLinks';
 import { useAppStore, useProducts } from '@/providers/AppStore';
-import { s, fs } from '@/lib/scale';
+import { s } from '@/lib/scale';
+
+const categoryFilters = getProductCategoryFilters();
+const scrollableCategoryFilters = categoryFilters.filter((category) => category !== 'All');
 
 export default function ProductsScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { products } = useProducts();
   const { routines } = useAppStore();
   const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<Category | 'All'>('All');
-
-  const categoryFilters = useMemo(() => getProductCategoryFilters(products), [products]);
-  const activeFilter = categoryFilters.includes(filter) ? filter : 'All';
+  const [filter, setFilter] = useState<ProductCategoryFilter>('All');
 
   const filteredProducts = useMemo(
-    () => filterProducts(products, query, activeFilter),
-    [products, query, activeFilter],
+    () => filterProducts(products, query, filter),
+    [products, query, filter],
   );
 
   const subtitle = useMemo(() => {
     if (products.length === 0) return '0 products saved';
 
-    const hasActiveFilters = query.trim().length > 0 || activeFilter !== 'All';
+    const hasActiveFilters = query.trim().length > 0 || filter !== 'All';
     if (hasActiveFilters) {
       return `${filteredProducts.length} of ${products.length} product${products.length === 1 ? '' : 's'}`;
     }
 
     return `${products.length} product${products.length === 1 ? '' : 's'}`;
-  }, [filteredProducts.length, activeFilter, products.length, query]);
+  }, [filteredProducts.length, filter, products.length, query]);
+
+  const handleFilterPress = (category: ProductCategoryFilter) => {
+    if (!isProductCategoryFilter(category)) return;
+    setFilter(category);
+  };
 
   return (
-    <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: s(18) + insets.top }]}>
-        <Text style={styles.title}>My Products</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
-      </View>
+    <View style={tabPageStyles.screen}>
+      <TabPageHeader title="My Products" subtitle={subtitle} />
 
       {products.length > 0 ? (
         <>
           <ProductSearchBar value={query} onChangeText={setQuery} />
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filters}
-          >
-            {categoryFilters.map((category) => (
-              <Chip
-                key={category}
-                label={category}
-                selected={activeFilter === category}
-                small
-                onPress={() => setFilter(category)}
-              />
-            ))}
-          </ScrollView>
+          <View style={styles.filtersRow}>
+            <Chip
+              label="All"
+              selected={filter === 'All'}
+              form
+              onPress={() => handleFilterPress('All')}
+            />
+            <ScrollView
+              horizontal
+              nestedScrollEnabled
+              showsHorizontalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              style={styles.categoryScroll}
+              contentContainerStyle={styles.categoryScrollContent}
+            >
+              {scrollableCategoryFilters.map((category) => (
+                <Chip
+                  key={category}
+                  label={category}
+                  selected={filter === category}
+                  form
+                  onPress={() => handleFilterPress(category)}
+                />
+              ))}
+            </ScrollView>
+          </View>
         </>
       ) : null}
 
       <ScrollView
-        contentContainerStyle={styles.content}
+        style={tabPageStyles.scroll}
+        contentContainerStyle={tabPageStyles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         {products.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>No products yet</Text>
-            <Text style={styles.emptyBody}>
-              Save products you love, like, or want to skip. Tag them to routine steps to
-              keep track of what you use.
-            </Text>
+          <InlineEmptyCard
+            title="No products yet"
+            body="Save products you love, like, or want to skip. Tag them to routine steps to keep track of what you use."
+          >
             <View style={styles.emptyButton}>
               <FullWidthButton
                 label="+ Add a Product"
                 onPress={() => router.push('/(tabs)/products/add')}
               />
             </View>
-          </View>
+          </InlineEmptyCard>
         ) : filteredProducts.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>No matches found</Text>
-            <Text style={styles.emptyBody}>
-              Try a different search term or category filter.
-            </Text>
-          </View>
+          <InlineEmptyCard
+            title="No matches found"
+            body="Try a different search term or category filter."
+          />
         ) : (
           <>
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
-                linkedStepNames={getLinkedStepNames(routines, product.id)}
+                tagLinks={getProductTagLinks(routines, product.id)}
                 onPress={() => router.push(`/(tabs)/products/${product.id}`)}
               />
             ))}
@@ -120,53 +133,21 @@ export default function ProductsScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: {
+  filtersRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: s(10),
+    paddingBottom: s(6),
+    gap: s(6),
+  },
+  categoryScroll: {
     flex: 1,
-    backgroundColor: colors.bg,
   },
-  header: {
-    paddingHorizontal: s(14),
-    paddingBottom: s(6),
-  },
-  title: {
-    fontFamily: fonts.lora,
-    fontSize: fs(20),
-    color: colors.navy,
-  },
-  subtitle: {
-    marginTop: s(1),
-    fontFamily: fonts.dmSans,
-    fontSize: fs(10),
-    color: colors.blue,
-  },
-  filters: {
-    paddingHorizontal: s(10),
-    paddingBottom: s(6),
-    gap: s(4),
-  },
-  content: {
-    paddingHorizontal: s(10),
-    paddingBottom: s(24),
-  },
-  emptyCard: {
-    backgroundColor: colors.white,
-    borderRadius: s(12),
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: s(16),
-    marginHorizontal: s(4),
-  },
-  emptyTitle: {
-    fontFamily: fonts.lora,
-    fontSize: fs(16),
-    color: colors.navy,
-    marginBottom: s(6),
-  },
-  emptyBody: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(11),
-    color: colors.gray,
-    lineHeight: fs(18),
+  categoryScrollContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: s(6),
+    paddingRight: s(10),
   },
   emptyButton: {
     marginTop: s(14),

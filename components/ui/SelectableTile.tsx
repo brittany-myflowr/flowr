@@ -7,16 +7,32 @@ import { s, vs, fs } from '@/lib/scale';
 type SelectableTileProps = {
   label: string;
   selected?: boolean;
+  large?: boolean;
   onPress?: () => void;
 };
 
-export function SelectableTile({ label, selected = false, onPress }: SelectableTileProps) {
+export function SelectableTile({
+  label,
+  selected = false,
+  large = false,
+  onPress,
+}: SelectableTileProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.tile, selected ? styles.tileSelected : styles.tileDefault]}
+      style={[
+        styles.tile,
+        large && styles.tileLarge,
+        selected ? styles.tileSelected : styles.tileDefault,
+      ]}
     >
-      <Text style={[styles.label, selected ? styles.labelSelected : styles.labelDefault]}>
+      <Text
+        style={[
+          styles.label,
+          large && styles.labelLarge,
+          selected ? styles.labelSelected : styles.labelDefault,
+        ]}
+      >
         {label}
       </Text>
     </Pressable>
@@ -33,6 +49,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  tileLarge: {
+    paddingVertical: vs(12),
+    paddingHorizontal: s(6),
+    borderRadius: s(12),
+  },
   tileDefault: {
     backgroundColor: colors.white,
     borderColor: colors.border,
@@ -45,6 +66,9 @@ const styles = StyleSheet.create({
     fontFamily: fonts.dmSans,
     fontSize: fs(9),
     textAlign: 'center',
+  },
+  labelLarge: {
+    fontSize: fs(10.45),
   },
   labelDefault: {
     color: colors.gray,

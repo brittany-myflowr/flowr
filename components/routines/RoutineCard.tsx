@@ -5,6 +5,10 @@ import { Badge } from '@/components/ui/Badge';
 import { Toggle } from '@/components/ui/Toggle';
 import { categoryColors, type Category } from '@/constants/categories';
 import { colors } from '@/constants/colors';
+import {
+  guidedFlowSizes,
+  guidedFlowTypography,
+} from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import {
   formatFrequency,
@@ -55,12 +59,20 @@ export function RoutineCard({ routine, onPress, onToggleActive }: RoutineCardPro
   );
 }
 
+export type RoutineReviewStep = {
+  name: string;
+  note?: string;
+  productName?: string;
+  scheduleLabel?: string;
+  reminderEnabled?: boolean;
+};
+
 type RoutineReviewCardProps = {
   name: string;
   category: Category;
   frequency: ScheduleFrequency;
   timeOfDay: Routine['timeOfDay'];
-  steps: string[];
+  steps: RoutineReviewStep[];
 };
 
 export function RoutineReviewCard({
@@ -75,23 +87,35 @@ export function RoutineReviewCard({
   return (
     <View style={styles.reviewCard}>
       <View style={styles.headerRow}>
-        <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
-          <Daisy color={categoryColor} size={s(16)} />
+        <View style={[styles.reviewIconWrap, { backgroundColor: `${categoryColor}28` }]}>
+          <Daisy color={categoryColor} size={guidedFlowSizes.reviewIcon} />
         </View>
         <View style={styles.meta}>
-          <Text style={styles.name}>{name}</Text>
-          <Text style={styles.subtitle}>
+          <Text style={styles.reviewName}>{name}</Text>
+          <Text style={styles.reviewSubtitle}>
             {formatFrequency(frequency)} · {formatTimeOfDay(timeOfDay)}
           </Text>
         </View>
       </View>
 
       {steps.map((step, index) => (
-        <View key={`${step}-${index}`} style={styles.reviewStep}>
-          <View style={styles.stepNumber}>
-            <Text style={styles.stepNumberText}>{index + 1}</Text>
+        <View key={`${step.name}-${index}`} style={styles.reviewStep}>
+          <View style={styles.reviewStepNumber}>
+            <Text style={styles.reviewStepNumberText}>{index + 1}</Text>
           </View>
-          <Text style={styles.reviewStepName}>{step}</Text>
+          <View style={styles.reviewStepCopy}>
+            <Text style={styles.reviewStepName}>{step.name}</Text>
+            {step.note ? <Text style={styles.reviewStepMeta}>{step.note}</Text> : null}
+            {step.productName ? (
+              <Text style={styles.reviewStepMeta}>Product: {step.productName}</Text>
+            ) : null}
+            {step.scheduleLabel ? (
+              <Text style={styles.reviewStepMeta}>{step.scheduleLabel}</Text>
+            ) : null}
+            {step.reminderEnabled ? (
+              <Text style={styles.reviewStepMeta}>Reminder on</Text>
+            ) : null}
+          </View>
         </View>
       ))}
     </View>
@@ -112,8 +136,8 @@ const styles = StyleSheet.create({
   },
   reviewCard: {
     backgroundColor: colors.white,
-    borderRadius: s(12),
-    padding: s(12),
+    borderRadius: s(14),
+    padding: s(14),
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -129,11 +153,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  reviewIconWrap: {
+    width: guidedFlowSizes.reviewIconWrap,
+    height: guidedFlowSizes.reviewIconWrap,
+    borderRadius: s(10),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   meta: {
     flex: 1,
   },
   name: {
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(12),
     color: colors.navy,
   },
@@ -167,28 +198,48 @@ const styles = StyleSheet.create({
   reviewStep: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: s(7),
-    paddingVertical: vs(5),
+    gap: s(8),
+    paddingVertical: vs(7),
     borderTopWidth: 1,
     borderTopColor: colors.inputBg,
   },
-  stepNumber: {
-    width: s(16),
-    height: vs(16),
-    borderRadius: s(8),
+  reviewName: {
+    fontFamily: fonts.cardTitle,
+    fontSize: guidedFlowTypography.reviewName,
+    color: colors.navy,
+  },
+  reviewSubtitle: {
+    marginTop: s(2),
+    fontFamily: fonts.dmSans,
+    fontSize: guidedFlowTypography.reviewMeta,
+    color: colors.muted,
+  },
+  reviewStepNumber: {
+    width: guidedFlowSizes.reviewStepBadge,
+    height: guidedFlowSizes.reviewStepBadge,
+    borderRadius: guidedFlowSizes.reviewStepBadge / 2,
     backgroundColor: colors.light,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stepNumberText: {
+  reviewStepNumberText: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: fs(8),
+    fontSize: guidedFlowTypography.stepNumber,
     color: colors.blue,
     fontWeight: '600',
   },
+  reviewStepCopy: {
+    flex: 1,
+    gap: s(2),
+  },
   reviewStepName: {
-    fontFamily: fonts.lora,
-    fontSize: fs(11),
+    fontFamily: fonts.cardTitle,
+    fontSize: guidedFlowTypography.reviewStepName,
     color: colors.navy,
+  },
+  reviewStepMeta: {
+    fontFamily: fonts.dmSans,
+    fontSize: guidedFlowTypography.reviewMeta,
+    color: colors.muted,
   },
 });

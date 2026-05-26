@@ -3,11 +3,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { ProductPickRow } from '@/components/products/ProductCard';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Divider } from '@/components/ui/Divider';
 import { colors } from '@/constants/colors';
+import { tabPageStyles, tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import { useProducts, useRoutine, useRoutines } from '@/providers/AppStore';
 import { useToast } from '@/providers/ToastProvider';
@@ -17,19 +19,33 @@ import { s, vs, fs } from '@/lib/scale';
 export default function TagProductScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { routineId, stepId, selectedProductId } = useLocalSearchParams<{
-    routineId: string;
-    stepId: string;
+  const {
+    routineId,
+    stepId,
+    selectedProductId,
+    guided,
+    stepIndex,
+    stepName,
+  } = useLocalSearchParams<{
+    routineId?: string;
+    stepId?: string;
     selectedProductId?: string;
+    guided?: string;
+    stepIndex?: string;
+    stepName?: string;
   }>();
-  const routine = useRoutine(routineId);
+  const isGuided = guided === '1';
+  const routine = routineId ? useRoutine(routineId) : undefined;
   const { products } = useProducts();
-  const { tagStepProduct } = useRoutines();
+  const { tagStepProduct, setPendingGuidedStepProductResult } = useRoutines();
   const { showToast } = useToast();
 
   const step = routine?.steps.find((item) => item.id === stepId);
+  const resolvedStepName = isGuided ? stepName : step?.name;
 
-  const [selectedId, setSelectedId] = useState<string | null>(step?.productId ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(
+    selectedProductId ?? step?.productId ?? null,
+  );
 
   useEffect(() => {
     if (selectedProductId) {
@@ -38,14 +54,23 @@ export default function TagProductScreen() {
   }, [selectedProductId]);
 
   const { suggested, rest } = useMemo(() => {
-    if (!step) {
+    if (!resolvedStepName) {
       return { suggested: [], rest: products };
     }
 
-    return suggestProductsForStep(step.name, products);
-  }, [products, step]);
+    return suggestProductsForStep(resolvedStepName, products);
+  }, [products, resolvedStepName]);
 
   const handleConfirm = () => {
+    if (isGuided) {
+      setPendingGuidedStepProductResult({
+        stepIndex: Number(stepIndex ?? 0),
+        productId: selectedId,
+      });
+      router.back();
+      return;
+    }
+
     if (!routine || !step) return;
     tagStepProduct(routine.id, step.id, selectedId);
     showToast('Product tagged');
@@ -53,6 +78,20 @@ export default function TagProductScreen() {
   };
 
   const openAddProduct = () => {
+    if (isGuided) {
+      router.push({
+        pathname: '/(tabs)/products/add',
+        params: {
+          returnTo: 'tag-product',
+          guided: '1',
+          stepIndex,
+          stepName: resolvedStepName ?? '',
+          selectedProductId: selectedId ?? '',
+        },
+      });
+      return;
+    }
+
     router.push({
       pathname: '/(tabs)/products/add',
       params: {
@@ -63,7 +102,7 @@ export default function TagProductScreen() {
     });
   };
 
-  if (!routine || !step) {
+  if (!isGuided && (!routine || !step)) {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
         <SubPageHeader title="Tag a Product" onBack={() => router.back()} />
@@ -76,20 +115,22 @@ export default function TagProductScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <SubPageHeader title="Tag a Product" onBack={() => router.back()} />
       <ScrollView
+        style={tabPageStyles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.stepLabel}>
-          For step: <Text style={styles.stepName}>{step.name}</Text>
-        </Text>
+        {resolvedStepName ? (
+          <Text style={styles.stepLabel}>
+            For step: <Text style={styles.stepName}>{resolvedStepName}</Text>
+          </Text>
+        ) : null}
 
         {products.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>No products saved yet</Text>
-            <Text style={styles.emptyBody}>
-              Add a product to your shelf first, then tag it to this step.
-            </Text>
-          </View>
+          <InlineEmptyCard
+            compact
+            title="No products saved yet"
+            body="Add a product to your shelf first, then tag it to this step."
+          />
         ) : (
           <>
             {suggested.length > 0 ? (
@@ -112,7 +153,7 @@ export default function TagProductScreen() {
 
             {rest.length > 0 ? (
               <>
-                <Divider label="All Products" />
+                <Divider label="All Products" large />
                 {rest.map((product) => (
                   <ProductPickRow
                     key={product.id}
@@ -134,9 +175,10 @@ export default function TagProductScreen() {
           <Text style={styles.addLinkText}>+ Add a new product</Text>
         </Pressable>
 
-        {selectedId ? (
-          <FullWidthButton label="Confirm Tag" onPress={handleConfirm} />
-        ) : null}
+        <FullWidthButton
+          label={selectedId ? 'Confirm Tag' : 'Save without product'}
+          onPress={handleConfirm}
+        />
       </ScrollView>
     </View>
   );
@@ -168,31 +210,11 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: tabPageTypography.sectionLabel,
     letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
     marginBottom: s(8),
-  },
-  emptyCard: {
-    backgroundColor: colors.white,
-    borderRadius: s(10),
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: s(14),
-    marginBottom: s(10),
-  },
-  emptyTitle: {
-    fontFamily: fonts.lora,
-    fontSize: fs(14),
-    color: colors.navy,
-    marginBottom: s(4),
-  },
-  emptyBody: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(11),
-    color: colors.gray,
-    lineHeight: fs(17),
   },
   addLink: {
     marginTop: s(4),

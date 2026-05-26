@@ -13,31 +13,28 @@ import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { VerdictPicker } from '@/components/products/VerdictPicker';
 import { FullWidthButton } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
-import { categories, type Category } from '@/constants/categories';
+import { categories } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { useProducts } from '@/providers/AppStore';
 import { useToast } from '@/providers/ToastProvider';
 import type { Verdict } from '@/types';
 import { s } from '@/lib/scale';
 
-const FORM_CATEGORIES: Category[] = [
-  'Skincare',
-  'Body Care',
-  'Hair Care',
-  'Nail Care',
-  'Supplements',
-];
-
 export default function AddProductScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { addProduct } = useProducts();
   const { showToast } = useToast();
-  const { returnTo, routineId, stepId } = useLocalSearchParams<{
-    returnTo?: string;
-    routineId?: string;
-    stepId?: string;
-  }>();
+  const { returnTo, routineId, stepId, guided, stepIndex, stepName, selectedProductId } =
+    useLocalSearchParams<{
+      returnTo?: string;
+      routineId?: string;
+      stepId?: string;
+      guided?: string;
+      stepIndex?: string;
+      stepName?: string;
+      selectedProductId?: string;
+    }>();
 
   const [name, setName] = useState('');
   const [brand, setBrand] = useState('');
@@ -51,18 +48,42 @@ export default function AddProductScreen() {
     const product = addProduct({
       name: name.trim(),
       brand: brand.trim(),
-      category: FORM_CATEGORIES[categoryIndex],
+      category: categories[categoryIndex],
       verdict,
       notes: notes.trim() || undefined,
     });
 
-    if (returnTo === 'tag-product' && routineId && stepId) {
+    const returnToTagProduct = returnTo === 'tag-product';
+
+    if (returnToTagProduct) {
       showToast('Product saved');
-      router.replace({
-        pathname: '/(tabs)/routines/tag-product',
-        params: { routineId, stepId, selectedProductId: product.id },
-      });
-      return;
+
+      // Pop this screen off the products stack before switching tabs.
+      // router.replace() to a routines screen leaves /products/add active on this tab.
+      if (router.canDismiss()) {
+        router.dismiss();
+      }
+
+      if (guided === '1') {
+        router.push({
+          pathname: '/(tabs)/routines/tag-product',
+          params: {
+            guided: '1',
+            stepIndex,
+            stepName,
+            selectedProductId: product.id,
+          },
+        });
+        return;
+      }
+
+      if (routineId && stepId) {
+        router.push({
+          pathname: '/(tabs)/routines/tag-product',
+          params: { routineId, stepId, selectedProductId: product.id },
+        });
+        return;
+      }
     }
 
     showToast('Product saved');
@@ -74,7 +95,16 @@ export default function AddProductScreen() {
       style={[styles.screen, { paddingTop: insets.top }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <SubPageHeader title="Add a Product" onBack={() => router.back()} />
+      <SubPageHeader
+        title="Add a Product"
+        onBack={() => {
+          if (returnTo === 'tag-product' && router.canDismiss()) {
+            router.dismiss();
+            return;
+          }
+          router.back();
+        }}
+      />
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -96,7 +126,7 @@ export default function AddProductScreen() {
         />
         <FormField
           label="Category"
-          chips={FORM_CATEGORIES}
+          chips={categories}
           selectedChipIndex={categoryIndex}
           onChipPress={setCategoryIndex}
         />

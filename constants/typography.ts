@@ -2,7 +2,8 @@ import { fs, s } from '@/lib/scale';
 
 export const fonts = {
   lora: 'Lora_700Bold_Italic',
-  loraRegular: 'Lora_400Regular',
+  loraBold: 'Lora_700Bold',
+  cardTitle: 'Lora_700Bold',
   dmSans: 'DMSans_400Regular',
   dmSansMedium: 'DMSans_500Medium',
   dmSansSemiBold: 'DMSans_600SemiBold',
@@ -11,12 +12,12 @@ export const fonts = {
 export const textStyles = {
   pageTitle: {
     fontFamily: fonts.lora,
-    fontSize: fs(20),
+    fontSize: fs(22.8),
     color: '#1a1a2e',
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(7.6),
     letterSpacing: s(2),
     textTransform: 'uppercase' as const,
     color: '#9ca3af',

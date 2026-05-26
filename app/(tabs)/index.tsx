@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { CyclePhaseBanner } from '@/components/cycle/CyclePhaseBanner';
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { FirstRoutineCard } from '@/components/onboarding/FirstRoutineCard';
 import { TodayStepRow } from '@/components/today/TodayStepRow';
 import {
@@ -51,7 +52,6 @@ export default function TodayScreen() {
     <View style={styles.screen}>
       <TimeOfDayHeader
         percent={percent}
-        brandPlacement="center"
         greeting={getTimeOfDayGreeting(selectedTimeOfDay, user?.firstName)}
         stepsLabel={stepsLabel}
         selectedTimeOfDay={selectedTimeOfDay}
@@ -74,19 +74,17 @@ export default function TodayScreen() {
         </View>
       ) : null}
       <ScrollView
+        style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         {routines.length === 0 ? (
           <FirstRoutineCard onGetStarted={() => router.push('/(tabs)/routines/guided')} />
         ) : total === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>Nothing scheduled</Text>
-            <Text style={styles.emptyBody}>
-              No active steps are set for {selectedTimeOfDay}. Check another time of day or
-              add steps to your routines.
-            </Text>
-          </View>
+          <InlineEmptyCard
+            title="Nothing scheduled"
+            body={`No active steps are set for ${selectedTimeOfDay}. Check another time of day or add steps to your routines.`}
+          />
         ) : (
           <>
             {!reorderMode && total > 1 ? (
@@ -127,6 +125,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg,
   },
+  scroll: {
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
   content: {
     paddingHorizontal: s(14),
     paddingTop: s(16),
@@ -163,24 +165,5 @@ const styles = StyleSheet.create({
     fontSize: fs(9),
     color: colors.blue,
     textDecorationLine: 'underline',
-  },
-  emptyCard: {
-    backgroundColor: colors.white,
-    borderRadius: s(12),
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: s(16),
-  },
-  emptyTitle: {
-    fontFamily: fonts.lora,
-    fontSize: fs(16),
-    color: colors.navy,
-    marginBottom: s(6),
-  },
-  emptyBody: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(11),
-    color: colors.gray,
-    lineHeight: fs(18),
   },
 });

@@ -35,6 +35,6 @@ export function useTodayProgressByTimeOfDay(date = new Date()) {
       done: byTimeOfDay[timeOfDay].done,
       total: byTimeOfDay[timeOfDay].total,
       percent: byTimeOfDay[timeOfDay].percent,
-    })).filter((period) => period.total > 0);
+    }));
   }, [morning, afternoon, evening]);
 }

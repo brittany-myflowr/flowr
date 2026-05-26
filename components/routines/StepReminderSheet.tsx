@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   timeValue: {
     flex: 1,
     textAlign: 'center',
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(16),
     color: colors.navy,
   },

@@ -47,12 +47,20 @@ import {
 } from '@/lib/notifications';
 import * as Notifications from 'expo-notifications';
 
+export type CreateRoutineStepInput = {
+  name: string;
+  note?: string;
+  schedule?: Schedule;
+  productId?: string;
+  reminder?: StepReminder;
+};
+
 export type CreateRoutineInput = {
   name: string;
   category: Category;
   timeOfDay: TimeOfDay;
   frequency: ScheduleFrequency;
-  stepNames: string[];
+  steps: CreateRoutineStepInput[];
 };
 
 export type AddStepInput = {
@@ -90,6 +98,9 @@ type AppStoreValue = {
   cycleSettings: CycleSettings;
   todayStepOrders: TodayStepOrderMap;
   pendingAddStepSchedule: Schedule | null;
+  pendingGuidedStepScheduleInit: Schedule | null;
+  pendingGuidedStepScheduleResult: { stepIndex: number; schedule: Schedule } | null;
+  pendingGuidedStepProductResult: { stepIndex: number; productId: string | null } | null;
   signUp: (input: SignUpInput) => string | null;
   signIn: (input: SignInInput) => string | null;
   signOut: () => void;
@@ -118,6 +129,22 @@ type AppStoreValue = {
   updateStepSchedule: (routineId: string, stepId: string, schedule: Schedule) => void;
   setPendingAddStepSchedule: (schedule: Schedule | null) => void;
   consumePendingAddStepSchedule: () => Schedule | null;
+  setPendingGuidedStepScheduleInit: (schedule: Schedule | null) => void;
+  consumePendingGuidedStepScheduleInit: () => Schedule | null;
+  setPendingGuidedStepScheduleResult: (
+    result: { stepIndex: number; schedule: Schedule } | null,
+  ) => void;
+  consumePendingGuidedStepScheduleResult: () => {
+    stepIndex: number;
+    schedule: Schedule;
+  } | null;
+  setPendingGuidedStepProductResult: (
+    result: { stepIndex: number; productId: string | null } | null,
+  ) => void;
+  consumePendingGuidedStepProductResult: () => {
+    stepIndex: number;
+    productId: string | null;
+  } | null;
   addProduct: (input: Omit<Product, 'id'>) => Product;
   updateProduct: (id: string, updates: Partial<Omit<Product, 'id'>>) => void;
   removeProduct: (id: string) => void;
@@ -144,6 +171,16 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const [todayStepOrders, setTodayStepOrders] =
     useState<TodayStepOrderMap>(EMPTY_TODAY_STEP_ORDERS);
   const [pendingAddStepSchedule, setPendingAddStepSchedule] = useState<Schedule | null>(null);
+  const [pendingGuidedStepScheduleInit, setPendingGuidedStepScheduleInit] =
+    useState<Schedule | null>(null);
+  const [pendingGuidedStepScheduleResult, setPendingGuidedStepScheduleResult] = useState<{
+    stepIndex: number;
+    schedule: Schedule;
+  } | null>(null);
+  const [pendingGuidedStepProductResult, setPendingGuidedStepProductResult] = useState<{
+    stepIndex: number;
+    productId: string | null;
+  } | null>(null);
   const skipNextSave = useRef(true);
   const remindersSyncedRef = useRef(false);
 
@@ -292,36 +329,59 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     setCycleSettings(DEFAULT_CYCLE_SETTINGS);
     setTodayStepOrders(EMPTY_TODAY_STEP_ORDERS);
     setPendingAddStepSchedule(null);
+    setPendingGuidedStepScheduleInit(null);
+    setPendingGuidedStepScheduleResult(null);
+    setPendingGuidedStepProductResult(null);
   }, []);
 
-  const addRoutine = useCallback((input: CreateRoutineInput) => {
-    const routineId = createId('routine');
-    const steps: Step[] = input.stepNames
-      .map((name) => name.trim())
-      .filter(Boolean)
-      .map((name) => ({
-        id: createId('step'),
-        name,
+  const addRoutine = useCallback(
+    (input: CreateRoutineInput) => {
+      const routineId = createId('routine');
+      const steps: Step[] = input.steps
+        .map((stepInput) => ({
+          name: stepInput.name.trim(),
+          note: stepInput.note?.trim(),
+          schedule: stepInput.schedule,
+          productId: stepInput.productId,
+          reminder: stepInput.reminder,
+        }))
+        .filter((stepInput) => stepInput.name.length > 0)
+        .map((stepInput) => {
+          const product = stepInput.productId
+            ? products.find((item) => item.id === stepInput.productId)
+            : undefined;
+
+          return {
+            id: createId('step'),
+            name: stepInput.name,
+            note: stepInput.note || undefined,
+            category: input.category,
+            done: false,
+            schedule: stepInput.schedule,
+            productId: product?.id,
+            productName: product?.name,
+            reminder: stepInput.reminder,
+          };
+        });
+
+      const routine: Routine = {
+        id: routineId,
+        name: input.name.trim(),
         category: input.category,
-        done: false,
-      }));
+        timeOfDay: input.timeOfDay,
+        active: true,
+        steps,
+        schedule: {
+          ...defaultScheduleForTimeOfDay(input.timeOfDay),
+          frequency: input.frequency,
+        },
+      };
 
-    const routine: Routine = {
-      id: routineId,
-      name: input.name.trim(),
-      category: input.category,
-      timeOfDay: input.timeOfDay,
-      active: true,
-      steps,
-      schedule: {
-        ...defaultScheduleForTimeOfDay(input.timeOfDay),
-        frequency: input.frequency,
-      },
-    };
-
-    setRoutines((current) => [...current, routine]);
-    return routine;
-  }, []);
+      setRoutines((current) => [...current, routine]);
+      return routine;
+    },
+    [products],
+  );
 
   const toggleRoutineActive = useCallback((id: string) => {
     setRoutines((current) =>
@@ -464,6 +524,33 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     return schedule;
   }, []);
 
+  const consumePendingGuidedStepScheduleInit = useCallback(() => {
+    let schedule: Schedule | null = null;
+    setPendingGuidedStepScheduleInit((current) => {
+      schedule = current;
+      return null;
+    });
+    return schedule;
+  }, []);
+
+  const consumePendingGuidedStepScheduleResult = useCallback(() => {
+    let result: { stepIndex: number; schedule: Schedule } | null = null;
+    setPendingGuidedStepScheduleResult((current) => {
+      result = current;
+      return null;
+    });
+    return result;
+  }, []);
+
+  const consumePendingGuidedStepProductResult = useCallback(() => {
+    let result: { stepIndex: number; productId: string | null } | null = null;
+    setPendingGuidedStepProductResult((current) => {
+      result = current;
+      return null;
+    });
+    return result;
+  }, []);
+
   const updateRoutineSchedule = useCallback((routineId: string, schedule: Schedule) => {
     setRoutines((current) =>
       current.map((routine) =>
@@ -573,6 +660,9 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       cycleSettings,
       todayStepOrders,
       pendingAddStepSchedule,
+      pendingGuidedStepScheduleInit,
+      pendingGuidedStepScheduleResult,
+      pendingGuidedStepProductResult,
       signUp,
       signIn,
       signOut,
@@ -593,6 +683,12 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       updateStepSchedule,
       setPendingAddStepSchedule,
       consumePendingAddStepSchedule,
+      setPendingGuidedStepScheduleInit,
+      consumePendingGuidedStepScheduleInit,
+      setPendingGuidedStepScheduleResult,
+      consumePendingGuidedStepScheduleResult,
+      setPendingGuidedStepProductResult,
+      consumePendingGuidedStepProductResult,
       addProduct,
       updateProduct,
       removeProduct,
@@ -610,6 +706,9 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       cycleSettings,
       todayStepOrders,
       pendingAddStepSchedule,
+      pendingGuidedStepScheduleInit,
+      pendingGuidedStepScheduleResult,
+      pendingGuidedStepProductResult,
       signUp,
       signIn,
       signOut,
@@ -629,6 +728,9 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       updateRoutineSchedule,
       updateStepSchedule,
       consumePendingAddStepSchedule,
+      consumePendingGuidedStepScheduleInit,
+      consumePendingGuidedStepScheduleResult,
+      consumePendingGuidedStepProductResult,
       addProduct,
       updateProduct,
       removeProduct,
@@ -678,8 +780,15 @@ export function useRoutines() {
     updateRoutineSchedule: store.updateRoutineSchedule,
     updateStepSchedule: store.updateStepSchedule,
     pendingAddStepSchedule: store.pendingAddStepSchedule,
+    pendingGuidedStepScheduleInit: store.pendingGuidedStepScheduleInit,
     setPendingAddStepSchedule: store.setPendingAddStepSchedule,
     consumePendingAddStepSchedule: store.consumePendingAddStepSchedule,
+    setPendingGuidedStepScheduleInit: store.setPendingGuidedStepScheduleInit,
+    consumePendingGuidedStepScheduleInit: store.consumePendingGuidedStepScheduleInit,
+    setPendingGuidedStepScheduleResult: store.setPendingGuidedStepScheduleResult,
+    consumePendingGuidedStepScheduleResult: store.consumePendingGuidedStepScheduleResult,
+    setPendingGuidedStepProductResult: store.setPendingGuidedStepProductResult,
+    consumePendingGuidedStepProductResult: store.consumePendingGuidedStepProductResult,
   };
 }
 

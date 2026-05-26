@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     marginBottom: s(2),
   },
   previewValue: {
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(14),
     color: colors.navy,
   },

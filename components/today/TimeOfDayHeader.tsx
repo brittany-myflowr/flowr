@@ -17,7 +17,7 @@ type TimeOfDayHeaderProps = {
   percent?: number;
   stepsLabel?: string;
   greeting?: string;
-  brandPlacement?: 'corner' | 'center' | 'hidden';
+  showBrand?: boolean;
   selectedTimeOfDay?: TimeOfDay;
   onTimeOfDayChange?: (timeOfDay: TimeOfDay) => void;
 };
@@ -30,7 +30,7 @@ export function TimeOfDayHeader({
   percent = 0,
   stepsLabel,
   greeting,
-  brandPlacement = 'corner',
+  showBrand = true,
   selectedTimeOfDay,
   onTimeOfDayChange,
 }: TimeOfDayHeaderProps) {
@@ -48,30 +48,24 @@ export function TimeOfDayHeader({
   };
 
   return (
-    <GradientBackground variant={actualTimeOfDay} style={[styles.header, { paddingTop: s(18) + insets.top }]}>
-      {brandPlacement === 'corner' ? (
-        <View style={[styles.brandCorner, { top: insets.top + s(18) }]}>
-          <BrandMark
-            direction="row"
-            flowerSize={s(13)}
-            logoSize={s(13)}
-            color="rgba(255,255,255,0.75)"
-          />
-        </View>
-      ) : null}
-
-      <ProgressRing percent={percent} />
-
-      {brandPlacement === 'center' ? (
+    <GradientBackground
+      fill={false}
+      variant={actualTimeOfDay}
+      style={[styles.header, { paddingTop: insets.top + s(12) }]}
+    >
+      {showBrand ? (
         <BrandMark
           direction="row"
-          flowerSize={s(12)}
-          logoSize={s(12)}
-          color="rgba(255,255,255,0.95)"
-          logoColor="rgba(255,255,255,0.7)"
-          style={styles.brandCenter}
+          flowerSize={s(16)}
+          logoSize={s(16)}
+          color="rgba(255,255,255,0.75)"
+          style={styles.brandMark}
         />
       ) : null}
+
+      <View style={styles.progressWrap}>
+        <ProgressRing percent={percent} size={s(125)} />
+      </View>
 
       {greeting ? <Text style={styles.greeting}>{greeting}</Text> : null}
       {stepsLabel ? <Text style={styles.stepsLabel}>{stepsLabel}</Text> : null}
@@ -113,28 +107,28 @@ export function getTimeOfDayGreeting(timeOfDay: TimeOfDay, firstName?: string) {
 
 const styles = StyleSheet.create({
   header: {
+    width: '100%',
     paddingHorizontal: s(14),
     paddingBottom: s(14),
     alignItems: 'center',
   },
-  brandCorner: {
-    position: 'absolute',
-    left: s(14),
+  brandMark: {
+    alignSelf: 'flex-start',
+    marginBottom: s(8),
   },
-  brandCenter: {
-    marginTop: s(6),
-    marginBottom: s(6),
+  progressWrap: {
+    marginBottom: s(14),
   },
   greeting: {
-    fontFamily: fonts.lora,
-    fontSize: fs(14),
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(17),
     color: colors.white,
     textAlign: 'center',
-    marginBottom: s(2),
+    marginBottom: s(4),
   },
   stepsLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(11),
     color: 'rgba(255,255,255,0.7)',
   },
   tabs: {
@@ -155,7 +149,7 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(10),
     letterSpacing: s(1),
     textTransform: 'uppercase',
     color: 'rgba(255,255,255,0.5)',

@@ -1,8 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import {
+  guidedFlowSizes,
+  guidedFlowTypography,
+} from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
-import { s, vs, fs } from '@/lib/scale';
+import { s } from '@/lib/scale';
 
 const STEP_TITLES = [
   'Name your routine',
@@ -14,14 +18,20 @@ const STEP_TITLES = [
 type GuidedProgressHeaderProps = {
   step: number;
   onBack?: () => void;
+  onCancel?: () => void;
 };
 
-export function GuidedProgressHeader({ step, onBack }: GuidedProgressHeaderProps) {
+export function GuidedProgressHeader({ step, onBack, onCancel }: GuidedProgressHeaderProps) {
+  const backLabel = step <= 1 ? 'Cancel' : '← Back';
+
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
-        <Pressable onPress={onBack} disabled={step <= 1 || !onBack}>
-          <Text style={[styles.back, step <= 1 && styles.backHidden]}>← Back</Text>
+        <Pressable
+          onPress={step <= 1 ? onCancel : onBack}
+          disabled={step <= 1 ? !onCancel : !onBack}
+        >
+          <Text style={styles.back}>{backLabel}</Text>
         </Pressable>
         <View style={styles.progress}>
           {[1, 2, 3, 4].map((index) => (
@@ -44,9 +54,9 @@ export function GuidedProgressHeader({ step, onBack }: GuidedProgressHeaderProps
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: s(18),
-    paddingHorizontal: s(14),
-    paddingBottom: s(10),
+    paddingTop: guidedFlowSizes.headerPaddingTop,
+    paddingHorizontal: guidedFlowSizes.headerPaddingHorizontal,
+    paddingBottom: guidedFlowSizes.headerPaddingBottom,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     backgroundColor: colors.bg,
@@ -58,22 +68,19 @@ const styles = StyleSheet.create({
     marginBottom: s(10),
   },
   back: {
-    width: s(52),
+    width: s(56),
     fontFamily: fonts.dmSans,
-    fontSize: fs(10),
+    fontSize: guidedFlowTypography.back,
     color: colors.blue,
-  },
-  backHidden: {
-    opacity: 0,
   },
   progress: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: s(4),
+    gap: s(5),
   },
   progressBar: {
-    height: vs(3),
-    width: s(12),
+    height: guidedFlowSizes.progressBarHeight,
+    width: guidedFlowSizes.progressBarWidth,
     borderRadius: s(2),
     backgroundColor: colors.border,
   },
@@ -81,20 +88,20 @@ const styles = StyleSheet.create({
     backgroundColor: colors.navy,
   },
   progressCurrent: {
-    width: s(18),
+    width: guidedFlowSizes.progressBarCurrentWidth,
     backgroundColor: colors.blue,
   },
   stepCount: {
-    width: s(52),
+    width: s(56),
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: guidedFlowTypography.stepCount,
     color: colors.muted,
     textAlign: 'right',
   },
   title: {
     fontFamily: fonts.lora,
-    fontSize: fs(16),
+    fontSize: guidedFlowTypography.title,
     color: colors.navy,
-    lineHeight: fs(20),
+    lineHeight: guidedFlowTypography.titleLineHeight,
   },
 });

@@ -56,13 +56,13 @@ const styles = StyleSheet.create({
     marginBottom: s(5),
   },
   title: {
-    fontFamily: fonts.lora,
-    fontSize: fs(13),
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(15.2),
     color: colors.navy,
   },
   count: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(10),
+    fontSize: fs(11.4),
     color: colors.blue,
   },
   track: {
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(9.5),
   },
   chipTextDone: {
     color: colors.blue,

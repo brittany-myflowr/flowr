@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   value: {
     flex: 1,
     textAlign: 'center',
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(13),
     color: colors.navy,
   },

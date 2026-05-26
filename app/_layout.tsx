@@ -14,14 +14,14 @@ import {
   useFonts as useDMSans,
 } from '@expo-google-fonts/dm-sans';
 import {
-  Lora_400Regular,
+  Lora_700Bold,
   Lora_700Bold_Italic,
   useFonts as useLora,
 } from '@expo-google-fonts/lora';
 
 export default function RootLayout() {
   const [loraLoaded] = useLora({
-    Lora_400Regular,
+    Lora_700Bold,
     Lora_700Bold_Italic,
   });
   const [dmSansLoaded] = useDMSans({

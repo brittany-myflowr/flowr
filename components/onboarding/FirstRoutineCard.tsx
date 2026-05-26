@@ -3,8 +3,9 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Daisy } from '@/components/brand';
 import { FullWidthButton } from '@/components/ui/Button';
 import { colors } from '@/constants/colors';
+import { tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
-import { s, fs } from '@/lib/scale';
+import { s } from '@/lib/scale';
 
 type FirstRoutineCardProps = {
   onGetStarted?: () => void;
@@ -39,19 +40,19 @@ const styles = StyleSheet.create({
     marginBottom: s(12),
   },
   title: {
-    fontFamily: fonts.lora,
-    fontSize: fs(18),
+    fontFamily: fonts.cardTitle,
+    fontSize: tabPageTypography.emptyTitle,
     color: colors.navy,
     textAlign: 'center',
-    lineHeight: fs(24),
+    lineHeight: tabPageTypography.emptyTitle * 1.35,
     marginBottom: s(8),
   },
   description: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(11),
+    fontSize: tabPageTypography.emptyBody,
     color: colors.gray,
     textAlign: 'center',
-    lineHeight: fs(19),
+    lineHeight: tabPageTypography.emptyBodyLineHeight,
     marginBottom: s(18),
   },
 });

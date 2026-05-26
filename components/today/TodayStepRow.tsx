@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PhaseChip } from '@/components/cycle/PhaseChip';
 import { CheckIcon } from '@/components/icons/ActionIcons';
+import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import type { PhaseKey } from '@/constants/phases';
@@ -33,6 +34,8 @@ export function TodayStepRow({
   onMoveUp,
   onMoveDown,
 }: TodayStepRowProps) {
+  const categoryColor = categoryColors[step.category];
+
   const content = (
     <>
       {reorderMode ? (
@@ -76,8 +79,15 @@ export function TodayStepRow({
     </>
   );
 
+  const cardStyle = [styles.card, step.done && styles.cardDone];
+
   if (reorderMode) {
-    return <View style={[styles.card, step.done && styles.cardDone]}>{content}</View>;
+    return (
+      <View style={cardStyle}>
+        <View style={[styles.categoryBar, { backgroundColor: categoryColor }]} />
+        <View style={styles.cardBody}>{content}</View>
+      </View>
+    );
   }
 
   return (
@@ -85,9 +95,10 @@ export function TodayStepRow({
       onPress={onToggle}
       onLongPress={onLongPress}
       delayLongPress={250}
-      style={[styles.card, step.done && styles.cardDone]}
+      style={cardStyle}
     >
-      {content}
+      <View style={[styles.categoryBar, { backgroundColor: categoryColor }]} />
+      <View style={styles.cardBody}>{content}</View>
     </Pressable>
   );
 }
@@ -95,15 +106,24 @@ export function TodayStepRow({
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: s(10),
+    alignItems: 'stretch',
     backgroundColor: colors.white,
     borderRadius: s(10),
     borderWidth: 1,
     borderColor: colors.border,
+    marginBottom: s(7),
+    overflow: 'hidden',
+  },
+  categoryBar: {
+    width: s(4),
+  },
+  cardBody: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: s(10),
     paddingHorizontal: s(12),
     paddingVertical: vs(11),
-    marginBottom: s(7),
   },
   cardDone: {
     opacity: 0.72,
@@ -149,7 +169,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stepName: {
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(14),
     color: colors.navy,
   },

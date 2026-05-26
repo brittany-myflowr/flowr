@@ -1,15 +1,20 @@
 import type { Routine } from '@/types';
 
-export function getLinkedStepNames(routines: Routine[], productId: string): string[] {
-  const names: string[] = [];
+export type ProductTagLink = {
+  routineName: string;
+  stepName: string;
+};
+
+export function getProductTagLinks(routines: Routine[], productId: string): ProductTagLink[] {
+  const links: ProductTagLink[] = [];
 
   for (const routine of routines) {
     for (const step of routine.steps) {
       if (step.productId === productId) {
-        names.push(step.name);
+        links.push({ routineName: routine.name, stepName: step.name });
       }
     }
   }
 
-  return names;
+  return links;
 }

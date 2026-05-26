@@ -1,20 +1,18 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TodayProgressCard } from '@/components/calendar/TodayProgressCard';
+import { TabPageHeader } from '@/components/layout/TabPageHeader';
 import { Divider } from '@/components/ui/Divider';
 import { colors } from '@/constants/colors';
+import { tabPageStyles } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import { useCalendarStats } from '@/hooks/useCalendarStats';
 import { useTodayProgressByTimeOfDay } from '@/hooks/useTodayProgressByTimeOfDay';
-import { useRoutines } from '@/providers/AppStore';
 import { s, vs, fs } from '@/lib/scale';
 
 const MONTH_WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 export default function CalendarScreen() {
-  const insets = useSafeAreaInsets();
-  const { routines } = useRoutines();
   const todayPeriods = useTodayProgressByTimeOfDay();
   const {
     streak,
@@ -22,123 +20,100 @@ export default function CalendarScreen() {
     monthProgress,
     weekDays,
     monthGrid,
-    hasAnyHistory,
   } = useCalendarStats();
 
-  const showCalendarContent = hasAnyHistory || routines.length > 0;
-
   return (
-    <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: s(18) + insets.top }]}>
-        <Text style={styles.title}>My Calendar</Text>
-        <Text style={styles.subtitle}>Your consistency</Text>
-      </View>
+    <View style={tabPageStyles.screen}>
+      <TabPageHeader title="My Calendar" subtitle="Your consistency" />
 
       <ScrollView
-        contentContainerStyle={styles.content}
+        style={tabPageStyles.scroll}
+        contentContainerStyle={tabPageStyles.content}
         showsVerticalScrollIndicator={false}
       >
-        {!showCalendarContent ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>No history yet</Text>
-            <Text style={styles.emptyBody}>
-              Create a routine and complete steps on the Today tab to start tracking your
-              consistency.
-            </Text>
-          </View>
-        ) : (
-          <>
-            <View style={styles.statsRow}>
-              <StatCard value={String(streak)} label="Streak" />
-              <StatCard value={String(daysThisMonth)} label="This Month" />
-              <StatCard value={`${monthProgress}%`} label="Done" />
-            </View>
+        <View style={styles.statsRow}>
+          <StatCard value={String(streak)} label="Streak" />
+          <StatCard value={String(daysThisMonth)} label="This Month" />
+          <StatCard value={`${monthProgress}%`} label="Done" />
+        </View>
 
-            <Divider label="This Week" />
-            <View style={styles.weekRow}>
-              {weekDays.map((day) => (
-                <View key={day.key} style={styles.weekCell}>
-                  <Text style={styles.weekLabel}>{day.label}</Text>
+        <Divider label="This Week" large />
+        <View style={styles.weekRow}>
+          {weekDays.map((day) => (
+            <View key={day.key} style={styles.weekCell}>
+              <Text style={styles.weekLabel}>{day.label}</Text>
+              <View
+                style={[
+                  styles.dayCircle,
+                  day.isToday && styles.dayCircleToday,
+                  day.isComplete && !day.isToday && styles.dayCircleComplete,
+                  day.hasProgress && !day.isComplete && !day.isToday && styles.dayCircleProgress,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.dayNumber,
+                    day.isToday && styles.dayNumberToday,
+                    day.isComplete && !day.isToday && styles.dayNumberComplete,
+                  ]}
+                >
+                  {day.date.getDate()}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.weekDot,
+                  day.isComplete ? styles.weekDotComplete : styles.weekDotEmpty,
+                ]}
+              />
+            </View>
+          ))}
+        </View>
+
+        <Divider label="Today" large />
+        {todayPeriods.map((period) => (
+          <TodayProgressCard key={period.timeOfDay} period={period} />
+        ))}
+
+        <Divider label="This Month" large />
+        <View style={styles.monthCard}>
+          <View style={styles.monthWeekdayRow}>
+            {MONTH_WEEKDAY_LABELS.map((label, index) => (
+              <Text key={`${label}-${index}`} style={styles.monthWeekdayLabel}>
+                {label}
+              </Text>
+            ))}
+          </View>
+          <View style={styles.monthGrid}>
+            {monthGrid.map((cell, index) => (
+              <View key={`${cell.key ?? 'empty'}-${index}`} style={styles.monthCell}>
+                {cell.day ? (
                   <View
                     style={[
-                      styles.dayCircle,
-                      day.isToday && styles.dayCircleToday,
-                      day.isComplete && !day.isToday && styles.dayCircleComplete,
-                      day.hasProgress && !day.isComplete && !day.isToday && styles.dayCircleProgress,
+                      styles.monthDay,
+                      cell.isToday && styles.dayCircleToday,
+                      cell.isComplete && !cell.isToday && styles.dayCircleComplete,
+                      cell.hasProgress &&
+                        !cell.isComplete &&
+                        !cell.isToday &&
+                        styles.dayCircleProgress,
                     ]}
                   >
                     <Text
                       style={[
-                        styles.dayNumber,
-                        day.isToday && styles.dayNumberToday,
-                        day.isComplete && !day.isToday && styles.dayNumberComplete,
+                        styles.monthDayText,
+                        cell.isToday && styles.dayNumberToday,
+                        cell.isComplete && !cell.isToday && styles.dayNumberComplete,
                       ]}
                     >
-                      {day.date.getDate()}
+                      {cell.day}
                     </Text>
                   </View>
-                  <View
-                    style={[
-                      styles.weekDot,
-                      day.isComplete ? styles.weekDotComplete : styles.weekDotEmpty,
-                    ]}
-                  />
-                </View>
-              ))}
-            </View>
-
-            <Divider label="Today" />
-            {todayPeriods.length === 0 ? (
-              <View style={styles.todayEmpty}>
-                <Text style={styles.todayEmptyText}>No steps scheduled for today.</Text>
+                ) : null}
               </View>
-            ) : (
-              todayPeriods.map((period) => (
-                <TodayProgressCard key={period.timeOfDay} period={period} />
-              ))
-            )}
-
-            <Divider label="This Month" />
-            <View style={styles.monthCard}>
-              <View style={styles.monthWeekdayRow}>
-                {MONTH_WEEKDAY_LABELS.map((label, index) => (
-                  <Text key={`${label}-${index}`} style={styles.monthWeekdayLabel}>
-                    {label}
-                  </Text>
-                ))}
-              </View>
-              <View style={styles.monthGrid}>
-                {monthGrid.map((cell, index) => (
-                  <View key={`${cell.key ?? 'empty'}-${index}`} style={styles.monthCell}>
-                    {cell.day ? (
-                      <View
-                        style={[
-                          styles.monthDay,
-                          cell.isToday && styles.dayCircleToday,
-                          cell.isComplete && !cell.isToday && styles.dayCircleComplete,
-                          cell.hasProgress &&
-                            !cell.isComplete &&
-                            !cell.isToday &&
-                            styles.dayCircleProgress,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.monthDayText,
-                            cell.isToday && styles.dayNumberToday,
-                            cell.isComplete && !cell.isToday && styles.dayNumberComplete,
-                          ]}
-                        >
-                          {cell.day}
-                        </Text>
-                      </View>
-                    ) : null}
-                  </View>
-                ))}
-              </View>
-            </View>
-          </>
-        )}
+            ))}
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
@@ -154,49 +129,6 @@ function StatCard({ value, label }: { value: string; label: string }) {
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  header: {
-    paddingHorizontal: s(14),
-    paddingBottom: s(8),
-  },
-  title: {
-    fontFamily: fonts.lora,
-    fontSize: fs(20),
-    color: colors.navy,
-  },
-  subtitle: {
-    marginTop: s(1),
-    fontFamily: fonts.dmSans,
-    fontSize: fs(10),
-    color: colors.blue,
-  },
-  content: {
-    paddingHorizontal: s(10),
-    paddingBottom: s(24),
-  },
-  emptyCard: {
-    backgroundColor: colors.white,
-    borderRadius: s(12),
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: s(16),
-    marginHorizontal: s(4),
-  },
-  emptyTitle: {
-    fontFamily: fonts.lora,
-    fontSize: fs(16),
-    color: colors.navy,
-    marginBottom: s(6),
-  },
-  emptyBody: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(11),
-    color: colors.gray,
-    lineHeight: fs(18),
-  },
   statsRow: {
     flexDirection: 'row',
     gap: s(5),
@@ -208,19 +140,19 @@ const styles = StyleSheet.create({
     borderRadius: s(10),
     borderWidth: 1,
     borderColor: colors.border,
-    paddingVertical: vs(8),
+    paddingVertical: vs(9),
     paddingHorizontal: s(4),
     alignItems: 'center',
   },
   statValue: {
-    fontFamily: fonts.lora,
-    fontSize: fs(16),
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(18.05),
     color: colors.navy,
   },
   statLabel: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(7),
+    fontSize: fs(7.6),
     letterSpacing: s(1),
     textTransform: 'uppercase',
     color: colors.muted,
@@ -237,13 +169,13 @@ const styles = StyleSheet.create({
   },
   weekLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(6),
+    fontSize: fs(6.65),
     color: colors.muted,
   },
   dayCircle: {
-    width: s(22),
-    height: vs(22),
-    borderRadius: s(11),
+    width: s(24),
+    height: vs(24),
+    borderRadius: s(12),
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
@@ -263,7 +195,7 @@ const styles = StyleSheet.create({
   },
   dayNumber: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(10.45),
     color: colors.gray,
   },
   dayNumberToday: {
@@ -273,29 +205,15 @@ const styles = StyleSheet.create({
     color: colors.blue,
   },
   weekDot: {
-    width: s(4),
-    height: vs(4),
-    borderRadius: s(2),
+    width: s(5),
+    height: vs(5),
+    borderRadius: s(2.5),
   },
   weekDotComplete: {
     backgroundColor: colors.blue,
   },
   weekDotEmpty: {
     backgroundColor: colors.border,
-  },
-  todayEmpty: {
-    backgroundColor: colors.white,
-    borderRadius: s(10),
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: s(12),
-    paddingVertical: vs(10),
-    marginBottom: s(6),
-  },
-  todayEmptyText: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(11),
-    color: colors.gray,
   },
   monthCard: {
     backgroundColor: colors.white,
@@ -312,7 +230,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontFamily: fonts.dmSans,
-    fontSize: fs(6),
+    fontSize: fs(6.65),
     color: colors.muted,
   },
   monthGrid: {
@@ -327,9 +245,9 @@ const styles = StyleSheet.create({
     padding: s(2),
   },
   monthDay: {
-    width: s(24),
-    height: vs(24),
-    borderRadius: s(12),
+    width: s(26),
+    height: vs(26),
+    borderRadius: s(13),
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
@@ -337,7 +255,7 @@ const styles = StyleSheet.create({
   },
   monthDayText: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(10.45),
     color: colors.gray,
   },
 });

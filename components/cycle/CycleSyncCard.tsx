@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(14),
     color: colors.navy,
   },

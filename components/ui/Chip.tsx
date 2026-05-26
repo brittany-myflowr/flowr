@@ -8,24 +8,37 @@ type ChipProps = {
   label: string;
   selected?: boolean;
   small?: boolean;
+  large?: boolean;
+  form?: boolean;
   onPress?: () => void;
 };
 
-export function Chip({ label, selected = false, small = false, onPress }: ChipProps) {
+export function Chip({
+  label,
+  selected = false,
+  small = false,
+  large = false,
+  form = false,
+  onPress,
+}: ChipProps) {
   return (
     <Pressable
       onPress={onPress}
       disabled={!onPress}
       style={[
         styles.chip,
-        small && styles.chipSmall,
+        form && styles.chipForm,
+        small && !large && !form && styles.chipSmall,
+        large && !form && styles.chipLarge,
         selected ? styles.chipSelected : styles.chipDefault,
       ]}
     >
       <Text
         style={[
           styles.label,
-          small && styles.labelSmall,
+          form && styles.labelForm,
+          small && !large && !form && styles.labelSmall,
+          large && !form && styles.labelLarge,
           selected ? styles.labelSelected : styles.labelDefault,
         ]}
       >
@@ -46,6 +59,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: s(8),
     paddingVertical: vs(3),
   },
+  chipLarge: {
+    paddingHorizontal: s(10),
+    paddingVertical: vs(5),
+  },
+  chipForm: {
+    paddingHorizontal: s(10),
+    paddingVertical: vs(9),
+    borderRadius: s(14),
+  },
   chipDefault: {
     backgroundColor: colors.white,
     borderColor: colors.border,
@@ -60,6 +82,12 @@ const styles = StyleSheet.create({
   },
   labelSmall: {
     fontSize: fs(8),
+  },
+  labelLarge: {
+    fontSize: fs(9.5),
+  },
+  labelForm: {
+    fontSize: fs(10),
   },
   labelDefault: {
     color: colors.gray,

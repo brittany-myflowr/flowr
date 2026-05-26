@@ -1,9 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { CheckIcon } from '@/components/icons/ActionIcons';
-import { Badge } from '@/components/ui/Badge';
+import { VerdictHeartIcon } from '@/components/icons/VerdictHeartIcon';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import type { ProductTagLink } from '@/lib/productLinks';
 import type { Product, Verdict } from '@/types';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -15,40 +16,38 @@ export const verdictColors: Record<Verdict, string> = {
 
 type ProductCardProps = {
   product: Product;
-  linkedStepNames?: string[];
+  tagLinks?: ProductTagLink[];
   onPress?: () => void;
 };
 
-export function ProductCard({ product, linkedStepNames = [], onPress }: ProductCardProps) {
+export function ProductCard({ product, tagLinks = [], onPress }: ProductCardProps) {
   return (
     <Pressable onPress={onPress} style={styles.card}>
+      <View style={styles.verdictIcon} pointerEvents="none">
+        <VerdictHeartIcon verdict={product.verdict} size={s(20)} />
+      </View>
+
       <Text style={styles.name}>{product.name}</Text>
       <Text style={styles.brand}>{product.brand}</Text>
 
-      <View style={styles.metaRow}>
-        <Text style={styles.category}>{product.category}</Text>
-        <Text style={styles.dot}>·</Text>
-        <Text style={[styles.verdict, { color: verdictColors[product.verdict] }]}>
-          {product.verdict}
+      <Text style={styles.category}>{product.category}</Text>
+
+      {tagLinks.length > 0 ? (
+        <Text style={styles.tagLine}>
+          {tagLinks.map((link, index) => (
+            <Text key={`${link.routineName}-${link.stepName}-${index}`}>
+              {index > 0 ? ', ' : null}
+              <Text style={styles.routineName}>{link.routineName}</Text>
+              <Text style={styles.tagSeparator}> · </Text>
+              <Text style={styles.stepName}>{link.stepName}</Text>
+            </Text>
+          ))}
         </Text>
-      </View>
+      ) : null}
 
       {product.notes ? (
         <View style={styles.notesBox}>
           <Text style={styles.notes}>{product.notes}</Text>
-        </View>
-      ) : null}
-
-      {linkedStepNames.length > 0 ? (
-        <View style={styles.linkedSteps}>
-          {linkedStepNames.map((stepName) => (
-            <Badge
-              key={stepName}
-              label={stepName}
-              color={colors.blue}
-              backgroundColor={colors.light}
-            />
-          ))}
         </View>
       ) : null}
     </Pressable>
@@ -77,46 +76,54 @@ export function ProductPickRow({ product, selected = false, onPress }: ProductPi
 
 const styles = StyleSheet.create({
   card: {
+    position: 'relative',
     backgroundColor: colors.white,
     borderRadius: s(10),
     paddingHorizontal: s(12),
     paddingVertical: vs(10),
+    paddingRight: s(36),
     marginBottom: s(6),
     borderWidth: 1,
     borderColor: colors.border,
   },
+  verdictIcon: {
+    position: 'absolute',
+    top: vs(10),
+    right: s(12),
+  },
   name: {
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(13),
     color: colors.navy,
   },
   brand: {
-    marginTop: s(1),
+    marginTop: s(4),
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(11),
     color: colors.muted,
   },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: s(5),
-    marginTop: s(3),
-  },
   category: {
+    marginTop: s(3),
     fontFamily: fonts.dmSans,
     fontSize: fs(8),
     letterSpacing: s(1),
     textTransform: 'uppercase',
     color: colors.muted,
   },
-  dot: {
-    color: colors.border,
-    fontSize: fs(8),
-  },
-  verdict: {
+  tagLine: {
+    marginTop: s(4),
     fontFamily: fonts.dmSans,
     fontSize: fs(9),
-    fontWeight: '500',
+    lineHeight: fs(13),
+  },
+  routineName: {
+    color: colors.blue,
+  },
+  tagSeparator: {
+    color: colors.muted,
+  },
+  stepName: {
+    color: colors.muted,
   },
   notesBox: {
     marginTop: s(4),
@@ -129,12 +136,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.dmSans,
     fontSize: fs(9),
     color: colors.gray,
-  },
-  linkedSteps: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: s(4),
-    marginTop: s(5),
   },
   pickRow: {
     flexDirection: 'row',
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pickName: {
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(12),
     color: colors.navy,
   },

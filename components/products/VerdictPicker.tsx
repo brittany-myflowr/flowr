@@ -1,5 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import {
+  getVerdictHeartColor,
+  VerdictHeartIcon,
+} from '@/components/icons/VerdictHeartIcon';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import type { Verdict } from '@/types';
@@ -19,15 +23,23 @@ export function VerdictPicker({ value, onChange }: VerdictPickerProps) {
       <View style={styles.row}>
         {VERDICTS.map((verdict) => {
           const selected = value === verdict;
+
           return (
             <Pressable
               key={verdict}
               onPress={() => onChange(verdict)}
               style={[styles.option, selected && styles.optionSelected]}
             >
-              <Text style={[styles.optionText, selected && styles.optionTextSelected]}>
-                {verdict}
-              </Text>
+              <View style={styles.optionContent}>
+                <VerdictHeartIcon
+                  verdict={verdict}
+                  size={s(14)}
+                  color={selected ? colors.white : getVerdictHeartColor(verdict)}
+                />
+                <Text style={[styles.optionText, selected && styles.optionTextSelected]}>
+                  {verdict}
+                </Text>
+              </View>
             </Pressable>
           );
         })}
@@ -55,7 +67,7 @@ const styles = StyleSheet.create({
   option: {
     flex: 1,
     paddingVertical: vs(9),
-    paddingHorizontal: s(4),
+    paddingHorizontal: s(6),
     borderRadius: s(14),
     borderWidth: 1,
     borderColor: colors.border,
@@ -65,6 +77,12 @@ const styles = StyleSheet.create({
   optionSelected: {
     backgroundColor: colors.navy,
     borderColor: colors.navy,
+  },
+  optionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: s(4),
   },
   optionText: {
     fontFamily: fonts.dmSans,

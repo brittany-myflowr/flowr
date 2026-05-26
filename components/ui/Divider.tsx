@@ -6,13 +6,14 @@ import { s, vs, fs } from '@/lib/scale';
 
 type DividerProps = {
   label?: string;
+  large?: boolean;
 };
 
-export function Divider({ label }: DividerProps) {
+export function Divider({ label, large = false }: DividerProps) {
   return (
     <View style={styles.row}>
       <View style={styles.line} />
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? <Text style={[styles.label, large && styles.labelLarge]}>{label}</Text> : null}
       <View style={styles.line} />
     </View>
   );
@@ -36,5 +37,8 @@ const styles = StyleSheet.create({
     letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
+  },
+  labelLarge: {
+    fontSize: fs(7.6),
   },
 });

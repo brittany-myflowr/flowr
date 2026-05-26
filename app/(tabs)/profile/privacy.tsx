@@ -39,7 +39,7 @@ export default function PrivacyScreen() {
   return (
     <ProfileScreenShell title="Privacy & Data" subtitle="Account">
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>What we collect</Text>
+        <Text style={styles.cardTitle}>What we collect</Text>
         <Text style={styles.paragraph}>
           Account details you provide (name and email), routines, products, cycle settings, and
           completion history. This data is stored locally on your device.
@@ -51,7 +51,7 @@ export default function PrivacyScreen() {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>How it&apos;s used</Text>
+        <Text style={styles.cardTitle}>How it&apos;s used</Text>
         <Text style={styles.paragraph}>
           Your data powers your personal flowr experience — showing today&apos;s steps, tracking
           progress, syncing routines to your cycle, and sending optional reminders.

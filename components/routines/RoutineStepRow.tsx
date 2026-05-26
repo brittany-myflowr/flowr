@@ -182,12 +182,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stepName: {
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(13),
     color: colors.navy,
   },
   stepInput: {
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(13),
     color: colors.navy,
     padding: s(0),

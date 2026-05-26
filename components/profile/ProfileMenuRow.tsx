@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(15),
     color: colors.navy,
   },

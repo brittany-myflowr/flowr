@@ -1,8 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
-import { s, fs } from '@/lib/scale';
+import { s } from '@/lib/scale';
 
 type SubPageHeaderProps = {
   title: string;
@@ -39,7 +40,7 @@ const styles = StyleSheet.create({
   },
   back: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(10),
+    fontSize: tabPageTypography.subPageBack,
     color: colors.blue,
     marginBottom: s(6),
   },
@@ -48,16 +49,16 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: tabPageTypography.subPageSubtitle,
     letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: s(2),
+    marginBottom: s(4),
   },
   title: {
     fontFamily: fonts.lora,
-    fontSize: fs(18),
+    fontSize: tabPageTypography.subPageTitle,
     color: colors.navy,
-    lineHeight: fs(22),
+    lineHeight: tabPageTypography.subPageTitle * 1.25,
   },
 });

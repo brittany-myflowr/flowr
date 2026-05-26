@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     color: colors.blue,
   },
   planPrice: {
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(18),
     color: colors.navy,
   },

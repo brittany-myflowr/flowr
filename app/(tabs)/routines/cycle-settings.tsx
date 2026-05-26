@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   toggleTitle: {
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(14),
     color: colors.navy,
   },
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     marginBottom: s(1),
   },
   currentPhaseTitle: {
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(14),
     color: colors.navy,
   },

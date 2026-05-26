@@ -63,7 +63,7 @@ export const profileBodyStyles = StyleSheet.create({
     marginBottom: s(6),
   },
   value: {
-    fontFamily: fonts.lora,
+    fontFamily: fonts.cardTitle,
     fontSize: fs(16),
     color: colors.navy,
   },
@@ -78,6 +78,12 @@ export const profileBodyStyles = StyleSheet.create({
     fontSize: fs(12),
     color: colors.navy,
     fontWeight: '600',
+  },
+  cardTitle: {
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(14),
+    color: colors.navy,
+    marginBottom: s(6),
   },
   sectionTitle: {
     fontFamily: fonts.lora,

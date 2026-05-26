@@ -42,7 +42,7 @@ export function FormField({
               key={chip}
               label={chip}
               selected={index === selectedChipIndex}
-              small
+              form
               onPress={onChipPress ? () => onChipPress(index) : undefined}
             />
           ))}
@@ -76,6 +76,6 @@ const styles = StyleSheet.create({
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: s(4),
+    gap: s(6),
   },
 });
