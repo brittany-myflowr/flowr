@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
@@ -20,14 +21,6 @@ type DeleteTarget =
   | { type: 'routine' }
   | null;
 
-function moveStep(steps: Step[], from: number, to: number) {
-  if (to < 0 || to >= steps.length || from === to) return steps;
-  const next = [...steps];
-  const [item] = next.splice(from, 1);
-  next.splice(to, 0, item);
-  return next;
-}
-
 export default function RoutineDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -37,7 +30,6 @@ export default function RoutineDetailScreen() {
   const { showToast } = useToast();
 
   const [editingStepId, setEditingStepId] = useState<string | null>(null);
-  const [reorderMode, setReorderMode] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
 
   if (!routine) {
@@ -98,6 +90,10 @@ export default function RoutineDetailScreen() {
     });
   };
 
+  const handleDragEnd = ({ data }: { data: Step[] }) => {
+    reorderSteps(routine.id, data);
+  };
+
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <RoutineDetailHeader
@@ -111,52 +107,48 @@ export default function RoutineDetailScreen() {
         onNameChange={(name) => updateRoutine(routine.id, { name })}
       />
 
-      {reorderMode ? (
-        <View style={styles.reorderBanner}>
-          <Text style={styles.reorderBannerText}>Reorder mode — use ↑ ↓ or tap handle again to done</Text>
-          <Text onPress={() => setReorderMode(false)} style={styles.reorderDone}>
-            Done
-          </Text>
-        </View>
-      ) : null}
+      <View style={styles.reorderHint}>
+        <Text style={styles.reorderHintText}>Drag the handle to reorder steps</Text>
+      </View>
 
-      <ScrollView
+      <DraggableFlatList
+        data={routine.steps}
+        keyExtractor={(item) => item.id}
+        onDragEnd={handleDragEnd}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-      >
-        {routine.steps.map((step, index) => (
-          <RoutineStepRow
-            key={step.id}
-            step={step}
-            index={index}
-            total={routine.steps.length}
-            reorderMode={reorderMode}
-            isEditing={editingStepId === step.id}
-            onLongPressDrag={() => setReorderMode(true)}
-            onMoveUp={() => reorderSteps(routine.id, moveStep(routine.steps, index, index - 1))}
-            onMoveDown={() => reorderSteps(routine.id, moveStep(routine.steps, index, index + 1))}
-            onPress={() => setEditingStepId(step.id)}
-            onChangeName={(name) => updateStep(routine.id, step.id, { name })}
-            onBlurName={() => setEditingStepId(null)}
-            onDelete={() =>
-              setDeleteTarget({ type: 'step', stepId: step.id, stepName: step.name })
-            }
-            onCustomSchedule={() => openStepSchedule(step.id)}
-            onTagProduct={() => openTagProduct(step.id)}
-          />
-        ))}
-
-        <View style={styles.footer}>
-          <FullWidthButton label="+ Add Step" onPress={openAddStep} />
-          <View style={styles.footerSpacer} />
-          <FullWidthButton
-            label="Remove Routine"
-            variant="danger"
-            onPress={() => setDeleteTarget({ type: 'routine' })}
-          />
-        </View>
-      </ScrollView>
+        ListFooterComponent={
+          <View style={styles.footer}>
+            <FullWidthButton label="+ Add Step" onPress={openAddStep} />
+            <View style={styles.footerSpacer} />
+            <FullWidthButton
+              label="Remove Routine"
+              variant="danger"
+              onPress={() => setDeleteTarget({ type: 'routine' })}
+            />
+          </View>
+        }
+        renderItem={({ item, drag, isActive, getIndex }) => (
+          <ScaleDecorator>
+            <RoutineStepRow
+              step={item}
+              index={getIndex() ?? 0}
+              isDragging={isActive}
+              isEditing={editingStepId === item.id}
+              onDrag={drag}
+              onPress={() => setEditingStepId(item.id)}
+              onChangeName={(name) => updateStep(routine.id, item.id, { name })}
+              onBlurName={() => setEditingStepId(null)}
+              onDelete={() =>
+                setDeleteTarget({ type: 'step', stepId: item.id, stepName: item.name })
+              }
+              onCustomSchedule={() => openStepSchedule(item.id)}
+              onTagProduct={() => openTagProduct(item.id)}
+            />
+          </ScaleDecorator>
+        )}
+      />
 
       <DeleteConfirmSheet
         visible={deleteTarget !== null}
@@ -178,31 +170,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: s(14),
   },
-  reorderBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  reorderHint: {
     paddingHorizontal: s(14),
-    paddingVertical: vs(8),
-    backgroundColor: colors.light,
-    borderBottomWidth: 1,
-    borderBottomColor: '#c8d9e6',
+    paddingBottom: s(6),
   },
-  reorderBannerText: {
-    flex: 1,
+  reorderHintText: {
     fontFamily: fonts.dmSans,
     fontSize: fs(9),
     color: colors.blue,
   },
-  reorderDone: {
-    fontFamily: fonts.dmSansSemiBold,
-    fontSize: fs(10),
-    color: colors.navy,
-    fontWeight: '600',
-  },
   listContent: {
     paddingHorizontal: s(12),
-    paddingTop: s(10),
+    paddingTop: s(4),
     paddingBottom: s(24),
   },
   footer: {

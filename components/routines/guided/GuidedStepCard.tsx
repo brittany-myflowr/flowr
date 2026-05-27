@@ -238,8 +238,8 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderColor: '#c8d9e6',
     borderRadius: s(7),
-    paddingHorizontal: s(8),
-    paddingVertical: vs(4),
+    paddingHorizontal: s(10),
+    paddingVertical: vs(6),
   },
   chipText: {
     fontFamily: fonts.dmSans,
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   tagProductText: {
     fontFamily: fonts.dmSans,
-    fontSize: guidedFlowTypography.fieldLabel,
-    color: colors.muted,
+    fontSize: guidedFlowTypography.link,
+    color: colors.blue,
   },
 });

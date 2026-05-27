@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PhaseChip } from '@/components/cycle/PhaseChip';
-import { CheckIcon } from '@/components/icons/ActionIcons';
+import { CheckIcon, DragHandleIcon } from '@/components/icons/ActionIcons';
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
@@ -15,12 +15,10 @@ type TodayStepRowProps = {
   showRoutineName?: boolean;
   phaseKeys?: PhaseKey[];
   reorderMode?: boolean;
-  index?: number;
-  total?: number;
+  isDragging?: boolean;
   onToggle?: () => void;
   onLongPress?: () => void;
-  onMoveUp?: () => void;
-  onMoveDown?: () => void;
+  onDrag?: () => void;
 };
 
 export function TodayStepRow({
@@ -29,37 +27,19 @@ export function TodayStepRow({
   showRoutineName = true,
   phaseKeys,
   reorderMode = false,
-  index = 0,
-  total = 1,
+  isDragging = false,
   onToggle,
   onLongPress,
-  onMoveUp,
-  onMoveDown,
+  onDrag,
 }: TodayStepRowProps) {
   const categoryColor = categoryColors[step.category];
 
   const content = (
     <>
       {reorderMode ? (
-        <View style={styles.reorderActions}>
-          <Pressable
-            onPress={onMoveUp}
-            disabled={index === 0}
-            style={[styles.reorderButton, index === 0 && styles.reorderButtonDisabled]}
-          >
-            <Text style={styles.reorderLabel}>↑</Text>
-          </Pressable>
-          <Pressable
-            onPress={onMoveDown}
-            disabled={index === total - 1}
-            style={[
-              styles.reorderButton,
-              index === total - 1 && styles.reorderButtonDisabled,
-            ]}
-          >
-            <Text style={styles.reorderLabel}>↓</Text>
-          </Pressable>
-        </View>
+        <Pressable onPressIn={onDrag} disabled={!onDrag} hitSlop={s(8)} style={styles.dragHandle}>
+          <DragHandleIcon />
+        </Pressable>
       ) : (
         <Pressable
           onPress={onToggle}
@@ -87,7 +67,7 @@ export function TodayStepRow({
     </>
   );
 
-  const cardStyle = styles.card;
+  const cardStyle = [styles.card, isDragging && styles.cardDragging];
 
   if (reorderMode) {
     return (
@@ -117,6 +97,14 @@ const styles = StyleSheet.create({
     marginBottom: s(7),
     overflow: 'hidden',
   },
+  cardDragging: {
+    opacity: 0.92,
+    shadowColor: colors.navy,
+    shadowOffset: { width: 0, height: vs(2) },
+    shadowOpacity: 0.12,
+    shadowRadius: s(6),
+    elevation: 4,
+  },
   categoryBar: {
     width: s(4),
   },
@@ -128,28 +116,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: s(12),
     paddingVertical: vs(11),
   },
-  reorderActions: {
-    flexDirection: 'row',
-    gap: s(2),
+  dragHandle: {
     marginTop: s(1),
-  },
-  reorderButton: {
-    width: s(22),
-    height: vs(22),
-    borderRadius: s(6),
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
-  },
-  reorderButtonDisabled: {
-    opacity: 0.35,
-  },
-  reorderLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(12),
-    color: colors.navy,
+    paddingVertical: vs(2),
   },
   checkbox: {
     width: s(22),

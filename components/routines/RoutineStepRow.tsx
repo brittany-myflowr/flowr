@@ -9,13 +9,10 @@ import { s, vs, fs } from '@/lib/scale';
 type RoutineStepRowProps = {
   step: Step;
   index: number;
-  total: number;
   isEditing?: boolean;
-  reorderMode?: boolean;
+  isDragging?: boolean;
   onPress?: () => void;
-  onLongPressDrag?: () => void;
-  onMoveUp?: () => void;
-  onMoveDown?: () => void;
+  onDrag?: () => void;
   onChangeName?: (name: string) => void;
   onBlurName?: () => void;
   onDelete?: () => void;
@@ -26,13 +23,10 @@ type RoutineStepRowProps = {
 export function RoutineStepRow({
   step,
   index,
-  total,
   isEditing = false,
-  reorderMode = false,
+  isDragging = false,
   onPress,
-  onLongPressDrag,
-  onMoveUp,
-  onMoveDown,
+  onDrag,
   onChangeName,
   onBlurName,
   onDelete,
@@ -40,33 +34,11 @@ export function RoutineStepRow({
   onCustomSchedule,
 }: RoutineStepRowProps) {
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, isDragging && styles.cardDragging]}>
       <View style={styles.mainRow}>
-        <Pressable onLongPress={onLongPressDrag} delayLongPress={200} hitSlop={8}>
+        <Pressable onPressIn={onDrag} disabled={!onDrag} delayLongPress={200} hitSlop={8}>
           <DragHandleIcon />
         </Pressable>
-
-        {reorderMode ? (
-          <View style={styles.reorderActions}>
-            <Pressable
-              onPress={onMoveUp}
-              disabled={index === 0}
-              style={[styles.reorderButton, index === 0 && styles.reorderButtonDisabled]}
-            >
-              <Text style={styles.reorderLabel}>↑</Text>
-            </Pressable>
-            <Pressable
-              onPress={onMoveDown}
-              disabled={index === total - 1}
-              style={[
-                styles.reorderButton,
-                index === total - 1 && styles.reorderButtonDisabled,
-              ]}
-            >
-              <Text style={styles.reorderLabel}>↓</Text>
-            </Pressable>
-          </View>
-        ) : null}
 
         <View style={styles.stepNumber}>
           <Text style={styles.stepNumberText}>{index + 1}</Text>
@@ -128,34 +100,20 @@ const styles = StyleSheet.create({
     marginBottom: s(7),
     overflow: 'hidden',
   },
+  cardDragging: {
+    opacity: 0.92,
+    shadowColor: colors.navy,
+    shadowOffset: { width: 0, height: vs(2) },
+    shadowOpacity: 0.12,
+    shadowRadius: s(6),
+    elevation: 4,
+  },
   mainRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: s(8),
     paddingHorizontal: s(12),
     paddingVertical: vs(10),
-  },
-  reorderActions: {
-    flexDirection: 'row',
-    gap: s(2),
-  },
-  reorderButton: {
-    width: s(22),
-    height: vs(22),
-    borderRadius: s(6),
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
-  },
-  reorderButtonDisabled: {
-    opacity: 0.35,
-  },
-  reorderLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(12),
-    color: colors.navy,
   },
   stepNumber: {
     width: s(20),
@@ -228,8 +186,8 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderColor: '#c8d9e6',
     borderRadius: s(7),
-    paddingHorizontal: s(8),
-    paddingVertical: vs(3),
+    paddingHorizontal: s(10),
+    paddingVertical: vs(5),
   },
   chipText: {
     fontFamily: fonts.dmSans,
@@ -238,7 +196,7 @@ const styles = StyleSheet.create({
   },
   tagProductText: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
-    color: colors.muted,
+    fontSize: fs(11),
+    color: colors.blue,
   },
 });

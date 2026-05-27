@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 
 import { CyclePhaseBanner } from '@/components/cycle/CyclePhaseBanner';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
@@ -21,11 +22,7 @@ import {
   groupTodayStepsByRoutine,
   splitTodayRoutineGroups,
 } from '@/lib/todayGroups';
-import {
-  moveTodayStepOrder,
-  syncTodayStepOrder,
-} from '@/lib/todayOrder';
-import { useAuth, useAppStore, useRoutines } from '@/providers/AppStore';
+import { useAuth, useRoutines } from '@/providers/AppStore';
 import type { TimeOfDay } from '@/types';
 import type { TodayStep } from '@/hooks/useTodaySteps';
 import { s, vs, fs } from '@/lib/scale';
@@ -38,12 +35,10 @@ export default function TodayScreen() {
   const [expandedByRoutineId, setExpandedByRoutineId] = useState<Record<string, boolean>>({});
   const previouslyCompleteRoutineIds = useRef<Set<string>>(new Set());
   const { user } = useAuth();
-  const { todayStepOrders } = useAppStore();
   const { routines, toggleStepDone, reorderTodaySteps } = useRoutines();
   const { steps, done, total, percent } = useTodayProgress(selectedTimeOfDay);
   const phaseInfo = useCurrentPhaseInfo();
 
-  const stepIds = useMemo(() => steps.map(({ step }) => step.id), [steps]);
   const routineGroups = useMemo(() => groupTodayStepsByRoutine(steps), [steps]);
   const { activeGroups, completedGroups } = useMemo(
     () => splitTodayRoutineGroups(routineGroups),
@@ -53,16 +48,21 @@ export default function TodayScreen() {
   const stepsLabel =
     total === 0 ? 'No steps for this time of day' : `${done} of ${total} steps done`;
 
+  const completedRoutineIds = useMemo(
+    () => new Set(completedGroups.map((group) => group.routine.id)),
+    [completedGroups],
+  );
+
   useEffect(() => {
-    const currentlyCompleteIds = new Set(completedGroups.map((group) => group.routine.id));
+    const currentlyCompleteIds = completedRoutineIds;
 
     setExpandedByRoutineId((current) => {
       const next = { ...current };
       let changed = false;
 
       for (const routineId of currentlyCompleteIds) {
-        if (!previouslyCompleteRoutineIds.current.has(routineId)) {
-          next[routineId] = false;
+        if (!previouslyCompleteRoutineIds.current.has(routineId) && routineId in next) {
+          delete next[routineId];
           changed = true;
         }
       }
@@ -78,7 +78,7 @@ export default function TodayScreen() {
     });
 
     previouslyCompleteRoutineIds.current = currentlyCompleteIds;
-  }, [activeGroups, completedGroups]);
+  }, [activeGroups, completedRoutineIds]);
 
   useEffect(() => {
     setExpandedByRoutineId({});
@@ -86,18 +86,21 @@ export default function TodayScreen() {
     setReorderMode(false);
   }, [selectedTimeOfDay]);
 
-  const isRoutineExpanded = (routineId: string, isFullyComplete: boolean) => {
-    if (routineId in expandedByRoutineId) {
-      return expandedByRoutineId[routineId];
+  const isRoutineExpanded = (routineId: string) => {
+    if (
+      completedRoutineIds.has(routineId) &&
+      !previouslyCompleteRoutineIds.current.has(routineId)
+    ) {
+      return false;
     }
 
-    return !isFullyComplete;
+    return expandedByRoutineId[routineId] === true;
   };
 
-  const toggleRoutineExpanded = (routineId: string, isFullyComplete: boolean) => {
+  const toggleRoutineExpanded = (routineId: string) => {
     setExpandedByRoutineId((current) => ({
       ...current,
-      [routineId]: !isRoutineExpanded(routineId, isFullyComplete),
+      [routineId]: !isRoutineExpanded(routineId),
     }));
   };
 
@@ -106,34 +109,35 @@ export default function TodayScreen() {
     setReorderMode(false);
   };
 
-  const moveStep = (fromIndex: number, toIndex: number) => {
-    const order = syncTodayStepOrder(todayStepOrders[selectedTimeOfDay] ?? [], stepIds);
-    reorderTodaySteps(selectedTimeOfDay, moveTodayStepOrder(order, fromIndex, toIndex));
+  const handleTodayDragEnd = ({ data }: { data: TodayStep[] }) => {
+    reorderTodaySteps(
+      selectedTimeOfDay,
+      data.map((item) => item.step.id),
+    );
   };
 
   const renderStepRow = (
     { step, routine }: TodayStep,
-    index: number,
-    listLength: number,
-    options?: { showRoutineName?: boolean },
+    options?: {
+      showRoutineName?: boolean;
+      onDrag?: () => void;
+      isDragging?: boolean;
+    },
   ) => {
     const schedule = step.schedule ?? routine.schedule;
     const phaseKeys = schedule.frequency === 'cycle' ? schedule.phases : undefined;
 
     return (
       <TodayStepRow
-        key={step.id}
         step={step}
         routineName={routine.name}
         showRoutineName={options?.showRoutineName ?? true}
         phaseKeys={phaseKeys}
         reorderMode={reorderMode}
-        index={index}
-        total={listLength}
+        isDragging={options?.isDragging}
         onToggle={() => toggleStepDone(routine.id, step.id)}
         onLongPress={() => setReorderMode(true)}
-        onMoveUp={() => moveStep(index, index - 1)}
-        onMoveDown={() => moveStep(index, index + 1)}
+        onDrag={options?.onDrag}
       />
     );
   };
@@ -146,10 +150,10 @@ export default function TodayScreen() {
       key={group.routine.id}
       group={group}
       completed={completed}
-      expanded={isRoutineExpanded(group.routine.id, group.isFullyComplete)}
-      onToggleExpanded={() => toggleRoutineExpanded(group.routine.id, group.isFullyComplete)}
-      renderStepRow={(item, index, listLength) =>
-        renderStepRow(item, index, listLength, { showRoutineName: false })
+      expanded={isRoutineExpanded(group.routine.id)}
+      onToggleExpanded={() => toggleRoutineExpanded(group.routine.id)}
+      renderStepRow={(item, _index, _listLength) =>
+        renderStepRow(item, { showRoutineName: false })
       }
     />
   );
@@ -172,13 +176,36 @@ export default function TodayScreen() {
       {reorderMode ? (
         <View style={styles.reorderBanner}>
           <Text style={styles.reorderBannerText}>
-            Reorder mode — use ↑ ↓ or tap Done when finished
+            Drag steps by the handle to reorder
           </Text>
           <Text onPress={() => setReorderMode(false)} style={styles.reorderDone}>
             Done
           </Text>
         </View>
       ) : null}
+      {reorderMode && total > 0 ? (
+        <DraggableFlatList
+          data={steps}
+          keyExtractor={(item) => item.step.id}
+          onDragEnd={handleTodayDragEnd}
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          ListFooterComponent={
+            <View style={styles.addStepButton}>
+              <FullWidthButton
+                label="+ Add a Step"
+                onPress={() => router.push('/(tabs)/routines/add-step')}
+              />
+            </View>
+          }
+          renderItem={({ item, drag, isActive }) => (
+            <ScaleDecorator>
+              {renderStepRow(item, { onDrag: drag, isDragging: isActive })}
+            </ScaleDecorator>
+          )}
+        />
+      ) : (
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
@@ -200,19 +227,13 @@ export default function TodayScreen() {
                     <Text style={styles.reorderLink}>Reorder steps</Text>
                   </Pressable>
                 ) : null}
-                {reorderMode ? (
-                  steps.map((item, index) => renderStepRow(item, index, steps.length))
-                ) : (
+                {activeGroups.map((group) => renderRoutineSection(group))}
+                {completedGroups.length > 0 ? (
                   <>
-                    {activeGroups.map((group) => renderRoutineSection(group))}
-                    {completedGroups.length > 0 ? (
-                      <>
-                        <Divider label="Completed" />
-                        {completedGroups.map((group) => renderRoutineSection(group, true))}
-                      </>
-                    ) : null}
+                    <Divider label="Completed" />
+                    {completedGroups.map((group) => renderRoutineSection(group, true))}
                   </>
-                )}
+                ) : null}
               </>
             )}
             <View style={styles.addStepButton}>
@@ -224,6 +245,7 @@ export default function TodayScreen() {
           </>
         )}
       </ScrollView>
+      )}
     </View>
   );
 }
