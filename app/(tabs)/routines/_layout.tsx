@@ -7,6 +7,7 @@ export default function RoutinesLayout() {
       <Stack.Screen name="guided" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="schedule" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="add-step" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="step/[id]" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="tag-product" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="cycle-settings" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="[id]" options={{ animation: 'slide_from_right' }} />

@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { CyclePhaseBanner } from '@/components/cycle/CyclePhaseBanner';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
@@ -9,13 +9,11 @@ import { TodayRoutineSection } from '@/components/today/TodayRoutineSection';
 import { TodayStepRow } from '@/components/today/TodayStepRow';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Divider } from '@/components/ui/Divider';
-import { ReorderableList } from '@/components/ui/ReorderableList';
 import {
   getTimeOfDayGreeting,
   TimeOfDayHeader,
 } from '@/components/today/TimeOfDayHeader';
 import { colors } from '@/constants/colors';
-import { fonts } from '@/constants/typography';
 import { useTodayProgress, useCurrentPhaseInfo } from '@/hooks/useTodaySteps';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
 import {
@@ -25,17 +23,16 @@ import {
 import { useAuth, useRoutines } from '@/providers/AppStore';
 import type { TimeOfDay } from '@/types';
 import type { TodayStep } from '@/hooks/useTodaySteps';
-import { s, vs, fs } from '@/lib/scale';
+import { s } from '@/lib/scale';
 
 export default function TodayScreen() {
   const router = useRouter();
   const actualTimeOfDay = useTimeOfDay();
   const [selectedTimeOfDay, setSelectedTimeOfDay] = useState(actualTimeOfDay);
-  const [reorderMode, setReorderMode] = useState(false);
   const [expandedByRoutineId, setExpandedByRoutineId] = useState<Record<string, boolean>>({});
   const previouslyCompleteRoutineIds = useRef<Set<string>>(new Set());
   const { user } = useAuth();
-  const { routines, toggleStepDone, reorderTodaySteps } = useRoutines();
+  const { routines, toggleStepDone } = useRoutines();
   const { steps, done, total, percent } = useTodayProgress(selectedTimeOfDay);
   const phaseInfo = useCurrentPhaseInfo();
 
@@ -83,7 +80,6 @@ export default function TodayScreen() {
   useEffect(() => {
     setExpandedByRoutineId({});
     previouslyCompleteRoutineIds.current = new Set();
-    setReorderMode(false);
   }, [selectedTimeOfDay]);
 
   const isRoutineExpanded = (routineId: string) => {
@@ -106,23 +102,11 @@ export default function TodayScreen() {
 
   const handleTimeOfDayChange = (timeOfDay: TimeOfDay) => {
     setSelectedTimeOfDay(timeOfDay);
-    setReorderMode(false);
-  };
-
-  const handleTodayDragEnd = (data: TodayStep[]) => {
-    reorderTodaySteps(
-      selectedTimeOfDay,
-      data.map((item) => item.step.id),
-    );
   };
 
   const renderStepRow = (
     { step, routine }: TodayStep,
-    options?: {
-      showRoutineName?: boolean;
-      onDrag?: () => void;
-      isDragging?: boolean;
-    },
+    index: number,
   ) => {
     const schedule = step.schedule ?? routine.schedule;
     const phaseKeys = schedule.frequency === 'cycle' ? schedule.phases : undefined;
@@ -130,14 +114,10 @@ export default function TodayScreen() {
     return (
       <TodayStepRow
         step={step}
-        routineName={routine.name}
-        showRoutineName={options?.showRoutineName ?? true}
+        index={index}
+        embedded
         phaseKeys={phaseKeys}
-        reorderMode={reorderMode}
-        isDragging={options?.isDragging}
         onToggle={() => toggleStepDone(routine.id, step.id)}
-        onLongPress={() => setReorderMode(true)}
-        onDrag={options?.onDrag}
       />
     );
   };
@@ -152,9 +132,7 @@ export default function TodayScreen() {
       completed={completed}
       expanded={isRoutineExpanded(group.routine.id)}
       onToggleExpanded={() => toggleRoutineExpanded(group.routine.id)}
-      renderStepRow={(item, _index, _listLength) =>
-        renderStepRow(item, { showRoutineName: false })
-      }
+      renderStepRow={(item, index, _listLength) => renderStepRow(item, index)}
     />
   );
 
@@ -173,36 +151,6 @@ export default function TodayScreen() {
           onDetails={() => router.push('/(tabs)/routines/cycle-settings')}
         />
       ) : null}
-      {reorderMode ? (
-        <View style={styles.reorderBanner}>
-          <Text style={styles.reorderBannerText}>
-            Press and hold the handle, then drag to reorder
-          </Text>
-          <Text onPress={() => setReorderMode(false)} style={styles.reorderDone}>
-            Done
-          </Text>
-        </View>
-      ) : null}
-      {reorderMode && total > 0 ? (
-        <ReorderableList
-          data={steps}
-          keyExtractor={(item) => item.step.id}
-          onDragEnd={handleTodayDragEnd}
-          style={styles.scroll}
-          contentContainerStyle={styles.content}
-          ListFooterComponent={
-            <View style={styles.addStepButton}>
-              <FullWidthButton
-                label="+ Add a Step"
-                onPress={() => router.push('/(tabs)/routines/add-step')}
-              />
-            </View>
-          }
-          renderItem={({ item, drag, isActive }) =>
-            renderStepRow(item, { onDrag: drag, isDragging: isActive })
-          }
-        />
-      ) : (
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
@@ -219,11 +167,6 @@ export default function TodayScreen() {
               />
             ) : (
               <>
-                {!reorderMode && total > 1 ? (
-                  <Pressable onPress={() => setReorderMode(true)} style={styles.reorderLinkWrap}>
-                    <Text style={styles.reorderLink}>Reorder steps</Text>
-                  </Pressable>
-                ) : null}
                 {activeGroups.map((group) => renderRoutineSection(group))}
                 {completedGroups.length > 0 ? (
                   <>
@@ -235,14 +178,13 @@ export default function TodayScreen() {
             )}
             <View style={styles.addStepButton}>
               <FullWidthButton
-                label="+ Add a Step"
-                onPress={() => router.push('/(tabs)/routines/add-step')}
+                label="+ Add a Routine"
+                onPress={() => router.push('/(tabs)/routines')}
               />
             </View>
           </>
         )}
       </ScrollView>
-      )}
     </View>
   );
 }
@@ -260,38 +202,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: s(14),
     paddingTop: s(16),
     paddingBottom: s(24),
-  },
-  reorderBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: s(14),
-    paddingVertical: vs(8),
-    backgroundColor: colors.light,
-    borderBottomWidth: 1,
-    borderBottomColor: '#c8d9e6',
-  },
-  reorderBannerText: {
-    flex: 1,
-    fontFamily: fonts.dmSans,
-    fontSize: fs(9),
-    color: colors.blue,
-  },
-  reorderDone: {
-    fontFamily: fonts.dmSansSemiBold,
-    fontSize: fs(10),
-    color: colors.navy,
-    fontWeight: '600',
-  },
-  reorderLinkWrap: {
-    alignSelf: 'flex-end',
-    marginBottom: s(8),
-  },
-  reorderLink: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(9),
-    color: colors.blue,
-    textDecorationLine: 'underline',
   },
   addStepButton: {
     marginTop: s(12),

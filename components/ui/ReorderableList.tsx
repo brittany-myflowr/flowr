@@ -10,21 +10,31 @@ import {
   PanResponder,
   ScrollView,
   View,
+  type GestureResponderHandlers,
   type LayoutChangeEvent,
   type ViewStyle,
 } from 'react-native';
 
+import {
+  hapticDragEnd,
+  hapticDragStart,
+  hapticDragSwap,
+} from '@/lib/haptics';
+
 export type ReorderableRenderItemInfo<T> = {
   item: T;
   index: number;
-  drag: () => void;
   isActive: boolean;
+  dragHandlers: GestureResponderHandlers;
 };
 
 type ReorderableListProps<T> = {
   data: T[];
   keyExtractor: (item: T) => string;
   onDragEnd: (data: T[]) => void;
+  onItemPress?: (item: T, index: number) => void;
+  /** Apply drag handlers on the full row wrapper (Today) vs inside renderItem (routine detail). */
+  dragHandlersTarget?: 'row' | 'item';
   renderItem: (info: ReorderableRenderItemInfo<T>) => ReactNode;
   contentContainerStyle?: ViewStyle;
   ListFooterComponent?: ReactNode;
@@ -35,6 +45,9 @@ type ItemMetrics = {
   y: number;
   height: number;
 };
+
+const LONG_PRESS_MS = 150;
+const TAP_MAX_MS = 250;
 
 function reorderItems<T>(items: T[], from: number, to: number) {
   if (from === to || from < 0 || to < 0 || from >= items.length || to >= items.length) {
@@ -64,6 +77,8 @@ export function ReorderableList<T>({
   data,
   keyExtractor,
   onDragEnd,
+  onItemPress,
+  dragHandlersTarget = 'item',
   renderItem,
   contentContainerStyle,
   ListFooterComponent,
@@ -78,6 +93,11 @@ export function ReorderableList<T>({
   const itemsRef = useRef(items);
   const activeIndexRef = useRef(activeIndex);
   const activeKeyRef = useRef(activeKey);
+  const onItemPressRef = useRef(onItemPress);
+  const scrollRef = useRef<ScrollView>(null);
+  const contentRef = useRef<View>(null);
+  const rowRefs = useRef<Record<string, View | null>>({});
+  const touchLockCountRef = useRef(0);
 
   useEffect(() => {
     if (activeKeyRef.current == null) {
@@ -97,10 +117,60 @@ export function ReorderableList<T>({
     activeKeyRef.current = activeKey;
   }, [activeKey]);
 
-  const finishDrag = useCallback(() => {
-    if (activeKeyRef.current != null) {
-      onDragEnd(itemsRef.current);
+  useEffect(() => {
+    onItemPressRef.current = onItemPress;
+  }, [onItemPress]);
+
+  const setScrollEnabled = useCallback((enabled: boolean) => {
+    scrollRef.current?.setNativeProps({ scrollEnabled: enabled });
+  }, []);
+
+  const lockScroll = useCallback(() => {
+    touchLockCountRef.current += 1;
+    if (touchLockCountRef.current === 1) {
+      setScrollEnabled(false);
     }
+  }, [setScrollEnabled]);
+
+  const unlockScroll = useCallback(() => {
+    touchLockCountRef.current = Math.max(0, touchLockCountRef.current - 1);
+    if (touchLockCountRef.current === 0 && activeKeyRef.current == null) {
+      setScrollEnabled(true);
+    }
+  }, [setScrollEnabled]);
+
+  const refreshMetrics = useCallback(() => {
+    const container = contentRef.current;
+    if (!container) return;
+
+    for (const item of itemsRef.current) {
+      const key = keyExtractor(item);
+      const row = rowRefs.current[key];
+      if (!row) continue;
+
+      row.measureLayout(
+        container,
+        (_x, y, _width, height) => {
+          metricsRef.current[key] = { y, height };
+        },
+        () => {},
+      );
+    }
+  }, [keyExtractor]);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      refreshMetrics();
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [items, refreshMetrics]);
+
+  const finishDrag = useCallback(() => {
+    if (activeKeyRef.current == null) return;
+
+    hapticDragEnd();
+    onDragEnd(itemsRef.current);
 
     setActiveKey(null);
     setActiveIndex(-1);
@@ -108,7 +178,11 @@ export function ReorderableList<T>({
     activeIndexRef.current = -1;
     dragOffsetRef.current = 0;
     translateY.setValue(0);
-  }, [onDragEnd, translateY]);
+
+    if (touchLockCountRef.current === 0) {
+      setScrollEnabled(true);
+    }
+  }, [onDragEnd, setScrollEnabled, translateY]);
 
   const trySwapWithNeighbor = useCallback(
     (direction: 'up' | 'down', gestureDy: number) => {
@@ -147,99 +221,203 @@ export function ReorderableList<T>({
       setActiveIndex(toIndex);
       activeIndexRef.current = toIndex;
       translateY.setValue(dragOffsetRef.current + gestureDy);
+      hapticDragSwap();
       return true;
     },
     [keyExtractor, translateY],
   );
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: () => activeKeyRef.current != null,
-      onMoveShouldSetPanResponderCapture: () => activeKeyRef.current != null,
-      onPanResponderMove: (_, gesture) => {
-        if (activeKeyRef.current == null) return;
-
-        translateY.setValue(dragOffsetRef.current + gesture.dy);
-
-        if (!trySwapWithNeighbor('down', gesture.dy)) {
-          trySwapWithNeighbor('up', gesture.dy);
-        }
-      },
-      onPanResponderRelease: finishDrag,
-      onPanResponderTerminate: finishDrag,
-    }),
-  ).current;
-
   const startDrag = useCallback(
     (key: string, index: number) => {
-      setActiveKey(key);
-      setActiveIndex(index);
+      if (activeKeyRef.current != null) return;
+
+      refreshMetrics();
+      hapticDragStart();
       activeKeyRef.current = key;
       activeIndexRef.current = index;
       dragOffsetRef.current = 0;
       translateY.setValue(0);
+      setActiveKey(key);
+      setActiveIndex(index);
+      setScrollEnabled(false);
     },
-    [translateY],
+    [refreshMetrics, setScrollEnabled, translateY],
   );
 
-  const handleLayout = useCallback((key: string, event: LayoutChangeEvent) => {
+  const handleRowLayout = useCallback((key: string, event: LayoutChangeEvent) => {
     if (activeKeyRef.current === key) return;
 
     const { y, height } = event.nativeEvent.layout;
     metricsRef.current[key] = { y, height };
   }, []);
 
-  const handleActiveLayout = useCallback((key: string, event: LayoutChangeEvent) => {
-    if (activeKeyRef.current !== key) return;
+  const handleRowTouchStart = useCallback(() => {
+    lockScroll();
+  }, [lockScroll]);
 
-    const { y, height } = event.nativeEvent.layout;
-    if (!metricsRef.current[key]) {
-      metricsRef.current[key] = { y, height };
-    }
-  }, []);
+  const handleRowTouchEnd = useCallback(() => {
+    unlockScroll();
+  }, [unlockScroll]);
+
+  const rowRespondersRef = useRef<
+    Map<
+      string,
+      {
+        panHandlers: GestureResponderHandlers;
+      }
+    >
+  >(new Map());
+
+  const getRowPanHandlers = useCallback(
+    (key: string) => {
+      const existing = rowRespondersRef.current.get(key);
+      if (existing) return existing.panHandlers;
+
+      let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+      let longPressActivated = false;
+      let longPressPending = false;
+      let pressStartedAt = 0;
+
+      const clearLongPressTimer = () => {
+        if (longPressTimer != null) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+      };
+
+      const panResponder = PanResponder.create({
+        onStartShouldSetPanResponder: () =>
+          activeKeyRef.current == null || activeKeyRef.current === key,
+        onStartShouldSetPanResponderCapture: () =>
+          activeKeyRef.current == null || activeKeyRef.current === key,
+        onMoveShouldSetPanResponder: () =>
+          longPressPending || longPressActivated || activeKeyRef.current === key,
+        onMoveShouldSetPanResponderCapture: () =>
+          longPressPending || longPressActivated || activeKeyRef.current === key,
+        onPanResponderTerminationRequest: () => {
+          if (longPressPending || activeKeyRef.current === key) {
+            return false;
+          }
+          return true;
+        },
+        onPanResponderGrant: () => {
+          if (activeKeyRef.current != null && activeKeyRef.current !== key) return;
+
+          pressStartedAt = Date.now();
+          longPressActivated = false;
+          longPressPending = true;
+          clearLongPressTimer();
+
+          longPressTimer = setTimeout(() => {
+            longPressTimer = null;
+            longPressPending = false;
+            longPressActivated = true;
+
+            const index = itemsRef.current.findIndex((item) => keyExtractor(item) === key);
+            if (index >= 0) {
+              startDrag(key, index);
+            }
+          }, LONG_PRESS_MS);
+        },
+        onPanResponderMove: (_, gesture) => {
+          if (activeKeyRef.current !== key) return;
+
+          translateY.setValue(dragOffsetRef.current + gesture.dy);
+
+          if (!trySwapWithNeighbor('down', gesture.dy)) {
+            trySwapWithNeighbor('up', gesture.dy);
+          }
+        },
+        onPanResponderRelease: () => {
+          clearLongPressTimer();
+          longPressPending = false;
+
+          if (longPressActivated) {
+            finishDrag();
+          } else if (
+            onItemPressRef.current &&
+            Date.now() - pressStartedAt <= TAP_MAX_MS
+          ) {
+            const index = itemsRef.current.findIndex((item) => keyExtractor(item) === key);
+            const item = itemsRef.current[index];
+            if (index >= 0 && item) {
+              onItemPressRef.current(item, index);
+            }
+          }
+
+          longPressActivated = false;
+        },
+        onPanResponderTerminate: () => {
+          clearLongPressTimer();
+          longPressPending = false;
+          longPressActivated = false;
+        },
+      });
+
+      rowRespondersRef.current.set(key, {
+        panHandlers: panResponder.panHandlers,
+      });
+
+      return panResponder.panHandlers;
+    },
+    [finishDrag, keyExtractor, startDrag, trySwapWithNeighbor, translateY],
+  );
+
+  const rowTouchHandlers = {
+    onTouchStart: handleRowTouchStart,
+    onTouchEnd: handleRowTouchEnd,
+    onTouchCancel: handleRowTouchEnd,
+  };
 
   return (
     <ScrollView
+      ref={scrollRef}
       style={style}
-      contentContainerStyle={contentContainerStyle}
       scrollEnabled={activeKey == null}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
-      {...panResponder.panHandlers}
     >
-      {items.map((item, index) => {
-        const key = keyExtractor(item);
-        const isActive = activeKey === key;
-        const content = renderItem({
-          item,
-          index,
-          drag: () => startDrag(key, index),
-          isActive,
-        });
+      <View ref={contentRef} style={contentContainerStyle}>
+        {items.map((item, index) => {
+          const key = keyExtractor(item);
+          const isActive = activeKey === key;
+          const dragHandlers = getRowPanHandlers(key);
+          const attachHandlersToRow = dragHandlersTarget === 'row';
+          const content = renderItem({
+            item,
+            index,
+            isActive,
+            dragHandlers: attachHandlersToRow ? {} : dragHandlers,
+          });
 
-        if (isActive) {
           return (
-            <Animated.View
+            <View
               key={key}
-              onLayout={(event) => handleActiveLayout(key, event)}
-              style={{
-                transform: [{ translateY }],
-                zIndex: 2,
-                elevation: 4,
+              ref={(node) => {
+                rowRefs.current[key] = node;
               }}
+              {...rowTouchHandlers}
+              {...(attachHandlersToRow ? dragHandlers : undefined)}
+              onLayout={(event) => handleRowLayout(key, event)}
+              style={isActive ? styles.activeRow : undefined}
             >
-              {content}
-            </Animated.View>
+              <Animated.View
+                style={isActive ? { transform: [{ translateY }] } : undefined}
+              >
+                {content}
+              </Animated.View>
+            </View>
           );
-        }
-
-        return (
-          <View key={key} onLayout={(event) => handleLayout(key, event)}>
-            {content}
-          </View>
-        );
-      })}
-      {ListFooterComponent}
+        })}
+        {ListFooterComponent}
+      </View>
     </ScrollView>
   );
-};
+}
+
+const styles = {
+  activeRow: {
+    zIndex: 2,
+    elevation: 4,
+  },
+} as const;

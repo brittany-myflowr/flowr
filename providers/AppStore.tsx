@@ -102,7 +102,6 @@ type AppStoreValue = {
   toggleRoutineActive: (id: string) => void;
   removeRoutine: (id: string) => void;
   reorderSteps: (routineId: string, steps: Step[]) => void;
-  reorderTodaySteps: (timeOfDay: TimeOfDay, stepIds: string[]) => void;
   removeStep: (routineId: string, stepId: string) => void;
   updateStep: (
     routineId: string,
@@ -379,13 +378,6 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
-  const reorderTodaySteps = useCallback((timeOfDay: TimeOfDay, stepIds: string[]) => {
-    setTodayStepOrders((current) => ({
-      ...current,
-      [timeOfDay]: stepIds,
-    }));
-  }, []);
-
   const removeStep = useCallback((routineId: string, stepId: string) => {
     setRoutines((current) =>
       current.map((routine) =>
@@ -645,7 +637,6 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       toggleRoutineActive,
       removeRoutine,
       reorderSteps,
-      reorderTodaySteps,
       removeStep,
       updateStep,
       toggleStepDone,
@@ -691,7 +682,6 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       toggleRoutineActive,
       removeRoutine,
       reorderSteps,
-      reorderTodaySteps,
       removeStep,
       updateStep,
       toggleStepDone,
@@ -742,7 +732,6 @@ export function useRoutines() {
     toggleRoutineActive: store.toggleRoutineActive,
     removeRoutine: store.removeRoutine,
     reorderSteps: store.reorderSteps,
-    reorderTodaySteps: store.reorderTodaySteps,
     removeStep: store.removeStep,
     updateStep: store.updateStep,
     toggleStepDone: store.toggleStepDone,

@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
@@ -10,11 +10,10 @@ import { FullWidthButton } from '@/components/ui/Button';
 import { ReorderableList } from '@/components/ui/ReorderableList';
 import { colors } from '@/constants/colors';
 import type { Category } from '@/constants/categories';
-import { fonts } from '@/constants/typography';
 import { useRoutine, useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
 import type { Step } from '@/types';
-import { s, vs, fs } from '@/lib/scale';
+import { s, vs } from '@/lib/scale';
 
 type DeleteTarget =
   | { type: 'step'; stepId: string; stepName: string }
@@ -26,10 +25,9 @@ export default function RoutineDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const routine = useRoutine(id);
-  const { reorderSteps, removeStep, removeRoutine, updateStep, updateRoutine } = useRoutines();
+  const { reorderSteps, removeStep, removeRoutine, updateRoutine } = useRoutines();
   const { showToast } = useToast();
 
-  const [editingStepId, setEditingStepId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
 
   if (!routine) {
@@ -69,13 +67,6 @@ export default function RoutineDetailScreen() {
     });
   };
 
-  const openStepSchedule = (stepId: string) => {
-    router.push({
-      pathname: '/(tabs)/routines/schedule',
-      params: { routineId: routine.id, stepId },
-    });
-  };
-
   const openAddStep = () => {
     router.push({
       pathname: '/(tabs)/routines/add-step',
@@ -83,10 +74,10 @@ export default function RoutineDetailScreen() {
     });
   };
 
-  const openTagProduct = (stepId: string) => {
+  const openStepDetail = (stepId: string) => {
     router.push({
-      pathname: '/(tabs)/routines/tag-product',
-      params: { routineId: routine.id, stepId },
+      pathname: '/(tabs)/routines/step/[id]',
+      params: { id: stepId, routineId: routine.id },
     });
   };
 
@@ -107,14 +98,11 @@ export default function RoutineDetailScreen() {
         onNameChange={(name) => updateRoutine(routine.id, { name })}
       />
 
-      <View style={styles.reorderHint}>
-        <Text style={styles.reorderHintText}>Press and hold the handle, then drag to reorder</Text>
-      </View>
-
       <ReorderableList
         data={routine.steps}
         keyExtractor={(item) => item.id}
         onDragEnd={handleDragEnd}
+        onItemPress={(item) => openStepDetail(item.id)}
         contentContainerStyle={styles.listContent}
         ListFooterComponent={
           <View style={styles.footer}>
@@ -127,21 +115,15 @@ export default function RoutineDetailScreen() {
             />
           </View>
         }
-        renderItem={({ item, index, drag, isActive }) => (
+        renderItem={({ item, index, isActive, dragHandlers }) => (
           <RoutineStepRow
             step={item}
             index={index}
             isDragging={isActive}
-            isEditing={editingStepId === item.id}
-            onDrag={drag}
-            onPress={() => setEditingStepId(item.id)}
-            onChangeName={(name) => updateStep(routine.id, item.id, { name })}
-            onBlurName={() => setEditingStepId(null)}
+            dragHandlers={dragHandlers}
             onDelete={() =>
               setDeleteTarget({ type: 'step', stepId: item.id, stepName: item.name })
             }
-            onCustomSchedule={() => openStepSchedule(item.id)}
-            onTagProduct={() => openTagProduct(item.id)}
           />
         )}
       />
@@ -165,15 +147,6 @@ const styles = StyleSheet.create({
   centered: {
     justifyContent: 'center',
     paddingHorizontal: s(14),
-  },
-  reorderHint: {
-    paddingHorizontal: s(14),
-    paddingBottom: s(6),
-  },
-  reorderHintText: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(9),
-    color: colors.blue,
   },
   listContent: {
     paddingHorizontal: s(12),
