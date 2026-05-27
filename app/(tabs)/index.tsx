@@ -14,8 +14,9 @@ import {
   TimeOfDayHeader,
 } from '@/components/today/TimeOfDayHeader';
 import { colors } from '@/constants/colors';
-import { useTodayProgress, useCurrentPhaseInfo } from '@/hooks/useTodaySteps';
+import { useTodayDayProgress, useTodayProgress, useCurrentPhaseInfo } from '@/hooks/useTodaySteps';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
+import { formatTimeOfDay } from '@/constants/schedules';
 import {
   groupTodayStepsByRoutine,
   splitTodayRoutineGroups,
@@ -33,7 +34,8 @@ export default function TodayScreen() {
   const previouslyCompleteRoutineIds = useRef<Set<string>>(new Set());
   const { user } = useAuth();
   const { routines, toggleStepDone } = useRoutines();
-  const { steps, done, total, percent } = useTodayProgress(selectedTimeOfDay);
+  const { steps, done, total } = useTodayProgress(selectedTimeOfDay);
+  const { done: dayDone, total: dayTotal, percent: dayPercent } = useTodayDayProgress();
   const phaseInfo = useCurrentPhaseInfo();
 
   const routineGroups = useMemo(() => groupTodayStepsByRoutine(steps), [steps]);
@@ -43,7 +45,14 @@ export default function TodayScreen() {
   );
 
   const stepsLabel =
-    total === 0 ? 'No steps for this time of day' : `${done} of ${total} steps done`;
+    total === 0
+      ? `No steps for ${formatTimeOfDay(selectedTimeOfDay).toLowerCase()}`
+      : `${formatTimeOfDay(selectedTimeOfDay)} · ${done} of ${total} steps done`;
+
+  const dayStepsLabel =
+    dayTotal === 0
+      ? 'Nothing scheduled today'
+      : `${dayDone} of ${dayTotal} steps done today`;
 
   const completedRoutineIds = useMemo(
     () => new Set(completedGroups.map((group) => group.routine.id)),
@@ -139,9 +148,10 @@ export default function TodayScreen() {
   return (
     <View style={styles.screen}>
       <TimeOfDayHeader
-        percent={percent}
+        percent={dayPercent}
         greeting={getTimeOfDayGreeting(actualTimeOfDay, user?.firstName)}
         stepsLabel={stepsLabel}
+        dayStepsLabel={dayStepsLabel}
         selectedTimeOfDay={selectedTimeOfDay}
         onTimeOfDayChange={handleTimeOfDayChange}
       />

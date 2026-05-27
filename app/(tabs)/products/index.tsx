@@ -8,15 +8,19 @@ import { ProductCard } from '@/components/products/ProductCard';
 import { ProductSearchBar } from '@/components/products/ProductSearchBar';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
+import { Divider } from '@/components/ui/Divider';
 import { tabPageStyles } from '@/constants/tabPageTypography';
 import {
   filterProducts,
   getProductCategoryFilters,
+  groupProductsByCategory,
+  hasActiveProductFilters,
   isProductCategoryFilter,
   type ProductCategoryFilter,
 } from '@/lib/filterProducts';
-import { getProductTagLinks } from '@/lib/productLinks';
+import { getProductTagLinks, getTaggedProductIds, type ProductTagLink } from '@/lib/productLinks';
 import { useAppStore, useProducts } from '@/providers/AppStore';
+import type { Product } from '@/types';
 import { s } from '@/lib/scale';
 
 const categoryFilters = getProductCategoryFilters();
@@ -27,32 +31,93 @@ export default function ProductsScreen() {
   const { products } = useProducts();
   const { routines } = useAppStore();
   const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<ProductCategoryFilter>('All');
+  const [categoryFilter, setCategoryFilter] = useState<ProductCategoryFilter>('All');
+
+  const taggedProductIds = useMemo(() => getTaggedProductIds(routines), [routines]);
 
   const filteredProducts = useMemo(
-    () => filterProducts(products, query, filter),
-    [products, query, filter],
+    () => filterProducts(products, query, categoryFilter),
+    [products, query, categoryFilter],
   );
+
+  const hasActiveFilters = hasActiveProductFilters({
+    query,
+    categoryFilter,
+  });
+
+  const shouldGroupByCategory = !hasActiveFilters;
+
+  const groupedProducts = useMemo(() => {
+    if (!shouldGroupByCategory) return null;
+    return groupProductsByCategory(filteredProducts);
+  }, [filteredProducts, shouldGroupByCategory]);
 
   const subtitle = useMemo(() => {
     if (products.length === 0) return '0 products saved';
 
-    const hasActiveFilters = query.trim().length > 0 || filter !== 'All';
+    const lovedCount = products.filter((product) => product.verdict === 'Love It').length;
+    const inUseCount = products.filter((product) => taggedProductIds.has(product.id)).length;
+
     if (hasActiveFilters) {
       return `${filteredProducts.length} of ${products.length} product${products.length === 1 ? '' : 's'}`;
     }
 
-    return `${products.length} product${products.length === 1 ? '' : 's'}`;
-  }, [filteredProducts.length, filter, products.length, query]);
+    const parts = [`${products.length} product${products.length === 1 ? '' : 's'}`];
+    if (lovedCount > 0) parts.push(`${lovedCount} loved`);
+    if (inUseCount > 0) parts.push(`${inUseCount} in routines`);
 
-  const handleFilterPress = (category: ProductCategoryFilter) => {
-    if (!isProductCategoryFilter(category)) return;
-    setFilter(category);
+    return parts.join(' · ');
+  }, [filteredProducts.length, hasActiveFilters, products, taggedProductIds]);
+
+  const openAddProduct = () => router.push('/(tabs)/products/add');
+
+  const clearFilters = () => {
+    setQuery('');
+    setCategoryFilter('All');
+  };
+
+  const openProduct = (productId: string) => {
+    router.push(`/(tabs)/products/${productId}`);
+  };
+
+  const openTagLink = (link: ProductTagLink) => {
+    router.push({
+      pathname: '/(tabs)/routines/step/[id]',
+      params: { id: link.stepId, routineId: link.routineId },
+    });
+  };
+
+  const renderProductCard = (product: Product) => (
+    <ProductCard
+      key={product.id}
+      product={product}
+      tagLinks={getProductTagLinks(routines, product.id)}
+      onPress={() => openProduct(product.id)}
+      onTagPress={openTagLink}
+    />
+  );
+
+  const renderProductList = () => {
+    if (shouldGroupByCategory && groupedProducts) {
+      return groupedProducts.map((group) => (
+        <View key={group.category}>
+          <Divider label={group.category} large />
+          {group.products.map((product) => renderProductCard(product))}
+        </View>
+      ));
+    }
+
+    return filteredProducts.map((product) => renderProductCard(product));
   };
 
   return (
     <View style={tabPageStyles.screen}>
-      <TabPageHeader title="My Products" subtitle={subtitle} />
+      <TabPageHeader
+        title="My Products"
+        subtitle={subtitle}
+        actionLabel="+ Add"
+        onActionPress={products.length > 0 ? openAddProduct : undefined}
+      />
 
       {products.length > 0 ? (
         <>
@@ -60,9 +125,9 @@ export default function ProductsScreen() {
           <View style={styles.filtersRow}>
             <Chip
               label="All"
-              selected={filter === 'All'}
+              selected={categoryFilter === 'All'}
               form
-              onPress={() => handleFilterPress('All')}
+              onPress={() => setCategoryFilter('All')}
             />
             <ScrollView
               horizontal
@@ -76,9 +141,11 @@ export default function ProductsScreen() {
                 <Chip
                   key={category}
                   label={category}
-                  selected={filter === category}
+                  selected={categoryFilter === category}
                   form
-                  onPress={() => handleFilterPress(category)}
+                  onPress={() => {
+                    if (isProductCategoryFilter(category)) setCategoryFilter(category);
+                  }}
                 />
               ))}
             </ScrollView>
@@ -98,32 +165,25 @@ export default function ProductsScreen() {
             body="Save products you love, like, or want to skip. Tag them to routine steps to keep track of what you use."
           >
             <View style={styles.emptyButton}>
-              <FullWidthButton
-                label="+ Add a Product"
-                onPress={() => router.push('/(tabs)/products/add')}
-              />
+              <FullWidthButton label="+ Add a Product" onPress={openAddProduct} />
             </View>
           </InlineEmptyCard>
         ) : filteredProducts.length === 0 ? (
           <InlineEmptyCard
             title="No matches found"
-            body="Try a different search term or category filter."
-          />
+            body="Try a different search term or filter."
+          >
+            {hasActiveFilters ? (
+              <View style={styles.emptyButton}>
+                <FullWidthButton label="Clear filters" onPress={clearFilters} />
+              </View>
+            ) : null}
+          </InlineEmptyCard>
         ) : (
           <>
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                tagLinks={getProductTagLinks(routines, product.id)}
-                onPress={() => router.push(`/(tabs)/products/${product.id}`)}
-              />
-            ))}
+            {renderProductList()}
             <View style={styles.addButton}>
-              <FullWidthButton
-                label="+ Add a Product"
-                onPress={() => router.push('/(tabs)/products/add')}
-              />
+              <FullWidthButton label="+ Add a Product" onPress={openAddProduct} />
             </View>
           </>
         )}

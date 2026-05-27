@@ -33,4 +33,18 @@ export function useTodayProgress(timeOfDay: TimeOfDay, date = new Date()) {
   return { steps, done, total, percent };
 }
 
+export function useTodayDayProgress(date = new Date()) {
+  const { routines } = useRoutines();
+  const { cycleSettings } = useAppStore();
+
+  return useMemo(() => {
+    const steps = getApplicableSteps(routines, date, { cycleSettings });
+    const done = steps.filter(({ step }) => step.done).length;
+    const total = steps.length;
+    const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+
+    return { steps, done, total, percent };
+  }, [routines, cycleSettings, date]);
+}
+
 export { useCurrentPhaseInfo } from '@/hooks/useCurrentPhaseInfo';

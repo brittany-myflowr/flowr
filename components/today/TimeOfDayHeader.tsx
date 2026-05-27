@@ -16,6 +16,7 @@ const TIME_OF_DAY_LABELS: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
 type TimeOfDayHeaderProps = {
   percent?: number;
   stepsLabel?: string;
+  dayStepsLabel?: string;
   greeting?: string;
   showBrand?: boolean;
   selectedTimeOfDay?: TimeOfDay;
@@ -29,6 +30,7 @@ function capitalize(value: string) {
 export function TimeOfDayHeader({
   percent = 0,
   stepsLabel,
+  dayStepsLabel,
   greeting,
   showBrand = true,
   selectedTimeOfDay,
@@ -68,6 +70,7 @@ export function TimeOfDayHeader({
       </View>
 
       {greeting ? <Text style={styles.greeting}>{greeting}</Text> : null}
+      {dayStepsLabel ? <Text style={styles.dayStepsLabel}>{dayStepsLabel}</Text> : null}
       {stepsLabel ? <Text style={styles.stepsLabel}>{stepsLabel}</Text> : null}
 
       <View style={styles.tabs}>
@@ -126,10 +129,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: s(4),
   },
+  dayStepsLabel: {
+    fontFamily: fonts.dmSansSemiBold,
+    fontSize: fs(11),
+    color: 'rgba(255,255,255,0.9)',
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: s(2),
+  },
   stepsLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(11),
-    color: 'rgba(255,255,255,0.7)',
+    fontSize: fs(10),
+    color: 'rgba(255,255,255,0.65)',
+    textAlign: 'center',
   },
   tabs: {
     flexDirection: 'row',

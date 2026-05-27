@@ -47,6 +47,31 @@ export function filterProducts(
   });
 }
 
+export function groupProductsByCategory(products: Product[]): Array<{
+  category: Category;
+  products: Product[];
+}> {
+  const byCategory = new Map<Category, Product[]>();
+
+  for (const product of products) {
+    const category = resolveProductCategory(product);
+    const group = byCategory.get(category) ?? [];
+    group.push(product);
+    byCategory.set(category, group);
+  }
+
+  return categories
+    .map((category) => ({ category, products: byCategory.get(category) ?? [] }))
+    .filter((group) => group.products.length > 0);
+}
+
 export function getProductCategoryFilters(): ProductCategoryFilter[] {
   return ['All', ...categories];
+}
+
+export function hasActiveProductFilters(input: {
+  query: string;
+  categoryFilter: ProductCategoryFilter;
+}): boolean {
+  return input.query.trim().length > 0 || input.categoryFilter !== 'All';
 }
