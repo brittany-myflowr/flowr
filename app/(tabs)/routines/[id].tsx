@@ -1,13 +1,13 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
 import { RoutineDetailHeader } from '@/components/routines/RoutineDetailHeader';
 import { RoutineStepRow } from '@/components/routines/RoutineStepRow';
 import { FullWidthButton } from '@/components/ui/Button';
+import { ReorderableList } from '@/components/ui/ReorderableList';
 import { colors } from '@/constants/colors';
 import type { Category } from '@/constants/categories';
 import { fonts } from '@/constants/typography';
@@ -90,7 +90,7 @@ export default function RoutineDetailScreen() {
     });
   };
 
-  const handleDragEnd = ({ data }: { data: Step[] }) => {
+  const handleDragEnd = (data: Step[]) => {
     reorderSteps(routine.id, data);
   };
 
@@ -108,16 +108,14 @@ export default function RoutineDetailScreen() {
       />
 
       <View style={styles.reorderHint}>
-        <Text style={styles.reorderHintText}>Drag the handle to reorder steps</Text>
+        <Text style={styles.reorderHintText}>Press and hold the handle, then drag to reorder</Text>
       </View>
 
-      <DraggableFlatList
+      <ReorderableList
         data={routine.steps}
         keyExtractor={(item) => item.id}
         onDragEnd={handleDragEnd}
         contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
         ListFooterComponent={
           <View style={styles.footer}>
             <FullWidthButton label="+ Add Step" onPress={openAddStep} />
@@ -129,24 +127,22 @@ export default function RoutineDetailScreen() {
             />
           </View>
         }
-        renderItem={({ item, drag, isActive, getIndex }) => (
-          <ScaleDecorator>
-            <RoutineStepRow
-              step={item}
-              index={getIndex() ?? 0}
-              isDragging={isActive}
-              isEditing={editingStepId === item.id}
-              onDrag={drag}
-              onPress={() => setEditingStepId(item.id)}
-              onChangeName={(name) => updateStep(routine.id, item.id, { name })}
-              onBlurName={() => setEditingStepId(null)}
-              onDelete={() =>
-                setDeleteTarget({ type: 'step', stepId: item.id, stepName: item.name })
-              }
-              onCustomSchedule={() => openStepSchedule(item.id)}
-              onTagProduct={() => openTagProduct(item.id)}
-            />
-          </ScaleDecorator>
+        renderItem={({ item, index, drag, isActive }) => (
+          <RoutineStepRow
+            step={item}
+            index={index}
+            isDragging={isActive}
+            isEditing={editingStepId === item.id}
+            onDrag={drag}
+            onPress={() => setEditingStepId(item.id)}
+            onChangeName={(name) => updateStep(routine.id, item.id, { name })}
+            onBlurName={() => setEditingStepId(null)}
+            onDelete={() =>
+              setDeleteTarget({ type: 'step', stepId: item.id, stepName: item.name })
+            }
+            onCustomSchedule={() => openStepSchedule(item.id)}
+            onTagProduct={() => openTagProduct(item.id)}
+          />
         )}
       />
 

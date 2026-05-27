@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 
 import { CyclePhaseBanner } from '@/components/cycle/CyclePhaseBanner';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
@@ -10,6 +9,7 @@ import { TodayRoutineSection } from '@/components/today/TodayRoutineSection';
 import { TodayStepRow } from '@/components/today/TodayStepRow';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Divider } from '@/components/ui/Divider';
+import { ReorderableList } from '@/components/ui/ReorderableList';
 import {
   getTimeOfDayGreeting,
   TimeOfDayHeader,
@@ -109,7 +109,7 @@ export default function TodayScreen() {
     setReorderMode(false);
   };
 
-  const handleTodayDragEnd = ({ data }: { data: TodayStep[] }) => {
+  const handleTodayDragEnd = (data: TodayStep[]) => {
     reorderTodaySteps(
       selectedTimeOfDay,
       data.map((item) => item.step.id),
@@ -176,7 +176,7 @@ export default function TodayScreen() {
       {reorderMode ? (
         <View style={styles.reorderBanner}>
           <Text style={styles.reorderBannerText}>
-            Drag steps by the handle to reorder
+            Press and hold the handle, then drag to reorder
           </Text>
           <Text onPress={() => setReorderMode(false)} style={styles.reorderDone}>
             Done
@@ -184,13 +184,12 @@ export default function TodayScreen() {
         </View>
       ) : null}
       {reorderMode && total > 0 ? (
-        <DraggableFlatList
+        <ReorderableList
           data={steps}
           keyExtractor={(item) => item.step.id}
           onDragEnd={handleTodayDragEnd}
           style={styles.scroll}
           contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
           ListFooterComponent={
             <View style={styles.addStepButton}>
               <FullWidthButton
@@ -199,11 +198,9 @@ export default function TodayScreen() {
               />
             </View>
           }
-          renderItem={({ item, drag, isActive }) => (
-            <ScaleDecorator>
-              {renderStepRow(item, { onDrag: drag, isDragging: isActive })}
-            </ScaleDecorator>
-          )}
+          renderItem={({ item, drag, isActive }) =>
+            renderStepRow(item, { onDrag: drag, isDragging: isActive })
+          }
         />
       ) : (
       <ScrollView

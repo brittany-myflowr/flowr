@@ -36,7 +36,7 @@ export function RoutineStepRow({
   return (
     <View style={[styles.card, isDragging && styles.cardDragging]}>
       <View style={styles.mainRow}>
-        <Pressable onPressIn={onDrag} disabled={!onDrag} delayLongPress={200} hitSlop={8}>
+        <Pressable onLongPress={onDrag} disabled={!onDrag} delayLongPress={150} hitSlop={8}>
           <DragHandleIcon />
         </Pressable>
 

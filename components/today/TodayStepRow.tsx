@@ -37,7 +37,13 @@ export function TodayStepRow({
   const content = (
     <>
       {reorderMode ? (
-        <Pressable onPressIn={onDrag} disabled={!onDrag} hitSlop={s(8)} style={styles.dragHandle}>
+        <Pressable
+          onLongPress={onDrag}
+          disabled={!onDrag}
+          delayLongPress={150}
+          hitSlop={s(8)}
+          style={styles.dragHandle}
+        >
           <DragHandleIcon />
         </Pressable>
       ) : (
