@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandMark } from '@/components/brand';
@@ -9,45 +8,25 @@ import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
 import type { TimeOfDay } from '@/types';
-import { s, vs, fs } from '@/lib/scale';
-
-const TIME_OF_DAY_LABELS: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
+import { s, fs } from '@/lib/scale';
 
 type TimeOfDayHeaderProps = {
   percent?: number;
-  stepsLabel?: string;
   dayStepsLabel?: string;
   greeting?: string;
+  dateLabel?: string;
   showBrand?: boolean;
-  selectedTimeOfDay?: TimeOfDay;
-  onTimeOfDayChange?: (timeOfDay: TimeOfDay) => void;
 };
-
-function capitalize(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
 
 export function TimeOfDayHeader({
   percent = 0,
-  stepsLabel,
   dayStepsLabel,
   greeting,
+  dateLabel,
   showBrand = true,
-  selectedTimeOfDay,
-  onTimeOfDayChange,
 }: TimeOfDayHeaderProps) {
   const insets = useSafeAreaInsets();
   const actualTimeOfDay = useTimeOfDay();
-  const [internalTab, setInternalTab] = useState<TimeOfDay>(actualTimeOfDay);
-  const activeTab = selectedTimeOfDay ?? internalTab;
-
-  const setActiveTab = (timeOfDay: TimeOfDay) => {
-    if (onTimeOfDayChange) {
-      onTimeOfDayChange(timeOfDay);
-    } else {
-      setInternalTab(timeOfDay);
-    }
-  };
 
   return (
     <GradientBackground
@@ -65,30 +44,14 @@ export function TimeOfDayHeader({
         />
       ) : null}
 
-      <View style={styles.progressWrap}>
-        <ProgressRing percent={percent} size={s(125)} />
-      </View>
-
       {greeting ? <Text style={styles.greeting}>{greeting}</Text> : null}
-      {dayStepsLabel ? <Text style={styles.dayStepsLabel}>{dayStepsLabel}</Text> : null}
-      {stepsLabel ? <Text style={styles.stepsLabel}>{stepsLabel}</Text> : null}
+      {dateLabel ? <Text style={styles.dateLabel}>{dateLabel}</Text> : null}
 
-      <View style={styles.tabs}>
-        {TIME_OF_DAY_LABELS.map((timeOfDay) => {
-          const isActive = activeTab === timeOfDay;
-          return (
-            <Pressable
-              key={timeOfDay}
-              onPress={() => setActiveTab(timeOfDay)}
-              style={[styles.tab, isActive && styles.tabActive]}
-            >
-              <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
-                {capitalize(timeOfDay)}
-              </Text>
-            </Pressable>
-          );
-        })}
+      <View style={styles.progressWrap}>
+        <ProgressRing percent={percent} size={s(112)} />
       </View>
+
+      {dayStepsLabel ? <Text style={styles.dayStepsLabel}>{dayStepsLabel}</Text> : null}
     </GradientBackground>
   );
 }
@@ -108,6 +71,14 @@ export function getTimeOfDayGreeting(timeOfDay: TimeOfDay, firstName?: string) {
   return `Good ${period}.`;
 }
 
+export function getTodayDateLabel(date = new Date()) {
+  return date.toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
 const styles = StyleSheet.create({
   header: {
     width: '100%',
@@ -119,15 +90,22 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginBottom: s(8),
   },
-  progressWrap: {
-    marginBottom: s(14),
-  },
   greeting: {
     fontFamily: fonts.cardTitle,
     fontSize: fs(17),
     color: colors.white,
     textAlign: 'center',
-    marginBottom: s(4),
+  },
+  dateLabel: {
+    marginTop: s(2),
+    marginBottom: s(10),
+    fontFamily: fonts.dmSans,
+    fontSize: fs(10),
+    color: 'rgba(255,255,255,0.65)',
+    textAlign: 'center',
+  },
+  progressWrap: {
+    marginBottom: s(10),
   },
   dayStepsLabel: {
     fontFamily: fonts.dmSansSemiBold,
@@ -135,39 +113,5 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.9)',
     fontWeight: '600',
     textAlign: 'center',
-    marginBottom: s(2),
-  },
-  stepsLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(10),
-    color: 'rgba(255,255,255,0.65)',
-    textAlign: 'center',
-  },
-  tabs: {
-    flexDirection: 'row',
-    width: '100%',
-    marginTop: s(8),
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.15)',
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: vs(6),
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabActive: {
-    borderBottomColor: colors.white,
-  },
-  tabLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(10),
-    letterSpacing: s(1),
-    textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.5)',
-    textAlign: 'center',
-  },
-  tabLabelActive: {
-    color: colors.white,
   },
 });
