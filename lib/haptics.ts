@@ -19,3 +19,13 @@ export function hapticDragEnd() {
   if (!canUseHaptics()) return;
   void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 }
+
+export function hapticStepComplete() {
+  if (!canUseHaptics()) return;
+  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+}
+
+export function hapticDayComplete() {
+  if (!canUseHaptics()) return;
+  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+}

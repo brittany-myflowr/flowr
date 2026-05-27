@@ -7,14 +7,20 @@ import { s, vs, fs } from '@/lib/scale';
 type DividerProps = {
   label?: string;
   large?: boolean;
+  /** Light styling for use on gradient backgrounds */
+  light?: boolean;
 };
 
-export function Divider({ label, large = false }: DividerProps) {
+export function Divider({ label, large = false, light = false }: DividerProps) {
   return (
     <View style={styles.row}>
-      <View style={styles.line} />
-      {label ? <Text style={[styles.label, large && styles.labelLarge]}>{label}</Text> : null}
-      <View style={styles.line} />
+      <View style={[styles.line, light && styles.lineLight]} />
+      {label ? (
+        <Text style={[styles.label, large && styles.labelLarge, light && styles.labelLight]}>
+          {label}
+        </Text>
+      ) : null}
+      <View style={[styles.line, light && styles.lineLight]} />
     </View>
   );
 }
@@ -40,5 +46,11 @@ const styles = StyleSheet.create({
   },
   labelLarge: {
     fontSize: fs(7.6),
+  },
+  lineLight: {
+    backgroundColor: 'rgba(255,255,255,0.22)',
+  },
+  labelLight: {
+    color: 'rgba(255,255,255,0.78)',
   },
 });

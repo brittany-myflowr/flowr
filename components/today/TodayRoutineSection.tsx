@@ -5,6 +5,7 @@ import { ChevronRightIcon } from '@/components/icons/ProfileIcons';
 import { Badge } from '@/components/ui/Badge';
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
+import { todayGlassCard } from '@/constants/todayCardStyles';
 import { fonts } from '@/constants/typography';
 import { formatFrequency } from '@/providers/RoutinesProvider';
 import type { TodayRoutineGroup } from '@/lib/todayGroups';
@@ -33,7 +34,7 @@ export function TodayRoutineSection({
   const progressLabel = `${group.doneCount}/${group.totalCount} done`;
 
   return (
-    <View style={[styles.card, completed && styles.cardCompleted]}>
+    <View style={[styles.card, todayGlassCard(categoryColor), completed && styles.cardCompleted]}>
       <Pressable onPress={onToggleExpanded} style={styles.headerPressable}>
         <View style={styles.headerRow}>
           <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
@@ -94,12 +95,8 @@ export function TodayRoutineSection({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: s(10),
     padding: s(10),
     marginBottom: s(6),
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   cardCompleted: {
     opacity: 0.55,

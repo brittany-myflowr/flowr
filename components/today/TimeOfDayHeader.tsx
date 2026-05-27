@@ -2,38 +2,51 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandMark } from '@/components/brand';
-import { GradientBackground } from '@/components/ui/GradientBackground';
-import { ProgressRing } from '@/components/ui/ProgressRing';
+import { CyclePhasePill } from '@/components/cycle/CyclePhasePill';
+import { WeekProgressStrip } from '@/components/today/WeekProgressStrip';
+import { ProgressBar } from '@/components/ui/ProgressBar';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
-import { useTimeOfDay } from '@/hooks/useTimeOfDay';
+import type { CyclePhaseInfo } from '@/lib/cycle';
 import type { TimeOfDay } from '@/types';
 import { s, fs } from '@/lib/scale';
 
+type WeekDay = {
+  key: string;
+  label: string;
+  isToday: boolean;
+  isComplete: boolean;
+  hasProgress: boolean;
+  isOffDay: boolean;
+};
+
 type TimeOfDayHeaderProps = {
   percent?: number;
+  dayTotal?: number;
   dayStepsLabel?: string;
+  phaseInfo?: CyclePhaseInfo | null;
+  onPhasePress?: () => void;
   greeting?: string;
   dateLabel?: string;
+  weekDays?: WeekDay[];
   showBrand?: boolean;
 };
 
 export function TimeOfDayHeader({
   percent = 0,
+  dayTotal = 0,
   dayStepsLabel,
+  phaseInfo,
+  onPhasePress,
   greeting,
   dateLabel,
+  weekDays,
   showBrand = true,
 }: TimeOfDayHeaderProps) {
   const insets = useSafeAreaInsets();
-  const actualTimeOfDay = useTimeOfDay();
 
   return (
-    <GradientBackground
-      fill={false}
-      variant={actualTimeOfDay}
-      style={[styles.header, { paddingTop: insets.top + s(12) }]}
-    >
+    <View style={[styles.header, { paddingTop: insets.top + s(12) }]}>
       {showBrand ? (
         <BrandMark
           direction="row"
@@ -47,12 +60,16 @@ export function TimeOfDayHeader({
       {greeting ? <Text style={styles.greeting}>{greeting}</Text> : null}
       {dateLabel ? <Text style={styles.dateLabel}>{dateLabel}</Text> : null}
 
-      <View style={styles.progressWrap}>
-        <ProgressRing percent={percent} size={s(112)} />
-      </View>
+      {weekDays?.length ? <WeekProgressStrip days={weekDays} /> : null}
+
+      {phaseInfo ? (
+        <CyclePhasePill phaseInfo={phaseInfo} onPress={onPhasePress} />
+      ) : null}
 
       {dayStepsLabel ? <Text style={styles.dayStepsLabel}>{dayStepsLabel}</Text> : null}
-    </GradientBackground>
+
+      <ProgressBar percent={percent} total={dayTotal} />
+    </View>
   );
 }
 
@@ -85,10 +102,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: s(14),
     paddingBottom: s(14),
     alignItems: 'center',
+    gap: s(6),
   },
   brandMark: {
     alignSelf: 'flex-start',
-    marginBottom: s(8),
+    marginBottom: s(2),
   },
   greeting: {
     fontFamily: fonts.cardTitle,
@@ -97,15 +115,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   dateLabel: {
-    marginTop: s(2),
-    marginBottom: s(10),
     fontFamily: fonts.dmSans,
     fontSize: fs(10),
     color: 'rgba(255,255,255,0.65)',
     textAlign: 'center',
-  },
-  progressWrap: {
-    marginBottom: s(10),
   },
   dayStepsLabel: {
     fontFamily: fonts.dmSansSemiBold,

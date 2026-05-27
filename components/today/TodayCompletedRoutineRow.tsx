@@ -5,6 +5,7 @@ import { CheckIcon } from '@/components/icons/ActionIcons';
 import { ChevronRightIcon } from '@/components/icons/ProfileIcons';
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
+import { todayGlassCard } from '@/constants/todayCardStyles';
 import { fonts } from '@/constants/typography';
 import type { TodayRoutineGroup } from '@/lib/todayGroups';
 import { s, vs, fs } from '@/lib/scale';
@@ -31,7 +32,7 @@ export function TodayCompletedRoutineRow({
   const categoryColor = categoryColors[group.routine.category];
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, todayGlassCard(categoryColor)]}>
       <Pressable
         onPress={onToggleExpanded}
         style={styles.headerPressable}
@@ -80,13 +81,10 @@ export function TodayCompletedRoutineRow({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: s(10),
     paddingHorizontal: s(10),
     paddingVertical: vs(8),
     marginBottom: s(5),
-    borderWidth: 1,
-    borderColor: colors.border,
+    opacity: 0.9,
   },
   headerPressable: {
     flexDirection: 'row',

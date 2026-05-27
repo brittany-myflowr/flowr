@@ -2,9 +2,11 @@ import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { CyclePhaseBanner } from '@/components/cycle/CyclePhaseBanner';
+import { ConfettiBurst } from '@/components/feedback/ConfettiBurst';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { FirstRoutineCard } from '@/components/onboarding/FirstRoutineCard';
+import { FuturePeriodPreview } from '@/components/today/FuturePeriodPreview';
+import { TodayAllDoneCard } from '@/components/today/TodayAllDoneCard';
 import { TodayCompletedRoutineRow } from '@/components/today/TodayCompletedRoutineRow';
 import { TodayRoutineSection } from '@/components/today/TodayRoutineSection';
 import { TodayStepRow } from '@/components/today/TodayStepRow';
@@ -13,17 +15,22 @@ import {
   getTodayDateLabel,
   TimeOfDayHeader,
 } from '@/components/today/TimeOfDayHeader';
+import { UpNextCard } from '@/components/today/UpNextCard';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Divider } from '@/components/ui/Divider';
-import { colors } from '@/constants/colors';
+import { GradientBackground } from '@/components/ui/GradientBackground';
 import { tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
+import { useCalendarStats } from '@/hooks/useCalendarStats';
+import { useUpNextStep } from '@/hooks/useUpNextStep';
 import {
+  TIME_OF_DAY_ORDER,
   useCurrentPhaseInfo,
   useTodayDayProgress,
   useTodaySections,
 } from '@/hooks/useTodaySteps';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
+import { hapticDayComplete, hapticStepComplete } from '@/lib/haptics';
 import { useAuth, useRoutines } from '@/providers/AppStore';
 import type { TodayStep } from '@/hooks/useTodaySteps';
 import type { TodayRoutineGroup } from '@/lib/todayGroups';
@@ -35,6 +42,16 @@ type CompletedTodayItem = {
   periodLabel: string;
   timeOfDay: TimeOfDay;
 };
+
+const PERIOD_INDEX: Record<TimeOfDay, number> = {
+  morning: 0,
+  afternoon: 1,
+  evening: 2,
+};
+
+function isFuturePeriod(timeOfDay: TimeOfDay, current: TimeOfDay) {
+  return PERIOD_INDEX[timeOfDay] > PERIOD_INDEX[current];
+}
 
 function buildPeriodDividerLabel(
   label: string,
@@ -53,13 +70,20 @@ export default function TodayScreen() {
   const actualTimeOfDay = useTimeOfDay();
   const [expandedByRoutineId, setExpandedByRoutineId] = useState<Record<string, boolean>>({});
   const [expandedDoneRoutineIds, setExpandedDoneRoutineIds] = useState<Record<string, boolean>>({});
+  const [expandedFuturePeriods, setExpandedFuturePeriods] = useState<Record<string, boolean>>({});
   const [showDoneToday, setShowDoneToday] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   const initialExpandDone = useRef(false);
+  const previousDayDone = useRef(0);
   const { user } = useAuth();
   const { routines, toggleStepDone } = useRoutines();
   const { done: dayDone, total: dayTotal, percent: dayPercent } = useTodayDayProgress();
   const periodSections = useTodaySections();
   const phaseInfo = useCurrentPhaseInfo();
+  const upNext = useUpNextStep(actualTimeOfDay);
+  const { streak, weekDays } = useCalendarStats();
+
+  const greeting = getTimeOfDayGreeting(actualTimeOfDay, user?.firstName);
 
   const dayStepsLabel =
     dayTotal === 0
@@ -82,11 +106,6 @@ export default function TodayScreen() {
     return items;
   }, [periodSections]);
 
-  const activePeriodSections = useMemo(
-    () => periodSections.filter((section) => section.activeGroups.length > 0),
-    [periodSections],
-  );
-
   useEffect(() => {
     if (initialExpandDone.current) return;
 
@@ -106,6 +125,24 @@ export default function TodayScreen() {
     initialExpandDone.current = true;
   }, [periodSections, actualTimeOfDay]);
 
+  useEffect(() => {
+    if (dayTotal > 0 && dayDone === dayTotal && previousDayDone.current < dayTotal) {
+      hapticDayComplete();
+      setShowConfetti(true);
+    }
+    previousDayDone.current = dayDone;
+  }, [dayDone, dayTotal]);
+
+  const handleToggleStep = (routineId: string, stepId: string) => {
+    hapticStepComplete();
+    toggleStepDone(routineId, stepId);
+  };
+
+  const handleUpNextComplete = () => {
+    if (!upNext) return;
+    handleToggleStep(upNext.routine.id, upNext.step.id);
+  };
+
   const renderStepRow = ({ step, routine }: TodayStep, index: number) => {
     const schedule = step.schedule ?? routine.schedule;
     const phaseKeys = schedule.frequency === 'cycle' ? schedule.phases : undefined;
@@ -116,7 +153,7 @@ export default function TodayScreen() {
         index={index}
         embedded
         phaseKeys={phaseKeys}
-        onToggle={() => toggleStepDone(routine.id, step.id)}
+        onToggle={() => handleToggleStep(routine.id, step.id)}
       />
     );
   };
@@ -146,10 +183,41 @@ export default function TodayScreen() {
           section.timeOfDay === actualTimeOfDay,
         )}
         large
+        light
       />
       {section.activeGroups.map((group) => renderActiveRoutineSection(group))}
     </View>
   );
+
+  const renderPeriodSections = () =>
+    TIME_OF_DAY_ORDER.map((timeOfDay) => {
+      const section = periodSections.find((entry) => entry.timeOfDay === timeOfDay);
+      if (!section || section.activeGroups.length === 0) return null;
+
+      const isFuture = isFuturePeriod(section.timeOfDay, actualTimeOfDay);
+      const isExpanded = expandedFuturePeriods[section.timeOfDay] === true;
+
+      if (isFuture && !isExpanded) {
+        const remainingSteps = section.total - section.done;
+
+        return (
+          <FuturePeriodPreview
+            key={section.timeOfDay}
+            label={section.label}
+            timeOfDay={section.timeOfDay}
+            remainingSteps={remainingSteps}
+            onPress={() =>
+              setExpandedFuturePeriods((current) => ({
+                ...current,
+                [section.timeOfDay]: true,
+              }))
+            }
+          />
+        );
+      }
+
+      return renderPeriodSection(section);
+    });
 
   const renderDoneTodaySection = () => {
     if (completedToday.length === 0) return null;
@@ -190,70 +258,78 @@ export default function TodayScreen() {
     );
   };
 
+  const hasActiveWork = periodSections.some((section) => section.activeGroups.length > 0);
+
   return (
-    <View style={styles.screen}>
-      <TimeOfDayHeader
-        percent={dayPercent}
-        greeting={getTimeOfDayGreeting(actualTimeOfDay, user?.firstName)}
-        dateLabel={getTodayDateLabel()}
-        dayStepsLabel={dayStepsLabel}
-      />
-      {phaseInfo ? (
-        <CyclePhaseBanner
-          phaseInfo={phaseInfo}
-          onDetails={() => router.push('/(tabs)/routines/cycle-settings')}
-        />
-      ) : null}
+    <GradientBackground fill variant={actualTimeOfDay} style={styles.screen}>
+      <ConfettiBurst active={showConfetti} onFinished={() => setShowConfetti(false)} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {routines.length === 0 ? (
-          <FirstRoutineCard onGetStarted={() => router.push('/(tabs)/routines/guided')} />
-        ) : dayTotal === 0 ? (
-          <InlineEmptyCard
-            title="Nothing scheduled today"
-            body="Your routines aren't due today based on their schedules. Check Calendar or Routines to adjust."
-          />
-        ) : (
-          <>
-            {activePeriodSections.length === 0 ? (
-              <InlineEmptyCard
-                compact
-                title="All done for today"
-                body="Nice work — everything scheduled for today is complete."
-              />
-            ) : (
-              activePeriodSections.map((section) => renderPeriodSection(section))
-            )}
-            {renderDoneTodaySection()}
-            <View style={styles.addStepButton}>
-              <FullWidthButton
-                label="+ Add a Routine"
-                onPress={() => router.push('/(tabs)/routines/guided')}
-              />
-            </View>
-          </>
-        )}
+        <TimeOfDayHeader
+          percent={dayPercent}
+          dayTotal={dayTotal}
+          phaseInfo={phaseInfo}
+          onPhasePress={() => router.push('/(tabs)/routines/cycle-settings')}
+          greeting={greeting}
+          dateLabel={getTodayDateLabel()}
+          weekDays={weekDays}
+          dayStepsLabel={dayStepsLabel}
+        />
+
+        <View style={styles.body}>
+          {routines.length === 0 ? (
+            <FirstRoutineCard onGetStarted={() => router.push('/(tabs)/routines/guided')} />
+          ) : dayTotal === 0 ? (
+            <InlineEmptyCard
+              title="Nothing scheduled today"
+              body="Your routines aren't due today based on their schedules. Check Calendar or Routines to adjust."
+            />
+          ) : (
+            <>
+              {upNext && hasActiveWork ? (
+                <UpNextCard upNext={upNext} onComplete={handleUpNextComplete} />
+              ) : null}
+
+              {!hasActiveWork ? (
+                <TodayAllDoneCard firstName={user?.firstName} streak={streak} />
+              ) : (
+                renderPeriodSections()
+              )}
+
+              {renderDoneTodaySection()}
+
+              <View style={styles.addStepButton}>
+                <FullWidthButton
+                  label="+ Add a Routine"
+                  onPress={() => router.push('/(tabs)/routines/guided')}
+                />
+              </View>
+            </>
+          )}
+        </View>
       </ScrollView>
-    </View>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.bg,
   },
   scroll: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: 'transparent',
   },
   content: {
-    paddingHorizontal: s(14),
-    paddingTop: s(16),
+    flexGrow: 1,
     paddingBottom: s(24),
+  },
+  body: {
+    paddingHorizontal: s(14),
+    paddingTop: s(4),
   },
   doneTodaySection: {
     marginTop: s(8),
@@ -270,12 +346,12 @@ const styles = StyleSheet.create({
     fontSize: tabPageTypography.sectionLabel,
     letterSpacing: s(1.5),
     textTransform: 'uppercase',
-    color: colors.muted,
+    color: 'rgba(255,255,255,0.78)',
   },
   doneTodayChevron: {
     fontFamily: fonts.dmSans,
     fontSize: fs(12),
-    color: colors.muted,
+    color: 'rgba(255,255,255,0.78)',
   },
   addStepButton: {
     marginTop: s(12),

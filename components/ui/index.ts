@@ -5,6 +5,7 @@ export { Divider } from './Divider';
 export { FormField } from './FormField';
 export { GradientBackground } from './GradientBackground';
 export { Input } from './Input';
+export { ProgressBar } from './ProgressBar';
 export { ProgressRing } from './ProgressRing';
 export { TextLink } from './TextLink';
 export { Toggle } from './Toggle';
