@@ -26,7 +26,7 @@ export function FuturePeriodPreview({
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.card, todayGlassCard()]}
+      style={[styles.card, todayGlassCard(undefined, 'future')]}
       accessibilityRole="button"
       accessibilityLabel={`${label}, ${stepLabel} later. Expand section.`}
     >
@@ -52,7 +52,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: s(12),
     paddingVertical: vs(10),
     marginBottom: s(6),
-    opacity: 0.88,
   },
   iconWrap: {
     width: s(24),

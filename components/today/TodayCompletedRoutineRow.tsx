@@ -32,7 +32,7 @@ export function TodayCompletedRoutineRow({
   const categoryColor = categoryColors[group.routine.category];
 
   return (
-    <View style={[styles.card, todayGlassCard(categoryColor)]}>
+    <View style={[styles.card, todayGlassCard(categoryColor, 'done')]}>
       <Pressable
         onPress={onToggleExpanded}
         style={styles.headerPressable}
@@ -84,7 +84,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: s(10),
     paddingVertical: vs(8),
     marginBottom: s(5),
-    opacity: 0.9,
   },
   headerPressable: {
     flexDirection: 'row',

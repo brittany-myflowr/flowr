@@ -18,7 +18,7 @@ export function UpNextCard({ upNext, onComplete }: UpNextCardProps) {
   const categoryColor = categoryColors[upNext.routine.category];
 
   return (
-    <View style={[styles.card, todayGlassCard(categoryColor)]}>
+    <View style={[styles.card, todayGlassCard(categoryColor, 'hero')]}>
       <View style={styles.headerRow}>
         {getTimeOfDayIcon(upNext.timeOfDay, colors.blue)}
         <Text style={styles.eyebrow}>Up next · {upNext.periodLabel}</Text>

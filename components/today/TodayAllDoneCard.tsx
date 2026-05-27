@@ -17,7 +17,7 @@ export function TodayAllDoneCard({ firstName, streak }: TodayAllDoneCardProps) {
   const title = firstName?.trim() ? `You did it, ${firstName.trim()}.` : 'You did it.';
 
   return (
-    <View style={[styles.card, todayGlassCard()]}>
+    <View style={[styles.card, todayGlassCard(undefined, 'hero')]}>
       <View style={styles.iconWrap}>
         <Daisy color={colors.blue} size={s(36)} />
       </View>

@@ -2,12 +2,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Daisy } from '@/components/brand';
 import { ChevronRightIcon } from '@/components/icons/ProfileIcons';
-import { Badge } from '@/components/ui/Badge';
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { todayGlassCard } from '@/constants/todayCardStyles';
 import { fonts } from '@/constants/typography';
-import { formatFrequency } from '@/providers/RoutinesProvider';
 import type { TodayRoutineGroup } from '@/lib/todayGroups';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -31,10 +29,17 @@ export function TodayRoutineSection({
   renderStepRow,
 }: TodayRoutineSectionProps) {
   const categoryColor = categoryColors[group.routine.category];
-  const progressLabel = `${group.doneCount}/${group.totalCount} done`;
+  const progressPercent =
+    group.totalCount === 0 ? 0 : Math.round((group.doneCount / group.totalCount) * 100);
 
   return (
-    <View style={[styles.card, todayGlassCard(categoryColor), completed && styles.cardCompleted]}>
+    <View
+      style={[
+        styles.card,
+        todayGlassCard(categoryColor, 'routine'),
+        completed && styles.cardCompleted,
+      ]}
+    >
       <Pressable onPress={onToggleExpanded} style={styles.headerPressable}>
         <View style={styles.headerRow}>
           <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
@@ -46,33 +51,27 @@ export function TodayRoutineSection({
               {group.routine.name}
             </Text>
             <Text style={[styles.subtitle, completed && styles.subtitleCompleted]}>
-              {group.totalCount} steps · {group.routine.category}
+              {group.routine.category}
             </Text>
           </View>
 
-          <Text style={[styles.progress, completed && styles.progressCompleted]}>{progressLabel}</Text>
+          <Text style={[styles.progress, completed && styles.progressCompleted]}>
+            {group.doneCount}/{group.totalCount}
+          </Text>
 
           <View style={[styles.chevronWrap, expanded && styles.chevronExpanded]}>
             <ChevronRightIcon size={s(14)} color={completed ? colors.muted : colors.gray} />
           </View>
         </View>
 
-        <View style={styles.scheduleChip}>
-          <Text style={styles.scheduleText}>
-            {formatFrequency(group.routine.schedule.frequency)}
-          </Text>
-        </View>
-
         {!expanded ? (
-          <View style={styles.badges}>
-            {group.steps.slice(0, 3).map((item) => (
-              <Badge
-                key={item.step.id}
-                label={item.step.name}
-                color={colors.gray}
-                backgroundColor={colors.inputBg}
-              />
-            ))}
+          <View style={styles.progressTrack}>
+            <View
+              style={[
+                styles.progressFill,
+                { width: `${progressPercent}%`, backgroundColor: categoryColor },
+              ]}
+            />
           </View>
         ) : null}
       </Pressable>
@@ -99,10 +98,10 @@ const styles = StyleSheet.create({
     marginBottom: s(6),
   },
   cardCompleted: {
-    opacity: 0.55,
+    opacity: 0.72,
   },
   headerPressable: {
-    gap: 0,
+    gap: s(6),
   },
   headerRow: {
     flexDirection: 'row',
@@ -133,6 +132,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.dmSans,
     fontSize: fs(9),
     color: colors.muted,
+    textTransform: 'capitalize',
   },
   subtitleCompleted: {
     color: colors.muted,
@@ -153,38 +153,27 @@ const styles = StyleSheet.create({
   chevronExpanded: {
     transform: [{ rotate: '90deg' }],
   },
-  scheduleChip: {
-    alignSelf: 'flex-start',
-    marginTop: s(6),
-    backgroundColor: colors.light,
-    borderWidth: 1,
-    borderColor: '#c8d9e6',
-    borderRadius: s(6),
-    paddingHorizontal: s(7),
-    paddingVertical: vs(3),
+  progressTrack: {
+    height: s(3),
+    borderRadius: s(2),
+    backgroundColor: 'rgba(26,26,46,0.08)',
+    overflow: 'hidden',
   },
-  scheduleText: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(8),
-    color: colors.blue,
-  },
-  badges: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: s(4),
-    marginTop: s(5),
+  progressFill: {
+    height: '100%',
+    borderRadius: s(2),
   },
   stepsSection: {
     marginTop: s(8),
     borderTopWidth: 1,
-    borderTopColor: colors.inputBg,
+    borderTopColor: 'rgba(26,26,46,0.06)',
   },
   stepWrap: {
     paddingTop: s(6),
   },
   stepWrapDivider: {
     borderTopWidth: 1,
-    borderTopColor: colors.inputBg,
+    borderTopColor: 'rgba(26,26,46,0.06)',
     marginTop: s(2),
     paddingTop: s(8),
   },
