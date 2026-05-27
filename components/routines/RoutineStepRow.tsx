@@ -37,7 +37,12 @@ export function RoutineStepRow({
         </View>
 
         <View style={styles.actions}>
-          <Pressable onPress={onDelete} hitSlop={8}>
+          <Pressable
+            onPress={onDelete}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`Remove ${step.name}`}
+          >
             <CloseIcon color="#c8d9e6" />
           </Pressable>
         </View>

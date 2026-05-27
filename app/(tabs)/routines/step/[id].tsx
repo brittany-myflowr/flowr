@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { CheckIcon } from '@/components/icons/ActionIcons';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { ScheduleDefaultRow } from '@/components/routines/ScheduleDefaultRow';
@@ -58,6 +59,11 @@ export default function StepDetailScreen() {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
         <SubPageHeader title="Step" onBack={() => router.back()} />
+        <InlineEmptyCard
+          title="Step not found"
+          body="It may have been removed or this link is out of date."
+        />
+        <View style={styles.footerSpacer} />
         <FullWidthButton label="← Back" onPress={() => router.back()} />
       </View>
     );

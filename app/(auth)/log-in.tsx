@@ -32,6 +32,8 @@ export default function LogInScreen() {
     router.replace('/(tabs)');
   };
 
+  const canSubmit = email.trim().length > 0 && password.length > 0;
+
   return (
     <AuthFormLayout headerSubtitle="Welcome back">
       <View style={styles.backLink}>
@@ -63,7 +65,7 @@ export default function LogInScreen() {
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <View style={styles.spacer} />
-      <FullWidthButton label="Log In" onPress={handleSubmit} />
+      <FullWidthButton label="Log In" onPress={handleSubmit} disabled={!canSubmit} />
 
       <Divider label="or" />
       <AppleSignInButton onPress={signInWithApplePlaceholder} />

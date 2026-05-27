@@ -1,18 +1,23 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { TodayProgressCard } from '@/components/calendar/TodayProgressCard';
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { TabPageHeader } from '@/components/layout/TabPageHeader';
 import { Divider } from '@/components/ui/Divider';
 import { colors } from '@/constants/colors';
 import { tabPageStyles } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
+import { hasTrackableRoutines } from '@/lib/applicableSteps';
 import { useCalendarStats } from '@/hooks/useCalendarStats';
 import { useTodayProgressByTimeOfDay } from '@/hooks/useTodayProgressByTimeOfDay';
+import { useRoutines } from '@/providers/AppStore';
 import { s, vs, fs } from '@/lib/scale';
 
 const MONTH_WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 export default function CalendarScreen() {
+  const { routines } = useRoutines();
+  const hasScheduledSteps = hasTrackableRoutines(routines);
   const todayPeriods = useTodayProgressByTimeOfDay();
   const {
     streak,
@@ -37,6 +42,13 @@ export default function CalendarScreen() {
           <StatCard value={`${monthProgress}%`} label="Done" />
         </View>
 
+        {!hasScheduledSteps ? (
+          <InlineEmptyCard
+            title="No routines to track yet"
+            body="Create a routine with steps on the Routines tab. Your streak and progress will show up here."
+          />
+        ) : null}
+
         <Divider label="This Week" large />
         <View style={styles.weekRow}>
           {weekDays.map((day) => (
@@ -45,16 +57,18 @@ export default function CalendarScreen() {
               <View
                 style={[
                   styles.dayCircle,
+                  day.isOffDay && styles.dayCircleOffDay,
                   day.isToday && styles.dayCircleToday,
-                  day.isComplete && !day.isToday && styles.dayCircleComplete,
-                  day.hasProgress && !day.isComplete && !day.isToday && styles.dayCircleProgress,
+                  day.isComplete && !day.isToday && !day.isOffDay && styles.dayCircleComplete,
+                  day.hasProgress && !day.isComplete && !day.isToday && !day.isOffDay && styles.dayCircleProgress,
                 ]}
               >
                 <Text
                   style={[
                     styles.dayNumber,
+                    day.isOffDay && styles.dayNumberOffDay,
                     day.isToday && styles.dayNumberToday,
-                    day.isComplete && !day.isToday && styles.dayNumberComplete,
+                    day.isComplete && !day.isToday && !day.isOffDay && styles.dayNumberComplete,
                   ]}
                 >
                   {day.date.getDate()}
@@ -63,6 +77,7 @@ export default function CalendarScreen() {
               <View
                 style={[
                   styles.weekDot,
+                  day.isOffDay && styles.weekDotOffDay,
                   day.isComplete ? styles.weekDotComplete : styles.weekDotEmpty,
                 ]}
               />
@@ -91,19 +106,22 @@ export default function CalendarScreen() {
                   <View
                     style={[
                       styles.monthDay,
+                      cell.isOffDay && styles.dayCircleOffDay,
                       cell.isToday && styles.dayCircleToday,
-                      cell.isComplete && !cell.isToday && styles.dayCircleComplete,
+                      cell.isComplete && !cell.isToday && !cell.isOffDay && styles.dayCircleComplete,
                       cell.hasProgress &&
                         !cell.isComplete &&
                         !cell.isToday &&
+                        !cell.isOffDay &&
                         styles.dayCircleProgress,
                     ]}
                   >
                     <Text
                       style={[
                         styles.monthDayText,
+                        cell.isOffDay && styles.dayNumberOffDay,
                         cell.isToday && styles.dayNumberToday,
-                        cell.isComplete && !cell.isToday && styles.dayNumberComplete,
+                        cell.isComplete && !cell.isToday && !cell.isOffDay && styles.dayNumberComplete,
                       ]}
                     >
                       {cell.day}
@@ -150,10 +168,10 @@ const styles = StyleSheet.create({
     color: colors.navy,
   },
   statLabel: {
-    marginTop: s(1),
+    marginTop: s(2),
     fontFamily: fonts.dmSans,
-    fontSize: fs(7.6),
-    letterSpacing: s(1),
+    fontSize: fs(9.5),
+    letterSpacing: s(0.8),
     textTransform: 'uppercase',
     color: colors.muted,
   },
@@ -169,7 +187,7 @@ const styles = StyleSheet.create({
   },
   weekLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(6.65),
+    fontSize: fs(9),
     color: colors.muted,
   },
   dayCircle: {
@@ -193,6 +211,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderColor: '#c8d9e6',
   },
+  dayCircleOffDay: {
+    backgroundColor: colors.bg,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    opacity: 0.75,
+  },
   dayNumber: {
     fontFamily: fonts.dmSans,
     fontSize: fs(10.45),
@@ -200,6 +224,9 @@ const styles = StyleSheet.create({
   },
   dayNumberToday: {
     color: colors.white,
+  },
+  dayNumberOffDay: {
+    color: colors.muted,
   },
   dayNumberComplete: {
     color: colors.blue,
@@ -211,6 +238,11 @@ const styles = StyleSheet.create({
   },
   weekDotComplete: {
     backgroundColor: colors.blue,
+  },
+  weekDotOffDay: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   weekDotEmpty: {
     backgroundColor: colors.border,

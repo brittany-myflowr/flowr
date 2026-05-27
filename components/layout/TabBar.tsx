@@ -1,4 +1,5 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { CommonActions } from '@react-navigation/native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -43,7 +44,25 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             canPreventDefault: true,
           });
 
-          if (!isFocused && !event.defaultPrevented) {
+          if (isFocused) {
+            if (!event.defaultPrevented) {
+              const nestedState = route.state;
+              if (nestedState && (nestedState.index ?? 0) > 0) {
+                navigation.dispatch({
+                  ...CommonActions.navigate({
+                    name: route.name,
+                    merge: true,
+                    params: {
+                      screen: nestedState.routes[0]?.name,
+                    },
+                  }),
+                });
+              }
+            }
+            return;
+          }
+
+          if (!event.defaultPrevented) {
             navigation.navigate(route.name, route.params);
           }
         };

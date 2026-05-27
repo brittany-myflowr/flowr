@@ -4,6 +4,8 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
+import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { RoutineDetailHeader } from '@/components/routines/RoutineDetailHeader';
 import { RoutineStepRow } from '@/components/routines/RoutineStepRow';
 import { FullWidthButton } from '@/components/ui/Button';
@@ -33,7 +35,13 @@ export default function RoutineDetailScreen() {
   if (!routine) {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
-        <FullWidthButton label="← Back to Routines" onPress={() => router.back()} />
+        <SubPageHeader title="Routine" onBack={() => router.back()} />
+        <InlineEmptyCard
+          title="Routine not found"
+          body="It may have been removed or this link is out of date."
+        />
+        <View style={styles.footerSpacer} />
+        <FullWidthButton label="← Back to Routines" onPress={() => router.replace('/(tabs)/routines')} />
       </View>
     );
   }
@@ -106,6 +114,13 @@ export default function RoutineDetailScreen() {
         contentContainerStyle={styles.listContent}
         ListFooterComponent={
           <View style={styles.footer}>
+            {routine.steps.length === 0 ? (
+              <InlineEmptyCard
+                compact
+                title="No steps yet"
+                body="Add your first step to start building this routine."
+              />
+            ) : null}
             <FullWidthButton label="+ Add Step" onPress={openAddStep} />
             <View style={styles.footerSpacer} />
             <FullWidthButton

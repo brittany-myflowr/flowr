@@ -1,60 +1,202 @@
+import { getApplicableSteps } from '@/lib/applicableSteps';
 import { formatDateKey } from '@/lib/dateKey';
-import type { Routine, Step } from '@/types';
+import type { CycleSettings, Routine } from '@/types';
 
 export type DailyCompletion = {
+  scheduled: string[];
+  completed: string[];
+};
+
+export type LegacyDailyCompletion = {
   completed: number;
   total: number;
 };
 
-export type DailyCompletionMap = Record<string, DailyCompletion>;
+export type DailyCompletionEntry = DailyCompletion | LegacyDailyCompletion;
 
-export type ScheduledStep = {
-  step: Step;
-  routine: Routine;
+export type DailyCompletionMap = Record<string, DailyCompletionEntry>;
+
+export type DailyCompletionStats = {
+  scheduled: number;
+  completed: number;
+  isOffDay: boolean;
+  isComplete: boolean;
+  hasProgress: boolean;
 };
 
-/** All steps from active routines (schedule frequency not enforced yet). */
-export function getScheduledSteps(routines: Routine[]): ScheduledStep[] {
-  const items: ScheduledStep[] = [];
-
-  for (const routine of routines) {
-    if (!routine.active) continue;
-
-    for (const step of routine.steps) {
-      items.push({ step, routine });
-    }
-  }
-
-  return items;
+export function isLegacyDailyCompletion(
+  entry: DailyCompletionEntry,
+): entry is LegacyDailyCompletion {
+  return 'total' in entry && typeof entry.total === 'number' && !('scheduled' in entry);
 }
 
-export function countCompletedSteps(routines: Routine[]): DailyCompletion {
-  const scheduled = getScheduledSteps(routines);
-  const completed = scheduled.filter(({ step }) => step.done).length;
+export function normalizeDailyCompletionEntry(
+  entry: DailyCompletionEntry | undefined,
+): DailyCompletion | null {
+  if (!entry || isLegacyDailyCompletion(entry)) return null;
 
-  return {
-    completed,
-    total: scheduled.length,
-  };
+  if (Array.isArray(entry.scheduled) && Array.isArray(entry.completed)) {
+    const scheduledSet = new Set(entry.scheduled);
+    return {
+      scheduled: entry.scheduled,
+      completed: entry.completed.filter((id) => scheduledSet.has(id)),
+    };
+  }
+
+  return null;
+}
+
+export function getDailyCompletionStats(
+  entry: DailyCompletionEntry | undefined,
+): DailyCompletionStats {
+  if (!entry) {
+    return { scheduled: 0, completed: 0, isOffDay: true, isComplete: false, hasProgress: false };
+  }
+
+  if (isLegacyDailyCompletion(entry)) {
+    const scheduled = entry.total;
+    const completed = Math.min(entry.completed, scheduled);
+    const isOffDay = scheduled === 0;
+    const isComplete = scheduled > 0 && completed >= scheduled;
+    const hasProgress = completed > 0 && !isComplete;
+
+    return { scheduled, completed, isOffDay, isComplete, hasProgress };
+  }
+
+  const scheduled = entry.scheduled.length;
+  const scheduledSet = new Set(entry.scheduled);
+  const completed = entry.completed.filter((id) => scheduledSet.has(id)).length;
+  const isOffDay = scheduled === 0;
+  const isComplete = scheduled > 0 && completed >= scheduled;
+  const hasProgress = completed > 0 && !isComplete;
+
+  return { scheduled, completed, isOffDay, isComplete, hasProgress };
+}
+
+export function isDayComplete(entry: DailyCompletionEntry | undefined): boolean {
+  return getDailyCompletionStats(entry).isComplete;
+}
+
+export function buildDailyCompletionSnapshot(
+  routines: Routine[],
+  cycleSettings: CycleSettings,
+  date = new Date(),
+): DailyCompletion | null {
+  const applicable = getApplicableSteps(routines, date, { cycleSettings });
+  const scheduled = applicable.map(({ step }) => step.id);
+
+  if (scheduled.length === 0) return null;
+
+  const completed = applicable.filter(({ step }) => step.done).map(({ step }) => step.id);
+
+  return { scheduled, completed };
 }
 
 export function snapshotTodayCompletion(
   routines: Routine[],
+  cycleSettings: CycleSettings,
   existing: DailyCompletionMap,
+  date = new Date(),
 ): DailyCompletionMap {
-  const today = formatDateKey(new Date());
-  const counts = countCompletedSteps(routines);
+  const today = formatDateKey(date);
+  const snapshot = buildDailyCompletionSnapshot(routines, cycleSettings, date);
 
-  if (counts.total === 0) {
-    return existing;
+  if (!snapshot) {
+    if (!(today in existing)) return existing;
+    const { [today]: _removed, ...rest } = existing;
+    return rest;
+  }
+
+  return { ...existing, [today]: snapshot };
+}
+
+export function reconcileDailyCompletionsOnLoad(
+  routines: Routine[],
+  cycleSettings: CycleSettings,
+  dailyCompletions: DailyCompletionMap,
+): DailyCompletionMap {
+  const cleaned: DailyCompletionMap = {};
+
+  for (const [key, entry] of Object.entries(dailyCompletions)) {
+    const normalized = normalizeDailyCompletionEntry(entry);
+    if (normalized) {
+      cleaned[key] = normalized;
+    } else if (isLegacyDailyCompletion(entry)) {
+      cleaned[key] = entry;
+    }
+  }
+
+  return snapshotTodayCompletion(routines, cycleSettings, cleaned);
+}
+
+export function getCompletionForDate(
+  date: Date,
+  dailyCompletions: DailyCompletionMap,
+  routines: Routine[],
+  cycleSettings: CycleSettings,
+): DailyCompletionStats {
+  const key = formatDateKey(date);
+  const stored = dailyCompletions[key];
+
+  if (stored) {
+    return getDailyCompletionStats(stored);
+  }
+
+  const liveSnapshot = buildDailyCompletionSnapshot(routines, cycleSettings, date);
+  const scheduledCount = liveSnapshot?.scheduled.length ?? 0;
+
+  if (scheduledCount === 0) {
+    return { scheduled: 0, completed: 0, isOffDay: true, isComplete: false, hasProgress: false };
   }
 
   return {
-    ...existing,
-    [today]: counts,
+    scheduled: scheduledCount,
+    completed: 0,
+    isOffDay: false,
+    isComplete: false,
+    hasProgress: false,
   };
 }
 
-export function isDayComplete(entry: DailyCompletion | undefined): boolean {
-  return !!entry && entry.total > 0 && entry.completed >= entry.total;
+export function computeStreak(
+  dailyCompletions: DailyCompletionMap,
+  routines: Routine[],
+  cycleSettings: CycleSettings,
+  today = new Date(),
+): number {
+  let streak = 0;
+  const cursor = new Date(today);
+  const todayKey = formatDateKey(today);
+
+  for (let dayIndex = 0; dayIndex < 366; dayIndex += 1) {
+    const key = formatDateKey(cursor);
+    const stats = getCompletionForDate(cursor, dailyCompletions, routines, cycleSettings);
+    const isToday = key === todayKey;
+
+    if (stats.isOffDay) {
+      cursor.setDate(cursor.getDate() - 1);
+      continue;
+    }
+
+    if (stats.isComplete) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+      continue;
+    }
+
+    if (isToday) {
+      cursor.setDate(cursor.getDate() - 1);
+      continue;
+    }
+
+    break;
+  }
+
+  return streak;
 }
+
+/** @deprecated Use getApplicableSteps from lib/applicableSteps */
+export type ScheduledStep = {
+  step: import('@/types').Step;
+  routine: Routine;
+};

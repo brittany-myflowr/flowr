@@ -12,6 +12,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Daisy } from '@/components/brand';
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
+import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { FlowerColorPicker } from '@/components/profile/FlowerColorPicker';
 import { FullWidthButton } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
@@ -60,9 +62,17 @@ export default function EditProfileScreen() {
     router.back();
   };
 
+  const canSave =
+    firstName.trim().length > 0 && lastName.trim().length > 0 && email.trim().length > 0;
+
   if (!user) {
     return (
-      <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
+        <SubPageHeader title="Edit Profile" onBack={() => router.back()} />
+        <InlineEmptyCard
+          title="Not signed in"
+          body="Log in to edit your profile settings."
+        />
         <FullWidthButton label="← Back" onPress={() => router.back()} />
       </View>
     );
@@ -130,7 +140,7 @@ export default function EditProfileScreen() {
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <FullWidthButton label="Save Settings" onPress={handleSave} />
+        <FullWidthButton label="Save Settings" onPress={handleSave} disabled={!canSave} />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -140,6 +150,9 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.bg,
+  },
+  centered: {
+    paddingHorizontal: s(14),
   },
   header: {
     paddingHorizontal: s(14),

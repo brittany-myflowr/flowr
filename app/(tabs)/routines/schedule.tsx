@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { ScheduleEditorForm } from '@/components/schedule/ScheduleEditorForm';
 import { FullWidthButton } from '@/components/ui/Button';
 import {
@@ -74,6 +75,11 @@ export default function ScheduleEditorScreen() {
   if (!routine) {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
+        <SubPageHeader title="Schedule" onBack={() => router.back()} />
+        <InlineEmptyCard
+          title="Routine not found"
+          body="Go back and open schedule from an existing routine."
+        />
         <FullWidthButton label="← Back" onPress={() => router.back()} />
       </View>
     );

@@ -13,6 +13,7 @@ import { createId } from '@/lib/createId';
 import { defaultScheduleForTimeOfDay, normalizeSchedule } from '@/constants/schedules';
 import {
   type DailyCompletionMap,
+  reconcileDailyCompletionsOnLoad,
   snapshotTodayCompletion,
 } from '@/lib/completion';
 import {
@@ -36,7 +37,9 @@ import type {
 } from '@/types';
 import { DEFAULT_CYCLE_SETTINGS } from '@/types';
 import {
+  collectStepIds,
   EMPTY_TODAY_STEP_ORDERS,
+  pruneTodayStepOrders,
   type TodayStepOrderMap,
 } from '@/lib/todayOrder';
 
@@ -171,17 +174,45 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     productId: string | null;
   } | null>(null);
   const skipNextSave = useRef(true);
+  const cycleSettingsRef = useRef(cycleSettings);
+  cycleSettingsRef.current = cycleSettings;
+  const routinesRef = useRef(routines);
+  routinesRef.current = routines;
+
+  const applyRoutineUpdate = useCallback((updater: (current: Routine[]) => Routine[]) => {
+    setRoutines((current) => {
+      const next = updater(current);
+      setDailyCompletions((existing) =>
+        snapshotTodayCompletion(next, cycleSettingsRef.current, existing),
+      );
+      setTodayStepOrders((orders) => pruneTodayStepOrders(orders, collectStepIds(next)));
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     loadPersistedState().then((state) => {
+      const routines = state.routines;
+      const loadedCycleSettings = state.cycleSettings ?? DEFAULT_CYCLE_SETTINGS;
       setIsLoggedIn(state.isLoggedIn);
       setUser(state.user);
       setCredentials(state.credentials);
-      setRoutines(state.routines);
+      setRoutines(routines);
       setProducts(state.products);
-      setDailyCompletions(state.dailyCompletions ?? {});
-      setCycleSettings(state.cycleSettings ?? DEFAULT_CYCLE_SETTINGS);
-      setTodayStepOrders(state.todayStepOrders ?? EMPTY_TODAY_STEP_ORDERS);
+      setCycleSettings(loadedCycleSettings);
+      setDailyCompletions(
+        reconcileDailyCompletionsOnLoad(
+          routines,
+          loadedCycleSettings,
+          state.dailyCompletions ?? {},
+        ),
+      );
+      setTodayStepOrders(
+        pruneTodayStepOrders(
+          state.todayStepOrders ?? EMPTY_TODAY_STEP_ORDERS,
+          collectStepIds(routines),
+        ),
+      );
       setHydrated(true);
     });
   }, []);
@@ -354,23 +385,29 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
         schedule: routineSchedule,
       };
 
-      setRoutines((current) => [...current, routine]);
+      applyRoutineUpdate((current) => [...current, routine]);
       return routine;
     },
-    [products],
+    [products, applyRoutineUpdate],
   );
 
-  const toggleRoutineActive = useCallback((id: string) => {
-    setRoutines((current) =>
-      current.map((routine) =>
-        routine.id === id ? { ...routine, active: !routine.active } : routine,
-      ),
-    );
-  }, []);
+  const toggleRoutineActive = useCallback(
+    (id: string) => {
+      applyRoutineUpdate((current) =>
+        current.map((routine) =>
+          routine.id === id ? { ...routine, active: !routine.active } : routine,
+        ),
+      );
+    },
+    [applyRoutineUpdate],
+  );
 
-  const removeRoutine = useCallback((id: string) => {
-    setRoutines((current) => current.filter((routine) => routine.id !== id));
-  }, []);
+  const removeRoutine = useCallback(
+    (id: string) => {
+      applyRoutineUpdate((current) => current.filter((routine) => routine.id !== id));
+    },
+    [applyRoutineUpdate],
+  );
 
   const reorderSteps = useCallback((routineId: string, steps: Step[]) => {
     setRoutines((current) =>
@@ -378,15 +415,18 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
-  const removeStep = useCallback((routineId: string, stepId: string) => {
-    setRoutines((current) =>
-      current.map((routine) =>
-        routine.id === routineId
-          ? { ...routine, steps: routine.steps.filter((step) => step.id !== stepId) }
-          : routine,
-      ),
-    );
-  }, []);
+  const removeStep = useCallback(
+    (routineId: string, stepId: string) => {
+      applyRoutineUpdate((current) =>
+        current.map((routine) =>
+          routine.id === routineId
+            ? { ...routine, steps: routine.steps.filter((step) => step.id !== stepId) }
+            : routine,
+        ),
+      );
+    },
+    [applyRoutineUpdate],
+  );
 
   const updateStep = useCallback(
     (
@@ -410,49 +450,52 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  const toggleStepDone = useCallback((routineId: string, stepId: string) => {
-    setRoutines((current) => {
-      const next = current.map((routine) =>
-        routine.id === routineId
-          ? {
-              ...routine,
-              steps: routine.steps.map((step) =>
-                step.id === stepId ? { ...step, done: !step.done } : step,
-              ),
-            }
-          : routine,
+  const toggleStepDone = useCallback(
+    (routineId: string, stepId: string) => {
+      applyRoutineUpdate((current) =>
+        current.map((routine) =>
+          routine.id === routineId
+            ? {
+                ...routine,
+                steps: routine.steps.map((step) =>
+                  step.id === stepId ? { ...step, done: !step.done } : step,
+                ),
+              }
+            : routine,
+        ),
+      );
+    },
+    [applyRoutineUpdate],
+  );
+
+  const addStep = useCallback(
+    (routineId: string, input: AddStepInput) => {
+      const trimmedName = input.name.trim();
+      if (!trimmedName) return null;
+
+      let created: Step | null = null;
+
+      applyRoutineUpdate((current) =>
+        current.map((routine) => {
+          if (routine.id !== routineId) return routine;
+
+          created = {
+            id: createId('step'),
+            name: trimmedName,
+            note: input.note?.trim() || undefined,
+            category: routine.category,
+            done: false,
+            schedule: input.schedule,
+          };
+
+          return { ...routine, steps: [...routine.steps, created] };
+        }),
       );
 
-      setDailyCompletions((existing) => snapshotTodayCompletion(next, existing));
-      return next;
-    });
-  }, []);
-
-  const addStep = useCallback((routineId: string, input: AddStepInput) => {
-    const trimmedName = input.name.trim();
-    if (!trimmedName) return null;
-
-    let created: Step | null = null;
-
-    setRoutines((current) =>
-      current.map((routine) => {
-        if (routine.id !== routineId) return routine;
-
-        created = {
-          id: createId('step'),
-          name: trimmedName,
-          note: input.note?.trim() || undefined,
-          category: routine.category,
-          done: false,
-          schedule: input.schedule,
-        };
-
-        return { ...routine, steps: [...routine.steps, created] };
-      }),
-    );
-
-    return created;
-  }, []);
+      return created;
+    },
+    [applyRoutineUpdate],
+  );
 
   const updateRoutine = useCallback(
     (
@@ -515,19 +558,22 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     return result;
   }, []);
 
-  const updateRoutineSchedule = useCallback((routineId: string, schedule: Schedule) => {
-    setRoutines((current) =>
-      current.map((routine) =>
-        routine.id === routineId
-          ? { ...routine, timeOfDay: schedule.timeOfDay, schedule }
-          : routine,
-      ),
-    );
-  }, []);
+  const updateRoutineSchedule = useCallback(
+    (routineId: string, schedule: Schedule) => {
+      applyRoutineUpdate((current) =>
+        current.map((routine) =>
+          routine.id === routineId
+            ? { ...routine, timeOfDay: schedule.timeOfDay, schedule }
+            : routine,
+        ),
+      );
+    },
+    [applyRoutineUpdate],
+  );
 
   const updateStepSchedule = useCallback(
     (routineId: string, stepId: string, schedule: Schedule) => {
-      setRoutines((current) =>
+      applyRoutineUpdate((current) =>
         current.map((routine) =>
           routine.id === routineId
             ? {
@@ -540,7 +586,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
         ),
       );
     },
-    [],
+    [applyRoutineUpdate],
   );
 
   const addProduct = useCallback((input: Omit<Product, 'id'>) => {
@@ -553,6 +599,18 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     setProducts((current) =>
       current.map((product) => (product.id === id ? { ...product, ...updates } : product)),
     );
+
+    if (updates.name !== undefined) {
+      const nextName = updates.name.trim();
+      setRoutines((current) =>
+        current.map((routine) => ({
+          ...routine,
+          steps: routine.steps.map((step) =>
+            step.productId === id ? { ...step, productName: nextName } : step,
+          ),
+        })),
+      );
+    }
   }, []);
 
   const removeProduct = useCallback((id: string) => {
@@ -585,7 +643,9 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
               }
 
               const product = products.find((item) => item.id === productId);
-              if (!product) return step;
+              if (!product) {
+                return { ...step, productId: undefined, productName: undefined };
+              }
 
               return {
                 ...step,
@@ -601,16 +661,28 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const updateCycleSettings = useCallback((updates: Partial<CycleSettings>) => {
-    setCycleSettings((current) => ({ ...current, ...updates }));
+    setCycleSettings((current) => {
+      const next = { ...current, ...updates };
+      setDailyCompletions((existing) =>
+        snapshotTodayCompletion(routinesRef.current, next, existing),
+      );
+      return next;
+    });
   }, []);
 
   const setCycleEnabled = useCallback((enabled: boolean) => {
-    setCycleSettings((current) => ({
-      ...current,
-      enabled,
-      lastPeriodStart:
-        enabled && !current.lastPeriodStart ? formatDateKey(new Date()) : current.lastPeriodStart,
-    }));
+    setCycleSettings((current) => {
+      const next = {
+        ...current,
+        enabled,
+        lastPeriodStart:
+          enabled && !current.lastPeriodStart ? formatDateKey(new Date()) : current.lastPeriodStart,
+      };
+      setDailyCompletions((existing) =>
+        snapshotTodayCompletion(routinesRef.current, next, existing),
+      );
+      return next;
+    });
   }, []);
 
   const value = useMemo(

@@ -36,7 +36,6 @@ export default function CycleSettingsScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <SubPageHeader
         title="Cycle Syncing"
-        backLabel="← My Routines"
         onBack={() => router.back()}
       />
 

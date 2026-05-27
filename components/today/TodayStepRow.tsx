@@ -42,13 +42,18 @@ export function TodayStepRow({
         </View>
 
         <View style={styles.actions}>
-          <Pressable
-            onPress={onToggle}
-            hitSlop={s(8)}
-            style={[styles.checkbox, step.done && styles.checkboxDone]}
-          >
-            {step.done ? <CheckIcon size={s(10)} color={colors.white} /> : null}
-          </Pressable>
+          {onToggle ? (
+            <Pressable
+              onPress={onToggle}
+              hitSlop={s(8)}
+              style={[styles.checkbox, step.done && styles.checkboxDone]}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: step.done }}
+              accessibilityLabel={`Mark ${step.name} complete`}
+            >
+              {step.done ? <CheckIcon size={s(10)} color={colors.white} /> : null}
+            </Pressable>
+          ) : null}
         </View>
       </View>
 

@@ -106,6 +106,10 @@ export default function TagProductScreen() {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
         <SubPageHeader title="Tag a Product" onBack={() => router.back()} />
+        <InlineEmptyCard
+          title="Step not found"
+          body="Go back and open product tagging from an existing step."
+        />
         <FullWidthButton label="← Back" onPress={() => router.back()} />
       </View>
     );

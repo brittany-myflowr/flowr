@@ -5,22 +5,21 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { ScheduleDefaultRow } from '@/components/routines/ScheduleDefaultRow';
 import { FullWidthButton } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { formatSchedulePreview } from '@/constants/schedules';
 import { colors } from '@/constants/colors';
-import { fonts } from '@/constants/typography';
 import { useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
 import type { Schedule } from '@/types';
-import { s, fs } from '@/lib/scale';
+import { s } from '@/lib/scale';
 
 export default function AddStepScreen() {
   const router = useRouter();
@@ -87,7 +86,15 @@ export default function AddStepScreen() {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
         <SubPageHeader title="Add a Step" onBack={() => router.back()} />
-        <Text style={styles.emptyText}>Create a routine first, then add steps to it.</Text>
+        <InlineEmptyCard
+          title="No routines yet"
+          body="Create a routine first, then come back to add steps."
+        />
+        <FullWidthButton
+          label="Create a Routine"
+          onPress={() => router.replace('/(tabs)/routines/guided')}
+        />
+        <View style={styles.emptySpacer} />
         <FullWidthButton label="← Back" onPress={() => router.back()} />
       </View>
     );
@@ -155,12 +162,7 @@ const styles = StyleSheet.create({
     paddingTop: s(12),
     paddingBottom: s(24),
   },
-  emptyText: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(12),
-    color: colors.gray,
-    lineHeight: fs(19),
-    marginBottom: s(16),
-    paddingHorizontal: s(14),
+  emptySpacer: {
+    height: s(8),
   },
 });

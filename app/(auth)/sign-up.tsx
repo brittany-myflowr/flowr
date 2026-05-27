@@ -43,6 +43,13 @@ export default function SignUpScreen() {
     router.replace('/(tabs)');
   };
 
+  const canSubmit =
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    email.trim().length > 0 &&
+    password.length >= 8 &&
+    confirmPassword.length > 0;
+
   return (
     <AuthFormLayout headerSubtitle="Create your account">
       <View style={styles.backLink}>
@@ -94,7 +101,7 @@ export default function SignUpScreen() {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <FullWidthButton label="Create Account" onPress={handleSubmit} />
+      <FullWidthButton label="Create Account" onPress={handleSubmit} disabled={!canSubmit} />
 
       <Divider label="or" />
       <AppleSignInButton onPress={signInWithApplePlaceholder} />

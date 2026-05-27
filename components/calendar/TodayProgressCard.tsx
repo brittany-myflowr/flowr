@@ -11,47 +11,55 @@ type TodayProgressCardProps = {
 };
 
 export function TodayProgressCard({ period }: TodayProgressCardProps) {
+  const isOffDay = period.total === 0;
+
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>{period.label}</Text>
-        <Text style={styles.count}>
-          {period.done}/{period.total}
+        <Text style={[styles.count, isOffDay && styles.countOffDay]}>
+          {isOffDay ? 'Off day' : `${period.done}/${period.total}`}
         </Text>
       </View>
 
-      <View style={styles.track}>
-        <View style={[styles.fill, { width: `${period.percent}%` }]} />
-      </View>
+      {!isOffDay ? (
+        <>
+          <View style={styles.track}>
+            <View style={[styles.fill, { width: `${period.percent}%` }]} />
+          </View>
 
-      <View style={styles.chips}>
-        {period.routines.map((routine) => {
-          const categoryColor = categoryColors[routine.category];
+          <View style={styles.chips}>
+            {period.routines.map((routine) => {
+              const categoryColor = categoryColors[routine.category];
 
-          return (
-            <View
-              key={routine.routineId}
-              style={[
-                styles.chip,
-                {
-                  backgroundColor: `${categoryColor}28`,
-                  borderColor: categoryColor,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  { color: categoryColor },
-                  routine.isFullyComplete && styles.chipTextComplete,
-                ]}
-              >
-                {routine.routineName}
-              </Text>
-            </View>
-          );
-        })}
-      </View>
+              return (
+                <View
+                  key={routine.routineId}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: `${categoryColor}28`,
+                      borderColor: categoryColor,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      { color: categoryColor },
+                      routine.isFullyComplete && styles.chipTextComplete,
+                    ]}
+                  >
+                    {routine.routineName}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </>
+      ) : (
+        <Text style={styles.offDayBody}>No steps scheduled for this time of day.</Text>
+      )}
     </View>
   );
 }
@@ -81,6 +89,14 @@ const styles = StyleSheet.create({
     fontFamily: fonts.dmSans,
     fontSize: fs(11.4),
     color: colors.blue,
+  },
+  countOffDay: {
+    color: colors.muted,
+  },
+  offDayBody: {
+    fontFamily: fonts.dmSans,
+    fontSize: fs(10),
+    color: colors.muted,
   },
   track: {
     height: vs(4),

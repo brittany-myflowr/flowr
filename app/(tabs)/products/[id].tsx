@@ -10,6 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { VerdictPicker } from '@/components/products/VerdictPicker';
 import { FullWidthButton } from '@/components/ui/Button';
@@ -52,7 +53,11 @@ export default function EditProductScreen() {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
         <SubPageHeader title="Edit Product" onBack={() => router.back()} />
-        <FullWidthButton label="← Back to Products" onPress={() => router.back()} />
+        <InlineEmptyCard
+          title="Product not found"
+          body="It may have been removed or this link is out of date."
+        />
+        <FullWidthButton label="← Back to Products" onPress={() => router.replace('/(tabs)/products')} />
       </View>
     );
   }
