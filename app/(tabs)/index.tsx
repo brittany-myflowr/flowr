@@ -5,7 +5,6 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ConfettiBurst } from '@/components/feedback/ConfettiBurst';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { FirstRoutineCard } from '@/components/onboarding/FirstRoutineCard';
-import { FuturePeriodPreview } from '@/components/today/FuturePeriodPreview';
 import { TodayAllDoneCard } from '@/components/today/TodayAllDoneCard';
 import { TodayCompletedRoutineRow } from '@/components/today/TodayCompletedRoutineRow';
 import { TodayPeriodRoutineList } from '@/components/today/TodayPeriodRoutineList';
@@ -39,16 +38,6 @@ type CompletedTodayItem = {
   timeOfDay: TimeOfDay;
 };
 
-const PERIOD_INDEX: Record<TimeOfDay, number> = {
-  morning: 0,
-  afternoon: 1,
-  evening: 2,
-};
-
-function isFuturePeriod(timeOfDay: TimeOfDay, current: TimeOfDay) {
-  return PERIOD_INDEX[timeOfDay] > PERIOD_INDEX[current];
-}
-
 function buildPeriodDividerLabel(
   label: string,
   done: number,
@@ -66,7 +55,6 @@ export default function TodayScreen() {
   const actualTimeOfDay = useTimeOfDay();
   const [expandedByRoutineId, setExpandedByRoutineId] = useState<Record<string, boolean>>({});
   const [expandedDoneRoutineIds, setExpandedDoneRoutineIds] = useState<Record<string, boolean>>({});
-  const [expandedFuturePeriods, setExpandedFuturePeriods] = useState<Record<string, boolean>>({});
   const [showDoneToday, setShowDoneToday] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [scrollLocked, setScrollLocked] = useState(false);
@@ -184,28 +172,6 @@ export default function TodayScreen() {
     TIME_OF_DAY_ORDER.map((timeOfDay) => {
       const section = periodSections.find((entry) => entry.timeOfDay === timeOfDay);
       if (!section || section.activeGroups.length === 0) return null;
-
-      const isFuture = isFuturePeriod(section.timeOfDay, actualTimeOfDay);
-      const isExpanded = expandedFuturePeriods[section.timeOfDay] === true;
-
-      if (isFuture && !isExpanded) {
-        const remainingSteps = section.total - section.done;
-
-        return (
-          <FuturePeriodPreview
-            key={section.timeOfDay}
-            label={section.label}
-            timeOfDay={section.timeOfDay}
-            remainingSteps={remainingSteps}
-            onPress={() =>
-              setExpandedFuturePeriods((current) => ({
-                ...current,
-                [section.timeOfDay]: true,
-              }))
-            }
-          />
-        );
-      }
 
       return renderPeriodSection(section);
     });
