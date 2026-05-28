@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { PhaseFlower } from '@/components/brand';
 import { ChevronRightIcon } from '@/components/icons/ProfileIcons';
@@ -9,9 +9,10 @@ import { fs, s } from '@/lib/scale';
 type CyclePhasePillProps = {
   phaseInfo: CyclePhaseInfo;
   onPress?: () => void;
+  style?: StyleProp<ViewStyle>;
 };
 
-export function CyclePhasePill({ phaseInfo, onPress }: CyclePhasePillProps) {
+export function CyclePhasePill({ phaseInfo, onPress, style }: CyclePhasePillProps) {
   return (
     <Pressable
       onPress={onPress}
@@ -21,6 +22,7 @@ export function CyclePhasePill({ phaseInfo, onPress }: CyclePhasePillProps) {
           backgroundColor: 'rgba(255,255,255,0.16)',
           borderColor: `${phaseInfo.color}55`,
         },
+        style,
       ]}
       accessibilityRole="button"
       accessibilityLabel={`${phaseInfo.label} phase, day ${phaseInfo.dayInCycle}. Open cycle settings.`}

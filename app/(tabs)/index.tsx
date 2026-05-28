@@ -10,11 +10,7 @@ import { TodayAllDoneCard } from '@/components/today/TodayAllDoneCard';
 import { TodayCompletedRoutineRow } from '@/components/today/TodayCompletedRoutineRow';
 import { TodayPeriodRoutineList } from '@/components/today/TodayPeriodRoutineList';
 import { TodayStepRow } from '@/components/today/TodayStepRow';
-import {
-  getTimeOfDayGreeting,
-  getTodayDateLabel,
-  TimeOfDayHeader,
-} from '@/components/today/TimeOfDayHeader';
+import { getTodayDateLabel, TimeOfDayHeader } from '@/components/today/TimeOfDayHeader';
 import { UpNextCard } from '@/components/today/UpNextCard';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Divider } from '@/components/ui/Divider';
@@ -83,13 +79,6 @@ export default function TodayScreen() {
   const phaseInfo = useCurrentPhaseInfo();
   const upNext = useUpNextStep(actualTimeOfDay);
   const { streak, weekDays } = useCalendarStats();
-
-  const greeting = getTimeOfDayGreeting(actualTimeOfDay, user?.firstName);
-
-  const dayStepsLabel =
-    dayTotal === 0
-      ? 'Nothing scheduled today'
-      : `${dayDone} of ${dayTotal} steps done today`;
 
   const completedToday = useMemo(() => {
     const items: CompletedTodayItem[] = [];
@@ -273,13 +262,15 @@ export default function TodayScreen() {
       >
         <TimeOfDayHeader
           percent={dayPercent}
+          dayDone={dayDone}
           dayTotal={dayTotal}
           phaseInfo={phaseInfo}
           onPhasePress={() => router.push('/(tabs)/routines/cycle-settings')}
-          greeting={greeting}
+          timeOfDay={actualTimeOfDay}
+          firstName={user?.firstName}
           dateLabel={getTodayDateLabel()}
           weekDays={weekDays}
-          dayStepsLabel={dayStepsLabel}
+          streak={streak}
         />
 
         <View style={styles.body}>
