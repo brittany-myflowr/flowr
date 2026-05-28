@@ -8,7 +8,7 @@ import { FirstRoutineCard } from '@/components/onboarding/FirstRoutineCard';
 import { FuturePeriodPreview } from '@/components/today/FuturePeriodPreview';
 import { TodayAllDoneCard } from '@/components/today/TodayAllDoneCard';
 import { TodayCompletedRoutineRow } from '@/components/today/TodayCompletedRoutineRow';
-import { TodayRoutineSection } from '@/components/today/TodayRoutineSection';
+import { TodayPeriodRoutineList } from '@/components/today/TodayPeriodRoutineList';
 import { TodayStepRow } from '@/components/today/TodayStepRow';
 import {
   getTimeOfDayGreeting,
@@ -73,10 +73,11 @@ export default function TodayScreen() {
   const [expandedFuturePeriods, setExpandedFuturePeriods] = useState<Record<string, boolean>>({});
   const [showDoneToday, setShowDoneToday] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [scrollLocked, setScrollLocked] = useState(false);
   const initialExpandDone = useRef(false);
   const previousDayDone = useRef(0);
   const { user } = useAuth();
-  const { routines, toggleStepDone } = useRoutines();
+  const { routines, toggleStepDone, reorderTodayRoutineGroups } = useRoutines();
   const { done: dayDone, total: dayTotal, percent: dayPercent } = useTodayDayProgress();
   const periodSections = useTodaySections();
   const phaseInfo = useCurrentPhaseInfo();
@@ -158,21 +159,6 @@ export default function TodayScreen() {
     );
   };
 
-  const renderActiveRoutineSection = (group: TodayRoutineGroup) => (
-    <TodayRoutineSection
-      key={group.routine.id}
-      group={group}
-      expanded={expandedByRoutineId[group.routine.id] === true}
-      onToggleExpanded={() =>
-        setExpandedByRoutineId((current) => ({
-          ...current,
-          [group.routine.id]: !current[group.routine.id],
-        }))
-      }
-      renderStepRow={(item, index, _listLength) => renderStepRow(item, index)}
-    />
-  );
-
   const renderPeriodSection = (section: (typeof periodSections)[number]) => (
     <View key={section.timeOfDay}>
       <Divider
@@ -185,7 +171,23 @@ export default function TodayScreen() {
         large
         light
       />
-      {section.activeGroups.map((group) => renderActiveRoutineSection(group))}
+      {section.activeGroups.length >= 2 ? (
+        <Text style={styles.reorderHint}>Hold a routine to reorder</Text>
+      ) : null}
+      <TodayPeriodRoutineList
+        timeOfDay={section.timeOfDay}
+        groups={section.activeGroups}
+        expandedByRoutineId={expandedByRoutineId}
+        onToggleExpanded={(routineId) =>
+          setExpandedByRoutineId((current) => ({
+            ...current,
+            [routineId]: !current[routineId],
+          }))
+        }
+        onReorder={reorderTodayRoutineGroups}
+        onScrollLockChange={setScrollLocked}
+        renderStepRow={(item, index, _listLength) => renderStepRow(item, index)}
+      />
     </View>
   );
 
@@ -267,6 +269,7 @@ export default function TodayScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={!scrollLocked}
       >
         <TimeOfDayHeader
           percent={dayPercent}
@@ -330,6 +333,14 @@ const styles = StyleSheet.create({
   body: {
     paddingHorizontal: s(14),
     paddingTop: s(4),
+  },
+  reorderHint: {
+    fontFamily: fonts.dmSans,
+    fontSize: fs(8),
+    color: 'rgba(255,255,255,0.58)',
+    textAlign: 'center',
+    marginBottom: s(6),
+    marginTop: s(-2),
   },
   doneTodaySection: {
     marginTop: s(8),

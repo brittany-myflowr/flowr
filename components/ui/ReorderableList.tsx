@@ -35,6 +35,10 @@ type ReorderableListProps<T> = {
   onItemPress?: (item: T, index: number) => void;
   /** Apply drag handlers on the full row wrapper (Today) vs inside renderItem (routine detail). */
   dragHandlersTarget?: 'row' | 'item';
+  /** Render inside a parent ScrollView instead of wrapping its own. */
+  embedded?: boolean;
+  /** Notifies parent scroll views to lock while dragging (embedded mode). */
+  onScrollLockChange?: (locked: boolean) => void;
   renderItem: (info: ReorderableRenderItemInfo<T>) => ReactNode;
   contentContainerStyle?: ViewStyle;
   ListFooterComponent?: ReactNode;
@@ -79,6 +83,8 @@ export function ReorderableList<T>({
   onDragEnd,
   onItemPress,
   dragHandlersTarget = 'item',
+  embedded = false,
+  onScrollLockChange,
   renderItem,
   contentContainerStyle,
   ListFooterComponent,
@@ -121,7 +127,22 @@ export function ReorderableList<T>({
     onItemPressRef.current = onItemPress;
   }, [onItemPress]);
 
+  const onScrollLockChangeRef = useRef(onScrollLockChange);
+  const embeddedRef = useRef(embedded);
+
+  useEffect(() => {
+    onScrollLockChangeRef.current = onScrollLockChange;
+  }, [onScrollLockChange]);
+
+  useEffect(() => {
+    embeddedRef.current = embedded;
+  }, [embedded]);
+
   const setScrollEnabled = useCallback((enabled: boolean) => {
+    if (embeddedRef.current) {
+      onScrollLockChangeRef.current?.(!enabled);
+      return;
+    }
     scrollRef.current?.setNativeProps({ scrollEnabled: enabled });
   }, []);
 
@@ -363,11 +384,52 @@ export function ReorderableList<T>({
     [finishDrag, keyExtractor, startDrag, trySwapWithNeighbor, translateY],
   );
 
-  const rowTouchHandlers = {
-    onTouchStart: handleRowTouchStart,
-    onTouchEnd: handleRowTouchEnd,
-    onTouchCancel: handleRowTouchEnd,
-  };
+  const rowTouchHandlers = embedded
+    ? undefined
+    : {
+        onTouchStart: handleRowTouchStart,
+        onTouchEnd: handleRowTouchEnd,
+        onTouchCancel: handleRowTouchEnd,
+      };
+
+  const listContent = (
+    <View ref={contentRef} style={contentContainerStyle}>
+      {items.map((item, index) => {
+        const key = keyExtractor(item);
+        const isActive = activeKey === key;
+        const dragHandlers = getRowPanHandlers(key);
+        const attachHandlersToRow = dragHandlersTarget === 'row';
+        const content = renderItem({
+          item,
+          index,
+          isActive,
+          dragHandlers: attachHandlersToRow ? {} : dragHandlers,
+        });
+
+        return (
+          <View
+            key={key}
+            ref={(node) => {
+              rowRefs.current[key] = node;
+            }}
+            {...rowTouchHandlers}
+            {...(attachHandlersToRow ? dragHandlers : undefined)}
+            onLayout={(event) => handleRowLayout(key, event)}
+            style={isActive ? styles.activeRow : undefined}
+          >
+            <Animated.View style={isActive ? { transform: [{ translateY }] } : undefined}>
+              {content}
+            </Animated.View>
+          </View>
+        );
+      })}
+      {ListFooterComponent}
+    </View>
+  );
+
+  if (embedded) {
+    return <View style={style}>{listContent}</View>;
+  }
 
   return (
     <ScrollView
@@ -377,40 +439,7 @@ export function ReorderableList<T>({
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      <View ref={contentRef} style={contentContainerStyle}>
-        {items.map((item, index) => {
-          const key = keyExtractor(item);
-          const isActive = activeKey === key;
-          const dragHandlers = getRowPanHandlers(key);
-          const attachHandlersToRow = dragHandlersTarget === 'row';
-          const content = renderItem({
-            item,
-            index,
-            isActive,
-            dragHandlers: attachHandlersToRow ? {} : dragHandlers,
-          });
-
-          return (
-            <View
-              key={key}
-              ref={(node) => {
-                rowRefs.current[key] = node;
-              }}
-              {...rowTouchHandlers}
-              {...(attachHandlersToRow ? dragHandlers : undefined)}
-              onLayout={(event) => handleRowLayout(key, event)}
-              style={isActive ? styles.activeRow : undefined}
-            >
-              <Animated.View
-                style={isActive ? { transform: [{ translateY }] } : undefined}
-              >
-                {content}
-              </Animated.View>
-            </View>
-          );
-        })}
-        {ListFooterComponent}
-      </View>
+      {listContent}
     </ScrollView>
   );
 }

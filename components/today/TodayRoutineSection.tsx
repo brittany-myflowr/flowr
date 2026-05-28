@@ -13,6 +13,9 @@ type TodayRoutineSectionProps = {
   group: TodayRoutineGroup;
   expanded: boolean;
   completed?: boolean;
+  isDragging?: boolean;
+  /** When false, tap-to-expand is handled by the parent reorder list. */
+  pressableHeader?: boolean;
   onToggleExpanded: () => void;
   renderStepRow: (
     item: TodayRoutineGroup['steps'][number],
@@ -25,6 +28,8 @@ export function TodayRoutineSection({
   group,
   expanded,
   completed = false,
+  isDragging = false,
+  pressableHeader = true,
   onToggleExpanded,
   renderStepRow,
 }: TodayRoutineSectionProps) {
@@ -32,49 +37,66 @@ export function TodayRoutineSection({
   const progressPercent =
     group.totalCount === 0 ? 0 : Math.round((group.doneCount / group.totalCount) * 100);
 
+  const headerContent = (
+    <>
+      <View style={styles.titleRow}>
+        <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
+          <Daisy color={categoryColor} size={s(16)} />
+        </View>
+
+        <View style={styles.meta}>
+          <Text style={[styles.name, completed && styles.nameCompleted]} numberOfLines={1}>
+            {group.routine.name}
+          </Text>
+          <Text style={[styles.subtitle, completed && styles.subtitleCompleted]}>
+            {group.routine.category}
+          </Text>
+        </View>
+
+        <Text style={[styles.progress, completed && styles.progressCompleted]}>
+          {group.doneCount}/{group.totalCount}
+        </Text>
+
+        <View style={[styles.chevronWrap, expanded && styles.chevronExpanded]}>
+          <ChevronRightIcon size={s(14)} color={completed ? colors.muted : colors.gray} />
+        </View>
+      </View>
+
+      {!expanded ? (
+        <View style={styles.progressTrack}>
+          <View
+            style={[
+              styles.progressFill,
+              { width: `${progressPercent}%`, backgroundColor: categoryColor },
+            ]}
+          />
+        </View>
+      ) : null}
+    </>
+  );
+
   return (
     <View
       style={[
         styles.card,
         todayGlassCard(categoryColor, 'routine'),
         completed && styles.cardCompleted,
+        isDragging && styles.cardDragging,
       ]}
     >
-      <Pressable onPress={onToggleExpanded} style={styles.headerPressable}>
-        <View style={styles.headerRow}>
-          <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
-            <Daisy color={categoryColor} size={s(16)} />
-          </View>
-
-          <View style={styles.meta}>
-            <Text style={[styles.name, completed && styles.nameCompleted]} numberOfLines={1}>
-              {group.routine.name}
-            </Text>
-            <Text style={[styles.subtitle, completed && styles.subtitleCompleted]}>
-              {group.routine.category}
-            </Text>
-          </View>
-
-          <Text style={[styles.progress, completed && styles.progressCompleted]}>
-            {group.doneCount}/{group.totalCount}
-          </Text>
-
-          <View style={[styles.chevronWrap, expanded && styles.chevronExpanded]}>
-            <ChevronRightIcon size={s(14)} color={completed ? colors.muted : colors.gray} />
-          </View>
+      {pressableHeader ? (
+        <Pressable onPress={onToggleExpanded} style={styles.headerPressable}>
+          {headerContent}
+        </Pressable>
+      ) : (
+        <View
+          style={styles.headerPressable}
+          accessibilityRole="button"
+          accessibilityLabel={`${group.routine.name}. Tap to expand. Hold to reorder.`}
+        >
+          {headerContent}
         </View>
-
-        {!expanded ? (
-          <View style={styles.progressTrack}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${progressPercent}%`, backgroundColor: categoryColor },
-              ]}
-            />
-          </View>
-        ) : null}
-      </Pressable>
+      )}
 
       {expanded ? (
         <View style={styles.stepsSection}>
@@ -100,10 +122,18 @@ const styles = StyleSheet.create({
   cardCompleted: {
     opacity: 0.72,
   },
+  cardDragging: {
+    opacity: 0.94,
+    shadowColor: colors.navy,
+    shadowOffset: { width: 0, height: vs(2) },
+    shadowOpacity: 0.14,
+    shadowRadius: s(8),
+    elevation: 4,
+  },
   headerPressable: {
     gap: s(6),
   },
-  headerRow: {
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: s(8),

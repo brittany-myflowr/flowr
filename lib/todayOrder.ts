@@ -67,3 +67,18 @@ export function pruneTodayStepOrders(
     evening: orders.evening.filter((id) => stepIds.has(id)),
   };
 }
+
+type StepIdGroup = {
+  steps: Array<{ step: { id: string } }>;
+};
+
+/** Apply a reordered list of active routine groups to a period's step order. */
+export function mergeReorderedActiveStepIds(
+  currentOrder: string[],
+  groups: StepIdGroup[],
+): string[] {
+  const activeStepIds = groups.flatMap((group) => group.steps.map(({ step }) => step.id));
+  const activeSet = new Set(activeStepIds);
+  const inactiveStepIds = currentOrder.filter((id) => !activeSet.has(id));
+  return [...activeStepIds, ...inactiveStepIds];
+}

@@ -39,6 +39,7 @@ import { DEFAULT_CYCLE_SETTINGS } from '@/types';
 import {
   collectStepIds,
   EMPTY_TODAY_STEP_ORDERS,
+  mergeReorderedActiveStepIds,
   pruneTodayStepOrders,
   type TodayStepOrderMap,
 } from '@/lib/todayOrder';
@@ -105,6 +106,10 @@ type AppStoreValue = {
   toggleRoutineActive: (id: string) => void;
   removeRoutine: (id: string) => void;
   reorderSteps: (routineId: string, steps: Step[]) => void;
+  reorderTodayRoutineGroups: (
+    timeOfDay: TimeOfDay,
+    groups: Array<{ steps: Array<{ step: { id: string } }> }>,
+  ) => void;
   removeStep: (routineId: string, stepId: string) => void;
   updateStep: (
     routineId: string,
@@ -415,6 +420,19 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
+  const reorderTodayRoutineGroups = useCallback(
+    (
+      timeOfDay: TimeOfDay,
+      groups: Array<{ steps: Array<{ step: { id: string } }> }>,
+    ) => {
+      setTodayStepOrders((orders) => ({
+        ...orders,
+        [timeOfDay]: mergeReorderedActiveStepIds(orders[timeOfDay] ?? [], groups),
+      }));
+    },
+    [],
+  );
+
   const removeStep = useCallback(
     (routineId: string, stepId: string) => {
       applyRoutineUpdate((current) =>
@@ -709,6 +727,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       toggleRoutineActive,
       removeRoutine,
       reorderSteps,
+      reorderTodayRoutineGroups,
       removeStep,
       updateStep,
       toggleStepDone,
@@ -754,6 +773,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       toggleRoutineActive,
       removeRoutine,
       reorderSteps,
+      reorderTodayRoutineGroups,
       removeStep,
       updateStep,
       toggleStepDone,
@@ -804,6 +824,7 @@ export function useRoutines() {
     toggleRoutineActive: store.toggleRoutineActive,
     removeRoutine: store.removeRoutine,
     reorderSteps: store.reorderSteps,
+    reorderTodayRoutineGroups: store.reorderTodayRoutineGroups,
     removeStep: store.removeStep,
     updateStep: store.updateStep,
     toggleStepDone: store.toggleStepDone,
