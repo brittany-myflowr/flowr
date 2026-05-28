@@ -14,7 +14,7 @@ import { getTodayDateLabel, TimeOfDayHeader } from '@/components/today/TimeOfDay
 import { UpNextCard } from '@/components/today/UpNextCard';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Divider } from '@/components/ui/Divider';
-import { GradientBackground } from '@/components/ui/GradientBackground';
+import { TodayGradientCanvas } from '@/components/today/TodayGradientCanvas';
 import { tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import { useCalendarStats } from '@/hooks/useCalendarStats';
@@ -252,7 +252,7 @@ export default function TodayScreen() {
   const hasActiveWork = periodSections.some((section) => section.activeGroups.length > 0);
 
   return (
-    <GradientBackground fill variant={actualTimeOfDay} style={styles.screen}>
+    <TodayGradientCanvas timeOfDay={actualTimeOfDay} style={styles.screen}>
       <ConfettiBurst active={showConfetti} onFinished={() => setShowConfetti(false)} />
       <ScrollView
         style={styles.scroll}
@@ -305,7 +305,7 @@ export default function TodayScreen() {
           )}
         </View>
       </ScrollView>
-    </GradientBackground>
+    </TodayGradientCanvas>
   );
 }
 

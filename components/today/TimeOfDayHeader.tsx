@@ -2,7 +2,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandMark, PhaseFlower } from '@/components/brand';
-import { HeaderGrainOverlay } from '@/components/today/HeaderGrainOverlay';
 import { WeekProgressStrip, type WeekDay } from '@/components/today/WeekProgressStrip';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { colors } from '@/constants/colors';
@@ -45,8 +44,6 @@ export function TimeOfDayHeader({
 
   return (
     <View style={[styles.header, { paddingTop: insets.top + s(12) }]}>
-      <HeaderGrainOverlay style={styles.grain} />
-
       {showBrand ? (
         <BrandMark
           direction="row"
@@ -174,9 +171,6 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     gap: s(10),
     overflow: 'hidden',
-  },
-  grain: {
-    borderRadius: s(20),
   },
   brandMark: {
     alignSelf: 'flex-start',
