@@ -17,7 +17,7 @@ export const phases: Record<PhaseKey, Phase> = {
   follicular: {
     key: 'follicular',
     label: 'Follicular',
-    color: '#6ee7b7',
+    color: '#94a882',
     description: 'Energy rising',
   },
   ovulatory: {
