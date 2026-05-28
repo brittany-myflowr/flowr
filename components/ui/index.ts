@@ -4,6 +4,7 @@ export { Chip } from './Chip';
 export { Divider } from './Divider';
 export { FormField } from './FormField';
 export { GradientBackground } from './GradientBackground';
+export { BrandGradientCanvas } from './BrandGradientCanvas';
 export { Input } from './Input';
 export { ProgressBar } from './ProgressBar';
 export { ProgressRing } from './ProgressRing';

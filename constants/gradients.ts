@@ -5,10 +5,33 @@ export type GradientStops = {
   locations?: readonly [number, number, ...number[]];
 };
 
-/** Full brand gradient — launch, splash, auth headers */
+/** Full brand gradient — auth headers and simple backgrounds */
 export const fullGradient: GradientStops = {
   colors: ['#f5c842', '#e8854a', '#c95c4a', '#a87898', '#3d2d5c'],
   locations: [0, 0.3, 0.55, 0.78, 1],
+};
+
+/**
+ * Expanded full brand arc for splash/launch — cream through night with
+ * intra-hue steps for glow. Today TOD palettes are slices of this story.
+ */
+export const expandedBrandGradient: GradientStops = {
+  colors: [
+    '#fff6d0',
+    '#fde68a',
+    '#f5c842',
+    '#f0b040',
+    '#eca058',
+    '#e8854a',
+    '#de7048',
+    '#c95c4a',
+    '#b87888',
+    '#a87898',
+    '#7a5c8a',
+    '#5a4070',
+    '#3d2d5c',
+  ],
+  locations: [0, 0.06, 0.14, 0.22, 0.3, 0.38, 0.46, 0.54, 0.62, 0.7, 0.8, 0.9, 1],
 };
 
 /**

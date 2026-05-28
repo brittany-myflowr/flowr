@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { BrandMark } from '@/components/brand';
 import { LoadingDots } from '@/components/feedback/LoadingDots';
-import { GradientBackground } from '@/components/ui/GradientBackground';
+import { BrandGradientCanvas } from '@/components/ui/BrandGradientCanvas';
 import { fonts } from '@/constants/typography';
 import { useAppStore } from '@/providers/AppStore';
 import { s, vs, fs } from '@/lib/scale';
@@ -26,7 +26,7 @@ export default function LaunchScreen() {
   }, [hydrated, isLoggedIn, router]);
 
   return (
-    <GradientBackground style={styles.container}>
+    <BrandGradientCanvas style={styles.container}>
       <BrandMark flowerSize={s(64)} logoSize={s(44)} />
       <Text style={styles.loading}>
         {hydrated ? 'Loading your routines...' : 'Starting flowr...'}
@@ -34,7 +34,7 @@ export default function LaunchScreen() {
       <View style={styles.dots}>
         <LoadingDots />
       </View>
-    </GradientBackground>
+    </BrandGradientCanvas>
   );
 }
 

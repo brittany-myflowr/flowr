@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { BrandMark } from '@/components/brand';
 import { Button } from '@/components/ui/Button';
-import { GradientBackground } from '@/components/ui/GradientBackground';
+import { BrandGradientCanvas } from '@/components/ui/BrandGradientCanvas';
 import { PRIVACY_POLICY_URL, TERMS_URL } from '@/constants/appInfo';
 import { fonts } from '@/constants/typography';
 import { openExternalUrl } from '@/lib/appLinking';
@@ -14,7 +14,7 @@ export default function SplashScreen() {
   const router = useRouter();
 
   return (
-    <GradientBackground style={styles.container}>
+    <BrandGradientCanvas style={styles.container}>
       <StatusBar style="light" />
       <BrandMark flowerSize={s(64)} logoSize={s(44)} style={styles.brandMark} />
       <Text style={styles.tagline}>Self-Care, Beautifully Organized</Text>
@@ -43,7 +43,7 @@ export default function SplashScreen() {
           Privacy Policy
         </Text>
       </Text>
-    </GradientBackground>
+    </BrandGradientCanvas>
   );
 }
 
