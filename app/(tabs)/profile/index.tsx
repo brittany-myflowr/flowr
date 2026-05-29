@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 
 import { Daisy } from '@/components/brand';
 import {
@@ -11,9 +11,9 @@ import {
 } from '@/components/icons/ProfileIcons';
 import { TabPageHeader } from '@/components/layout/TabPageHeader';
 import { ProfileMenuRow, ProfileUserCard } from '@/components/profile/ProfileMenuRow';
+import { Divider } from '@/components/ui/Divider';
 import { colors } from '@/constants/colors';
-import { tabPageStyles, tabPageTypography } from '@/constants/tabPageTypography';
-import { fonts } from '@/constants/typography';
+import { tabPageStyles } from '@/constants/tabPageTypography';
 import { getFlowerColorByName } from '@/lib/flowerColor';
 import { useAuth } from '@/providers/AppStore';
 import { s } from '@/lib/scale';
@@ -58,7 +58,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={tabPageStyles.screen}>
-      <TabPageHeader title="My Profile" />
+      <TabPageHeader title="My Profile" onBackPress={() => router.back()} />
 
       <ScrollView
         style={tabPageStyles.scroll}
@@ -69,13 +69,13 @@ export default function ProfileScreen() {
           <ProfileUserCard
             firstName={user.firstName}
             email={user.email}
-            flowerStroke={flowerColor.stroke}
-            flowerBg={flowerColor.bg}
+            flowerColor={flowerColor.stroke}
             onEdit={() => router.push('/(tabs)/profile/edit')}
           />
         ) : null}
 
-        <Text style={styles.sectionLabel}>Account</Text>
+        <Divider label="Account" large outlined />
+
         <ProfileMenuRow
           label="Manage Subscription"
           icon={<CardOutlineIcon />}
@@ -87,7 +87,8 @@ export default function ProfileScreen() {
           onPress={() => router.push('/(tabs)/profile/privacy')}
         />
 
-        <Text style={styles.sectionLabel}>App</Text>
+        <Divider label="App" large outlined />
+
         <ProfileMenuRow
           label="About flowr"
           icon={<Daisy color={colors.muted} size={s(16)} />}
@@ -106,7 +107,8 @@ export default function ProfileScreen() {
           onPress={handleSignOut}
         />
 
-        <Text style={styles.devSectionLabel}>Developer</Text>
+        <Divider label="Developer" large outlined />
+
         <ProfileMenuRow
           label="Reset App Data"
           icon={<WarningOutlineIcon />}
@@ -118,24 +120,3 @@ export default function ProfileScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  sectionLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: tabPageTypography.sectionLabel,
-    letterSpacing: s(2),
-    textTransform: 'uppercase',
-    color: colors.muted,
-    marginBottom: s(5),
-    marginTop: s(4),
-  },
-  devSectionLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: tabPageTypography.sectionLabel,
-    letterSpacing: s(2),
-    textTransform: 'uppercase',
-    color: colors.dangerLight,
-    marginBottom: s(5),
-    marginTop: s(10),
-  },
-});

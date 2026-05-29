@@ -76,4 +76,30 @@ export function useTodaySections(date = new Date()) {
   }, [morning, afternoon, evening]);
 }
 
+/** All three time-of-day sections, including empty periods (e.g. Today empty state). */
+export function useTodayAllPeriodSections(date = new Date()) {
+  const morning = useTodayProgress('morning', date);
+  const afternoon = useTodayProgress('afternoon', date);
+  const evening = useTodayProgress('evening', date);
+
+  return useMemo(() => {
+    const byTimeOfDay = { morning, afternoon, evening } as const;
+
+    return TIME_OF_DAY_ORDER.map((timeOfDay) => {
+      const progress = byTimeOfDay[timeOfDay];
+      const groups = groupTodayStepsByRoutine(progress.steps);
+      const { activeGroups, completedGroups } = splitTodayRoutineGroups(groups);
+
+      return {
+        timeOfDay,
+        label: formatTimeOfDay(timeOfDay),
+        done: progress.done,
+        total: progress.total,
+        activeGroups,
+        completedGroups,
+      };
+    });
+  }, [morning, afternoon, evening]);
+}
+
 export { useCurrentPhaseInfo } from '@/hooks/useCurrentPhaseInfo';

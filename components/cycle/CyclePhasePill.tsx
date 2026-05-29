@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } fro
 
 import { PhaseFlower } from '@/components/brand';
 import { ChevronRightIcon } from '@/components/icons/ProfileIcons';
+import { plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import type { CyclePhaseInfo } from '@/lib/cycle';
 import { fs, s } from '@/lib/scale';
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: s(6),
     borderWidth: 1,
-    borderRadius: s(20),
+    borderRadius: plannerCornerRadius,
     paddingHorizontal: s(12),
     paddingVertical: s(6),
   },

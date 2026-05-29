@@ -6,11 +6,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   CalendarIcon,
   DaisyTabIcon,
-  FaceIcon,
   StarIcon,
   SunIcon,
 } from '@/components/icons/TabIcons';
 import { colors } from '@/constants/colors';
+import { plannerCardBorder } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -19,8 +19,9 @@ const TAB_CONFIG = {
   routines: { label: 'Routines', Icon: DaisyTabIcon },
   products: { label: 'Products', Icon: StarIcon },
   calendar: { label: 'Calendar', Icon: CalendarIcon },
-  profile: { label: 'Profile', Icon: FaceIcon },
 } as const;
+
+const HIDDEN_TAB_ROUTES = new Set(['profile']);
 
 type TabRouteName = keyof typeof TAB_CONFIG;
 
@@ -30,6 +31,8 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, s(16)) }]}>
       {state.routes.map((route, index) => {
+        if (HIDDEN_TAB_ROUTES.has(route.name)) return null;
+
         const config = TAB_CONFIG[route.name as TabRouteName];
         if (!config) return null;
 
@@ -94,7 +97,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: 'rgba(250,250,248,0.97)',
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: plannerCardBorder,
     paddingTop: s(10),
     minHeight: vs(56),
   },

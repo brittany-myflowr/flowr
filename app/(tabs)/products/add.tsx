@@ -25,12 +25,13 @@ export default function AddProductScreen() {
   const insets = useSafeAreaInsets();
   const { addProduct } = useProducts();
   const { showToast } = useToast();
-  const { returnTo, routineId, stepId, guided, stepIndex, stepName, selectedProductId } =
+  const { returnTo, routineId, stepId, guided, draft, stepIndex, stepName, selectedProductId } =
     useLocalSearchParams<{
       returnTo?: string;
       routineId?: string;
       stepId?: string;
       guided?: string;
+      draft?: string;
       stepIndex?: string;
       stepName?: string;
       selectedProductId?: string;
@@ -80,6 +81,19 @@ export default function AddProductScreen() {
           params: {
             guided: '1',
             stepIndex,
+            stepName,
+            selectedProductId: product.id,
+          },
+        });
+        return;
+      }
+
+      if (draft === '1' && routineId) {
+        router.push({
+          pathname: '/(tabs)/routines/tag-product',
+          params: {
+            draft: '1',
+            routineId,
             stepName,
             selectedProductId: product.id,
           },

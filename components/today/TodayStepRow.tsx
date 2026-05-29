@@ -2,7 +2,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PhaseChip } from '@/components/cycle/PhaseChip';
 import { CheckIcon } from '@/components/icons/ActionIcons';
+import { StepNumberBadge } from '@/components/steps/StepNumberBadge';
+import { StepProductLabel } from '@/components/steps/StepProductChip';
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import type { PhaseKey } from '@/constants/phases';
 import type { Step } from '@/types';
@@ -23,20 +26,21 @@ export function TodayStepRow({
   phaseKeys,
   onToggle,
 }: TodayStepRowProps) {
-  const hasChips = Boolean(phaseKeys?.length || step.productName);
+  const hasPhaseChips = Boolean(phaseKeys?.length);
 
   return (
     <View style={embedded ? undefined : styles.card}>
       <View style={[styles.mainRow, embedded && styles.mainRowEmbedded]}>
         <View style={styles.leading}>
-          <View style={styles.stepNumber}>
-            <Text style={styles.stepNumberText}>{index + 1}</Text>
-          </View>
+          <StepNumberBadge number={index + 1} />
 
           <View style={styles.copy}>
             <Text style={[styles.stepName, step.done && styles.stepNameDone]}>{step.name}</Text>
             {step.note ? (
               <Text style={[styles.noteText, step.done && styles.noteTextDone]}>{step.note}</Text>
+            ) : null}
+            {step.productName ? (
+              <StepProductLabel label={step.productName} done={step.done} />
             ) : null}
           </View>
         </View>
@@ -57,17 +61,11 @@ export function TodayStepRow({
         </View>
       </View>
 
-      {hasChips ? (
+      {hasPhaseChips ? (
         <View style={[styles.chips, embedded && styles.chipsEmbedded]}>
           {phaseKeys?.map((phaseKey) => (
             <PhaseChip key={phaseKey} phaseKey={phaseKey} />
           ))}
-          {step.productName ? (
-            <View style={styles.productChip}>
-              <CheckIcon size={s(10)} color={colors.blue} />
-              <Text style={styles.chipText}>{step.productName}</Text>
-            </View>
-          ) : null}
         </View>
       ) : null}
     </View>
@@ -77,9 +75,9 @@ export function TodayStepRow({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: s(10),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     marginBottom: s(7),
     overflow: 'hidden',
   },
@@ -99,20 +97,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: s(8),
-  },
-  stepNumber: {
-    width: s(20),
-    height: vs(20),
-    borderRadius: s(10),
-    backgroundColor: colors.light,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepNumberText: {
-    fontFamily: fonts.dmSansSemiBold,
-    fontSize: fs(9),
-    color: colors.blue,
-    fontWeight: '600',
   },
   copy: {
     flex: 1,
@@ -143,15 +127,16 @@ const styles = StyleSheet.create({
   checkbox: {
     width: s(20),
     height: vs(20),
-    borderRadius: s(10),
-    borderWidth: 1.5,
-    borderColor: '#c8d9e6',
+    borderRadius: plannerCornerRadius,
+    borderWidth: 1,
+    borderColor: plannerCardBorder,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.white,
   },
   checkboxDone: {
-    backgroundColor: colors.blue,
-    borderColor: colors.blue,
+    backgroundColor: colors.navy,
+    borderColor: colors.navy,
   },
   chips: {
     flexDirection: 'row',
@@ -164,21 +149,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: s(0),
     paddingBottom: s(0),
     marginTop: s(4),
-  },
-  productChip: {
-    backgroundColor: colors.light,
-    borderWidth: 1,
-    borderColor: '#c8d9e6',
-    borderRadius: s(7),
-    paddingHorizontal: s(8),
-    paddingVertical: vs(3),
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: s(3),
-  },
-  chipText: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(8),
-    color: colors.blue,
   },
 });

@@ -1,7 +1,13 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { CheckIcon, CloseIcon } from '@/components/icons/ActionIcons';
+import { CloseIcon } from '@/components/icons/ActionIcons';
+import {
+  StepProductLabel,
+  TagProductButton,
+} from '@/components/steps/StepProductChip';
+import { StepNumberBadge } from '@/components/steps/StepNumberBadge';
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { guidedFlowSizes, guidedFlowTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import { s, vs } from '@/lib/scale';
@@ -48,16 +54,14 @@ export function GuidedStepCard({
   onRemove,
 }: GuidedStepCardProps) {
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, plannerCard()]}>
       <View style={styles.headerRow}>
-        <View style={styles.stepNumber}>
-          <Text style={styles.stepNumberText}>{index + 1}</Text>
-        </View>
+        <StepNumberBadge number={index + 1} size="md" />
         <Text style={styles.headerLabel}>Step {index + 1}</Text>
         <View style={styles.headerActions}>
           {total > 1 && onRemove ? (
             <Pressable onPress={onRemove} hitSlop={8}>
-              <CloseIcon color="#c8d9e6" />
+              <CloseIcon color={plannerCardBorder} />
             </Pressable>
           ) : null}
         </View>
@@ -83,39 +87,32 @@ export function GuidedStepCard({
         autoCapitalize="sentences"
       />
 
+      {productName ? (
+        <View style={styles.productRow}>
+          <StepProductLabel label={productName} style={styles.productLabelInline} />
+          <Pressable onPress={onTagProduct} hitSlop={8}>
+            <Text style={styles.editProductText}>Edit product</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <Text style={styles.fieldLabel}>Schedule</Text>
       <Pressable onPress={onCustomizeSchedule} style={styles.scheduleRow}>
         <Text style={styles.scheduleValue}>{scheduleLabel}</Text>
         <Text style={styles.scheduleAction}>Customize</Text>
       </Pressable>
 
-      <View style={styles.chips}>
-        {productName ? (
-          <View style={styles.productChip}>
-            <CheckIcon size={s(10)} color={colors.blue} />
-            <Text style={styles.chipText}>{productName}</Text>
-          </View>
-        ) : (
-          <Pressable onPress={onTagProduct} style={styles.tagProductChip}>
-            <Text style={styles.tagProductText}>+ Tag a product</Text>
-          </Pressable>
-        )}
-        {productName ? (
-          <Pressable onPress={onTagProduct} style={styles.editProductChip}>
-            <Text style={styles.chipText}>Edit product</Text>
-          </Pressable>
-        ) : null}
-      </View>
+      {!productName ? (
+        <View style={styles.productActions}>
+          <TagProductButton onPress={onTagProduct} />
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: guidedFlowSizes.stepRowRadius,
-    borderWidth: 1,
-    borderColor: colors.border,
     paddingHorizontal: guidedFlowSizes.stepRowPaddingH,
     paddingVertical: guidedFlowSizes.stepRowPaddingV,
     marginBottom: s(10),
@@ -125,20 +122,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: s(8),
     marginBottom: s(10),
-  },
-  stepNumber: {
-    width: guidedFlowSizes.stepBadge,
-    height: guidedFlowSizes.stepBadge,
-    borderRadius: guidedFlowSizes.stepBadge / 2,
-    backgroundColor: colors.light,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepNumberText: {
-    fontFamily: fonts.dmSansSemiBold,
-    fontSize: guidedFlowTypography.stepNumber,
-    color: colors.blue,
-    fontWeight: '600',
   },
   headerLabel: {
     flex: 1,
@@ -166,9 +149,9 @@ const styles = StyleSheet.create({
     paddingVertical: vs(8),
     paddingHorizontal: s(10),
     backgroundColor: colors.bg,
-    borderRadius: s(8),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     marginBottom: s(10),
   },
   noteInput: {
@@ -178,10 +161,22 @@ const styles = StyleSheet.create({
     paddingVertical: vs(8),
     paddingHorizontal: s(10),
     backgroundColor: colors.bg,
-    borderRadius: s(8),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
+    marginBottom: s(6),
+  },
+  productRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: s(8),
     marginBottom: s(10),
+    paddingHorizontal: s(2),
+  },
+  productLabelInline: {
+    flex: 1,
+    marginTop: 0,
   },
   scheduleRow: {
     flexDirection: 'row',
@@ -190,9 +185,9 @@ const styles = StyleSheet.create({
     paddingVertical: vs(10),
     paddingHorizontal: s(10),
     backgroundColor: colors.light,
-    borderRadius: s(10),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: '#c8d9e6',
+    borderColor: plannerCardBorder,
     gap: s(8),
     marginBottom: s(10),
   },
@@ -209,46 +204,12 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     flexShrink: 0,
   },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: s(5),
+  productActions: {
+    marginTop: s(2),
   },
-  productChip: {
-    backgroundColor: colors.light,
-    borderWidth: 1,
-    borderColor: '#c8d9e6',
-    borderRadius: s(7),
-    paddingHorizontal: s(8),
-    paddingVertical: vs(4),
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: s(3),
-  },
-  editProductChip: {
-    backgroundColor: colors.light,
-    borderWidth: 1,
-    borderColor: '#c8d9e6',
-    borderRadius: s(7),
-    paddingHorizontal: s(8),
-    paddingVertical: vs(4),
-  },
-  tagProductChip: {
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#c8d9e6',
-    borderRadius: s(7),
-    paddingHorizontal: s(10),
-    paddingVertical: vs(6),
-  },
-  chipText: {
+  editProductText: {
     fontFamily: fonts.dmSans,
     fontSize: guidedFlowTypography.fieldLabel,
-    color: colors.blue,
-  },
-  tagProductText: {
-    fontFamily: fonts.dmSans,
-    fontSize: guidedFlowTypography.link,
-    color: colors.blue,
+    color: colors.navy,
   },
 });

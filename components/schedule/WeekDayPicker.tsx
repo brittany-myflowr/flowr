@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { WEEKDAY_LABELS } from '@/constants/schedules';
 import { fonts } from '@/constants/typography';
 import { s, fs } from '@/lib/scale';
@@ -48,14 +49,14 @@ const styles = StyleSheet.create({
   day: {
     flex: 1,
     aspectRatio: 1,
-    borderRadius: s(6),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dayDefault: {
     backgroundColor: colors.bg,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
   },
   daySelected: {
     backgroundColor: colors.blue,

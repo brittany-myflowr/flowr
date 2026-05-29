@@ -5,6 +5,7 @@ import { Daisy } from '@/components/brand';
 import { Chip } from '@/components/ui/Chip';
 import { categories, categoryColors, type Category } from '@/constants/categories';
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import {
   formatFrequency,
@@ -46,9 +47,7 @@ export function RoutineDetailHeader({
       </Pressable>
 
       <View style={styles.titleRow}>
-        <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
-          <Daisy color={categoryColor} size={s(18)} />
-        </View>
+        <Daisy color={categoryColor} size={s(18)} />
         <Pressable
           style={styles.meta}
           onPress={onNameChange ? () => setIsEditingName(true) : undefined}
@@ -116,7 +115,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: s(14),
     paddingBottom: s(10),
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: plannerCardBorder,
     backgroundColor: colors.bg,
   },
   back: {
@@ -130,13 +129,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: s(10),
     marginBottom: s(8),
-  },
-  iconWrap: {
-    width: s(36),
-    height: vs(36),
-    borderRadius: s(10),
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   meta: {
     flex: 1,
@@ -169,7 +161,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light,
     borderWidth: 1,
     borderColor: '#c8d9e6',
-    borderRadius: s(7),
+    borderRadius: plannerCornerRadius,
     paddingHorizontal: s(10),
     paddingVertical: vs(4),
   },

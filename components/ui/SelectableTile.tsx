@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: vs(10),
     paddingHorizontal: s(4),
-    borderRadius: s(10),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -52,11 +53,11 @@ const styles = StyleSheet.create({
   tileLarge: {
     paddingVertical: vs(12),
     paddingHorizontal: s(6),
-    borderRadius: s(12),
+    borderRadius: plannerCornerRadius,
   },
   tileDefault: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
   },
   tileSelected: {
     backgroundColor: colors.navy,

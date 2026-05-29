@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -49,9 +50,9 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: vs(11),
     paddingHorizontal: s(14),
-    borderRadius: s(10),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     backgroundColor: colors.white,
     flexDirection: 'row',
     alignItems: 'center',

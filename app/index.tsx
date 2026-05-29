@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { BrandMark } from '@/components/brand';
 import { LoadingDots } from '@/components/feedback/LoadingDots';
 import { BrandGradientCanvas } from '@/components/ui/BrandGradientCanvas';
+import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { useAppStore } from '@/providers/AppStore';
 import { s, vs, fs } from '@/lib/scale';
@@ -27,12 +28,12 @@ export default function LaunchScreen() {
 
   return (
     <BrandGradientCanvas style={styles.container}>
-      <BrandMark flowerSize={s(64)} logoSize={s(44)} />
+      <BrandMark flowerSize={s(64)} logoSize={s(44)} color={colors.navy} />
       <Text style={styles.loading}>
         {hydrated ? 'Loading your routines...' : 'Starting flowr...'}
       </Text>
       <View style={styles.dots}>
-        <LoadingDots />
+        <LoadingDots color={`${colors.navy}88`} />
       </View>
     </BrandGradientCanvas>
   );
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
     fontSize: fs(10),
     letterSpacing: s(2),
     textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.muted,
   },
   dots: {
     marginTop: s(4),

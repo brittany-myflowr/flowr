@@ -5,6 +5,7 @@ import {
   VerdictHeartIcon,
 } from '@/components/icons/VerdictHeartIcon';
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import type { Verdict } from '@/types';
 import { s, vs, fs } from '@/lib/scale';
@@ -68,9 +69,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: vs(9),
     paddingHorizontal: s(6),
-    borderRadius: s(14),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     backgroundColor: colors.white,
     alignItems: 'center',
   },

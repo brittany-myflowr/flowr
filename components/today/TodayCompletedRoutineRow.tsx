@@ -5,7 +5,7 @@ import { CheckIcon } from '@/components/icons/ActionIcons';
 import { ChevronRightIcon } from '@/components/icons/ProfileIcons';
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
-import { todayGlassCard } from '@/constants/todayCardStyles';
+import { todayGlassCard, todayCornerRadius } from '@/constants/todayCardStyles';
 import { fonts } from '@/constants/typography';
 import type { TodayRoutineGroup } from '@/lib/todayGroups';
 import { s, vs, fs } from '@/lib/scale';
@@ -39,9 +39,7 @@ export function TodayCompletedRoutineRow({
         accessibilityRole="button"
         accessibilityLabel={`${group.routine.name}, completed, ${periodLabel}`}
       >
-        <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
-          <Daisy color={categoryColor} size={s(14)} />
-        </View>
+        <Daisy color={categoryColor} size={s(14)} />
 
         <View style={styles.meta}>
           <Text style={styles.name} numberOfLines={1}>
@@ -88,14 +86,7 @@ const styles = StyleSheet.create({
   headerPressable: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: s(8),
-  },
-  iconWrap: {
-    width: s(26),
-    height: vs(26),
-    borderRadius: s(7),
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: s(10),
   },
   meta: {
     flex: 1,
@@ -117,7 +108,7 @@ const styles = StyleSheet.create({
   checkWrap: {
     width: s(18),
     height: vs(18),
-    borderRadius: s(9),
+    borderRadius: todayCornerRadius,
     backgroundColor: colors.blue,
     alignItems: 'center',
     justifyContent: 'center',

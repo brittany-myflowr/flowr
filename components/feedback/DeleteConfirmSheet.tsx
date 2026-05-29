@@ -8,6 +8,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -61,8 +62,8 @@ const styles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: colors.bg,
-    borderTopLeftRadius: s(20),
-    borderTopRightRadius: s(20),
+    borderTopLeftRadius: plannerCornerRadius,
+    borderTopRightRadius: plannerCornerRadius,
     paddingHorizontal: s(18),
     paddingTop: s(0),
     shadowColor: '#000',
@@ -74,8 +75,8 @@ const styles = StyleSheet.create({
   handle: {
     width: s(36),
     height: vs(4),
-    borderRadius: s(2),
-    backgroundColor: colors.border,
+    borderRadius: plannerCornerRadius,
+    backgroundColor: plannerCardBorder,
     alignSelf: 'center',
     marginTop: s(12),
     marginBottom: s(18),
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     paddingVertical: vs(12),
-    borderRadius: s(10),
+    borderRadius: plannerCornerRadius,
     backgroundColor: colors.danger,
     alignItems: 'center',
     marginBottom: s(8),
@@ -109,9 +110,9 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     paddingVertical: vs(12),
-    borderRadius: s(10),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     alignItems: 'center',
   },
   cancelLabel: {

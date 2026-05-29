@@ -1,7 +1,11 @@
 import { Pressable, StyleSheet, Text, View, type GestureResponderHandlers } from 'react-native';
 
 import { CloseIcon } from '@/components/icons/ActionIcons';
+import { StepNumberBadge } from '@/components/steps/StepNumberBadge';
+import { StepProductLabel } from '@/components/steps/StepProductChip';
+import type { ReorderableDragTouchHandlers } from '@/components/ui/ReorderableList';
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCardBorder } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import type { Step } from '@/types';
 import { s, vs, fs } from '@/lib/scale';
@@ -11,6 +15,7 @@ type RoutineStepRowProps = {
   index: number;
   isDragging?: boolean;
   dragHandlers?: GestureResponderHandlers;
+  dragTouchHandlers?: ReorderableDragTouchHandlers;
   onDelete?: () => void;
 };
 
@@ -19,19 +24,19 @@ export function RoutineStepRow({
   index,
   isDragging = false,
   dragHandlers,
+  dragTouchHandlers,
   onDelete,
 }: RoutineStepRowProps) {
   return (
-    <View style={[styles.card, isDragging && styles.cardDragging]}>
+    <View style={[styles.card, plannerCard(), isDragging && styles.cardDragging]}>
       <View style={styles.mainRow}>
-        <View style={styles.dragArea} {...dragHandlers}>
-          <View style={styles.stepNumber}>
-            <Text style={styles.stepNumberText}>{index + 1}</Text>
-          </View>
+        <View style={styles.dragArea} {...dragTouchHandlers} {...dragHandlers}>
+          <StepNumberBadge number={index + 1} style={styles.stepBadge} />
 
           <View style={styles.copy}>
             <Text style={styles.stepName}>{step.name}</Text>
             {step.note ? <Text style={styles.noteText}>{step.note}</Text> : null}
+            {step.productName ? <StepProductLabel label={step.productName} /> : null}
             <Text style={styles.editHint}>tap for details · hold to drag</Text>
           </View>
         </View>
@@ -43,7 +48,7 @@ export function RoutineStepRow({
             accessibilityRole="button"
             accessibilityLabel={`Remove ${step.name}`}
           >
-            <CloseIcon color="#c8d9e6" />
+            <CloseIcon color={plannerCardBorder} />
           </Pressable>
         </View>
       </View>
@@ -53,10 +58,6 @@ export function RoutineStepRow({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: s(10),
-    borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: s(7),
     overflow: 'hidden',
   },
@@ -81,20 +82,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: s(8),
   },
-  stepNumber: {
-    width: s(20),
-    height: vs(20),
-    borderRadius: s(10),
-    backgroundColor: colors.light,
-    alignItems: 'center',
-    justifyContent: 'center',
+  stepBadge: {
     marginTop: s(1),
-  },
-  stepNumberText: {
-    fontFamily: fonts.dmSansSemiBold,
-    fontSize: fs(9),
-    color: colors.blue,
-    fontWeight: '600',
   },
   copy: {
     flex: 1,
@@ -114,7 +103,7 @@ const styles = StyleSheet.create({
     marginTop: s(1),
     fontFamily: fonts.dmSans,
     fontSize: fs(8),
-    color: '#c8d9e6',
+    color: colors.muted,
   },
   actions: {
     flexDirection: 'row',

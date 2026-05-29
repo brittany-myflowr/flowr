@@ -25,6 +25,7 @@ import { FullWidthButton } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { categories, type Category } from '@/constants/categories';
 import { colors } from '@/constants/colors';
+import { plannerCornerRadius } from '@/constants/plannerCardStyles';
 import {
   cloneSchedule,
   defaultScheduleForTimeOfDay,
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
   },
   addStepButton: {
     paddingVertical: vs(10),
-    borderRadius: s(10),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: '#c8d9e6',

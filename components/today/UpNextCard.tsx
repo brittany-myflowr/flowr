@@ -4,7 +4,7 @@ import { PhaseChip } from '@/components/cycle/PhaseChip';
 import { getTimeOfDayIcon } from '@/components/icons/TimeOfDayIcons';
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
-import { todayGlassCard } from '@/constants/todayCardStyles';
+import { todayGlassCard, todayCornerRadius } from '@/constants/todayCardStyles';
 import { fonts } from '@/constants/typography';
 import type { UpNextStep } from '@/hooks/useUpNextStep';
 import { fs, s, vs } from '@/lib/scale';
@@ -64,11 +64,12 @@ const styles = StyleSheet.create({
     marginBottom: s(8),
   },
   eyebrow: {
-    fontFamily: fonts.dmSans,
+    fontFamily: fonts.dmSansMedium,
     fontSize: fs(8),
-    letterSpacing: s(1.2),
+    fontWeight: '500',
+    letterSpacing: s(2.4),
     textTransform: 'uppercase',
-    color: colors.blue,
+    color: colors.navy,
   },
   routineName: {
     fontFamily: fonts.dmSans,
@@ -97,7 +98,7 @@ const styles = StyleSheet.create({
   actionButton: {
     alignSelf: 'flex-start',
     backgroundColor: colors.navy,
-    borderRadius: s(8),
+    borderRadius: todayCornerRadius,
     paddingHorizontal: s(14),
     paddingVertical: vs(8),
   },

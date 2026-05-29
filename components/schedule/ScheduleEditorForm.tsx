@@ -8,6 +8,7 @@ import { WeekDayPicker } from '@/components/schedule/WeekDayPicker';
 import { Chip } from '@/components/ui/Chip';
 import { FullWidthButton } from '@/components/ui/Button';
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import {
   END_OPTIONS,
   formatSchedulePreview,
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light,
     borderWidth: 1,
     borderColor: '#c8d9e6',
-    borderRadius: s(10),
+    borderRadius: plannerCornerRadius,
     paddingHorizontal: s(12),
     paddingVertical: vs(10),
     marginBottom: s(12),
@@ -274,13 +275,13 @@ const styles = StyleSheet.create({
   endsButton: {
     flex: 1,
     paddingVertical: vs(8),
-    borderRadius: s(8),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
     alignItems: 'center',
   },
   endsDefault: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
   },
   endsSelected: {
     backgroundColor: colors.navy,

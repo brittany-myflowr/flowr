@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getTimeOfDayIcon } from '@/components/icons/TimeOfDayIcons';
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { TIME_OF_DAY_OPTIONS } from '@/constants/schedules';
 import { formatTimeOfDay } from '@/constants/schedules';
 import type { TimeOfDay } from '@/types';
@@ -47,13 +48,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: vs(8),
     paddingHorizontal: s(4),
-    borderRadius: s(10),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1.5,
     alignItems: 'center',
   },
   tileDefault: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
   },
   tileSelected: {
     backgroundColor: colors.navy,

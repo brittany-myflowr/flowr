@@ -9,6 +9,7 @@ import {
 import Svg, { Circle, Line, Path } from 'react-native-svg';
 
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -67,8 +68,8 @@ const styles = StyleSheet.create({
     paddingVertical: vs(10),
     paddingHorizontal: s(12),
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: s(10),
+    borderColor: plannerCardBorder,
+    borderRadius: plannerCornerRadius,
     backgroundColor: colors.white,
     flexDirection: 'row',
     alignItems: 'center',

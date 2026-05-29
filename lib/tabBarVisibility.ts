@@ -9,6 +9,10 @@ export function shouldHideTabBar(segments: string[]): boolean {
 
   const [root, ...rest] = path;
 
+  if (root === 'profile') {
+    return true;
+  }
+
   if (root === 'index' || root === 'calendar') {
     return false;
   }

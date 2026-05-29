@@ -6,6 +6,7 @@ import { BrandMark } from '@/components/brand';
 import { Button } from '@/components/ui/Button';
 import { BrandGradientCanvas } from '@/components/ui/BrandGradientCanvas';
 import { PRIVACY_POLICY_URL, TERMS_URL } from '@/constants/appInfo';
+import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { openExternalUrl } from '@/lib/appLinking';
 import { s, vs, fs } from '@/lib/scale';
@@ -15,20 +16,26 @@ export default function SplashScreen() {
 
   return (
     <BrandGradientCanvas style={styles.container}>
-      <StatusBar style="light" />
-      <BrandMark flowerSize={s(64)} logoSize={s(44)} style={styles.brandMark} />
+      <StatusBar style="dark" />
+      <BrandMark
+        flowerSize={s(64)}
+        logoSize={s(44)}
+        color={colors.navy}
+        flowerStrokeWidth={1.1}
+        style={styles.brandMark}
+      />
       <Text style={styles.tagline}>Self-Care, Beautifully Organized</Text>
 
       <View style={styles.actions}>
         <Button
           label="Get Started"
-          variant="surface"
+          variant="primary"
           onPress={() => router.push('/(auth)/sign-up')}
         />
         <View style={styles.spacer} />
         <Button
           label="I already have an account"
-          variant="ghostLight"
+          variant="ghost"
           onPress={() => router.push('/(auth)/log-in')}
         />
       </View>
@@ -63,7 +70,7 @@ const styles = StyleSheet.create({
     fontSize: fs(10),
     letterSpacing: s(2.5),
     textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.55)',
+    color: colors.muted,
     marginBottom: s(52),
     textAlign: 'center',
   },
@@ -79,13 +86,14 @@ const styles = StyleSheet.create({
     fontFamily: fonts.dmSans,
     fontSize: fs(9),
     letterSpacing: s(0.5),
-    color: 'rgba(255,255,255,0.25)',
+    color: colors.muted,
     textAlign: 'center',
     paddingHorizontal: s(20),
     lineHeight: fs(14),
+    opacity: 0.72,
   },
   legalLink: {
     textDecorationLine: 'underline',
-    color: 'rgba(255,255,255,0.45)',
+    color: colors.blue,
   },
 });

@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import { s } from '@/lib/scale';
@@ -25,14 +26,14 @@ export function InlineEmptyCard({ title, body, children, compact = false }: Inli
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: s(12),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     padding: s(16),
     marginHorizontal: s(4),
   },
   cardCompact: {
-    borderRadius: s(10),
+    borderRadius: plannerCornerRadius,
     padding: s(14),
     marginHorizontal: 0,
     marginBottom: s(10),

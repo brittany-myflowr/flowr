@@ -1,7 +1,8 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type GestureResponderHandlers } from 'react-native';
 
 import { Daisy } from '@/components/brand';
 import { ChevronRightIcon } from '@/components/icons/ProfileIcons';
+import type { ReorderableDragTouchHandlers } from '@/components/ui/ReorderableList';
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { todayGlassCard } from '@/constants/todayCardStyles';
@@ -16,6 +17,9 @@ type TodayRoutineSectionProps = {
   isDragging?: boolean;
   /** When false, tap-to-expand is handled by the parent reorder list. */
   pressableHeader?: boolean;
+  /** Long-press drag — attach to header only so step checkboxes stay tappable. */
+  headerDragHandlers?: GestureResponderHandlers;
+  headerDragTouchHandlers?: ReorderableDragTouchHandlers;
   onToggleExpanded: () => void;
   renderStepRow: (
     item: TodayRoutineGroup['steps'][number],
@@ -30,19 +34,17 @@ export function TodayRoutineSection({
   completed = false,
   isDragging = false,
   pressableHeader = true,
+  headerDragHandlers,
+  headerDragTouchHandlers,
   onToggleExpanded,
   renderStepRow,
 }: TodayRoutineSectionProps) {
   const categoryColor = categoryColors[group.routine.category];
-  const progressPercent =
-    group.totalCount === 0 ? 0 : Math.round((group.doneCount / group.totalCount) * 100);
 
   const headerContent = (
     <>
       <View style={styles.titleRow}>
-        <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
-          <Daisy color={categoryColor} size={s(16)} />
-        </View>
+        <Daisy color={categoryColor} size={s(16)} />
 
         <View style={styles.meta}>
           <Text style={[styles.name, completed && styles.nameCompleted]} numberOfLines={1}>
@@ -61,17 +63,6 @@ export function TodayRoutineSection({
           <ChevronRightIcon size={s(14)} color={completed ? colors.muted : colors.gray} />
         </View>
       </View>
-
-      {!expanded ? (
-        <View style={styles.progressTrack}>
-          <View
-            style={[
-              styles.progressFill,
-              { width: `${progressPercent}%`, backgroundColor: categoryColor },
-            ]}
-          />
-        </View>
-      ) : null}
     </>
   );
 
@@ -91,6 +82,8 @@ export function TodayRoutineSection({
       ) : (
         <View
           style={styles.headerPressable}
+          {...headerDragTouchHandlers}
+          {...headerDragHandlers}
           accessibilityRole="button"
           accessibilityLabel={`${group.routine.name}. Tap to expand. Hold to reorder.`}
         >
@@ -131,19 +124,12 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   headerPressable: {
-    gap: s(6),
+    gap: s(4),
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: s(8),
-  },
-  iconWrap: {
-    width: s(30),
-    height: vs(30),
-    borderRadius: s(8),
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: s(10),
   },
   meta: {
     flex: 1,
@@ -182,16 +168,6 @@ const styles = StyleSheet.create({
   },
   chevronExpanded: {
     transform: [{ rotate: '90deg' }],
-  },
-  progressTrack: {
-    height: s(3),
-    borderRadius: s(2),
-    backgroundColor: 'rgba(26,26,46,0.08)',
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: s(2),
   },
   stepsSection: {
     marginTop: s(8),

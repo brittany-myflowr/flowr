@@ -5,99 +5,67 @@ export type GradientStops = {
   locations?: readonly [number, number, ...number[]];
 };
 
-/** Full brand gradient — auth headers and simple backgrounds */
-export const fullGradient: GradientStops = {
-  colors: ['#f5c842', '#e8854a', '#c95c4a', '#a87898', '#3d2d5c'],
-  locations: [0, 0.3, 0.55, 0.78, 1],
-};
-
 /**
- * Expanded full brand arc for splash/launch — cream through night with
- * intra-hue steps for glow. Today TOD palettes are slices of this story.
- */
-export const expandedBrandGradient: GradientStops = {
-  colors: [
-    '#fff6d0',
-    '#fde68a',
-    '#f5c842',
-    '#f0b040',
-    '#eca058',
-    '#e8854a',
-    '#de7048',
-    '#c95c4a',
-    '#b87888',
-    '#a87898',
-    '#7a5c8a',
-    '#5a4070',
-    '#3d2d5c',
-  ],
-  locations: [0, 0.06, 0.14, 0.22, 0.3, 0.38, 0.46, 0.54, 0.62, 0.7, 0.8, 0.9, 1],
-};
-
-/**
- * Expanded brand TOD palettes for Today — more stops within the same hue
- * families (yellow → orange → coral, etc.). Lighter tints at the lit edge
- * create the sun/glow; mesh pools reinforce it. Never cycle-based.
+ * Soft planner palettes — cream, peach, periwinkle, and lavender.
+ * Today's TOD skies are the global brand gradient story.
  */
 export const todaySkyGradients: Record<TimeOfDay, GradientStops> = {
   morning: {
     colors: [
-      '#fff6d0',
-      '#fde68a',
-      '#f5c842',
-      '#f0b040',
-      '#eca058',
-      '#e8854a',
-      '#de7048',
-      '#d06048',
-      '#c95c4a',
+      '#fffdf9',
+      '#fff8f0',
+      '#fceee0',
+      '#f8e4d4',
+      '#f5eef5',
+      '#faf7f2',
     ],
-    locations: [0, 0.08, 0.18, 0.28, 0.38, 0.5, 0.62, 0.76, 1],
+    locations: [0, 0.18, 0.38, 0.58, 0.78, 1],
   },
   afternoon: {
     colors: [
-      '#fde68a',
-      '#f5c842',
-      '#f0a050',
-      '#e8854a',
-      '#d86850',
-      '#c95c4a',
-      '#b87078',
-      '#a87898',
-      '#906888',
+      '#fffcf8',
+      '#faf6f0',
+      '#f6ece4',
+      '#f0e4dc',
+      '#eee8f2',
+      '#e8eef8',
     ],
-    locations: [0, 0.1, 0.22, 0.36, 0.48, 0.58, 0.72, 0.86, 1],
+    locations: [0, 0.16, 0.36, 0.54, 0.74, 1],
   },
   evening: {
     colors: [
-      '#a87898',
-      '#b88088',
-      '#c88878',
-      '#d88068',
-      '#e8854a',
-      '#c97868',
-      '#7a5c8a',
-      '#5a4070',
-      '#3d2d5c',
+      '#f6f0f8',
+      '#faf4f2',
+      '#f5eae8',
+      '#ede4f0',
+      '#e8ecf6',
+      '#f2f0f8',
     ],
-    locations: [0, 0.12, 0.24, 0.36, 0.48, 0.6, 0.74, 0.87, 1],
+    locations: [0, 0.18, 0.4, 0.6, 0.8, 1],
   },
 };
 
-export const timeOfDayGradients: Record<TimeOfDay, GradientStops> = {
-  morning: {
-    colors: ['#f5c842', '#e8854a', '#c95c4a'],
-    locations: [0, 0.45, 1],
-  },
-  afternoon: {
-    colors: ['#e8854a', '#c95c4a', '#a87898'],
-    locations: [0, 0.4, 1],
-  },
-  evening: {
-    colors: ['#a87898', '#7a5c8a', '#3d2d5c'],
-    locations: [0, 0.45, 1],
-  },
+/** Auth headers and boot loading — soft morning brand sky. */
+export const fullGradient: GradientStops = todaySkyGradients.morning;
+
+/** Splash and launch — full-screen soft brand arc (morning → afternoon). */
+export const expandedBrandGradient: GradientStops = {
+  colors: [
+    '#fffdf9',
+    '#fff8f0',
+    '#fceee0',
+    '#f8e4d4',
+    '#f6ece4',
+    '#f0e4dc',
+    '#f5eef5',
+    '#eee8f2',
+    '#e8eef8',
+  ],
+  locations: [0, 0.1, 0.22, 0.36, 0.48, 0.6, 0.72, 0.86, 1],
 };
+
+/** @deprecated Prefer todaySkyGradients — kept for GradientBackground TOD variant. */
+export const timeOfDayGradients: Record<TimeOfDay, GradientStops> = todaySkyGradients;
 
 /** Approximates the design doc's 160deg CSS gradient in RN LinearGradient */
 export const gradientDirection = {

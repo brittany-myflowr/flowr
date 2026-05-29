@@ -11,6 +11,7 @@ import { Animated, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/colors';
+import { plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
     zIndex: 9999,
     paddingHorizontal: s(16),
     paddingVertical: vs(8),
-    borderRadius: s(16),
+    borderRadius: plannerCornerRadius,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,

@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import {
   guidedFlowSizes,
   guidedFlowTypography,
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: guidedFlowSizes.headerPaddingHorizontal,
     paddingBottom: guidedFlowSizes.headerPaddingBottom,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: plannerCardBorder,
     backgroundColor: colors.bg,
   },
   topRow: {
@@ -81,8 +82,8 @@ const styles = StyleSheet.create({
   progressBar: {
     height: guidedFlowSizes.progressBarHeight,
     width: guidedFlowSizes.progressBarWidth,
-    borderRadius: s(2),
-    backgroundColor: colors.border,
+    borderRadius: plannerCornerRadius,
+    backgroundColor: plannerCardBorder,
   },
   progressComplete: {
     backgroundColor: colors.navy,

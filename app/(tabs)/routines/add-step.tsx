@@ -5,6 +5,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  Text,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,14 +13,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { ScheduleDefaultRow } from '@/components/routines/ScheduleDefaultRow';
+import {
+  StepProductChipButton,
+  TagProductButton,
+} from '@/components/steps/StepProductChip';
 import { FullWidthButton } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { formatSchedulePreview } from '@/constants/schedules';
 import { colors } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
+import { useProducts } from '@/providers/AppStore';
 import { useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
 import type { Schedule } from '@/types';
-import { s } from '@/lib/scale';
+import { fs, s } from '@/lib/scale';
 
 export default function AddStepScreen() {
   const router = useRouter();
@@ -30,7 +37,10 @@ export default function AddStepScreen() {
     addStep,
     consumePendingAddStepSchedule,
     setPendingAddStepSchedule,
+    consumePendingAddStepProduct,
+    setPendingAddStepProduct,
   } = useRoutines();
+  const { products } = useProducts();
   const { showToast } = useToast();
 
   const initialIndex = useMemo(() => {
@@ -43,16 +53,25 @@ export default function AddStepScreen() {
   const [stepName, setStepName] = useState('');
   const [note, setNote] = useState('');
   const [customSchedule, setCustomSchedule] = useState<Schedule | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
   const selectedRoutine = routines[selectedRoutineIndex];
+  const selectedProduct = selectedProductId
+    ? products.find((product) => product.id === selectedProductId)
+    : undefined;
 
   useFocusEffect(
     useCallback(() => {
-      const pending = consumePendingAddStepSchedule();
-      if (pending) {
-        setCustomSchedule(pending);
+      const pendingSchedule = consumePendingAddStepSchedule();
+      if (pendingSchedule) {
+        setCustomSchedule(pendingSchedule);
       }
-    }, [consumePendingAddStepSchedule]),
+
+      const pendingProductId = consumePendingAddStepProduct();
+      if (pendingProductId !== null) {
+        setSelectedProductId(pendingProductId);
+      }
+    }, [consumePendingAddStepSchedule, consumePendingAddStepProduct]),
   );
 
   const scheduleLabel = selectedRoutine
@@ -69,6 +88,19 @@ export default function AddStepScreen() {
     });
   };
 
+  const openTagProduct = () => {
+    if (!selectedRoutine) return;
+    router.push({
+      pathname: '/(tabs)/routines/tag-product',
+      params: {
+        draft: '1',
+        routineId: selectedRoutine.id,
+        stepName: stepName.trim(),
+        selectedProductId: selectedProductId ?? '',
+      },
+    });
+  };
+
   const handleSubmit = () => {
     if (!selectedRoutine || !stepName.trim()) return;
 
@@ -76,8 +108,10 @@ export default function AddStepScreen() {
       name: stepName,
       note: note.trim() || undefined,
       schedule: customSchedule ?? undefined,
+      productId: selectedProductId ?? undefined,
     });
     setPendingAddStepSchedule(null);
+    setPendingAddStepProduct(null);
     showToast('Step added');
     router.back();
   };
@@ -118,6 +152,7 @@ export default function AddStepScreen() {
           onChipPress={(index) => {
             setSelectedRoutineIndex(index);
             setCustomSchedule(null);
+            setSelectedProductId(null);
           }}
         />
 
@@ -138,6 +173,19 @@ export default function AddStepScreen() {
         />
 
         <ScheduleDefaultRow label={scheduleLabel} onCustomize={openScheduleCustomizer} />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Product</Text>
+          {selectedProduct ? (
+            <StepProductChipButton
+              label={selectedProduct.name}
+              onPress={openTagProduct}
+              actionLabel="Edit"
+            />
+          ) : (
+            <TagProductButton onPress={openTagProduct} />
+          )}
+        </View>
 
         <FullWidthButton
           label="Add Step"
@@ -161,6 +209,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: s(14),
     paddingTop: s(12),
     paddingBottom: s(24),
+  },
+  section: {
+    marginBottom: s(16),
+  },
+  sectionLabel: {
+    fontFamily: fonts.dmSans,
+    fontSize: fs(8),
+    letterSpacing: s(2),
+    textTransform: 'uppercase',
+    color: colors.muted,
+    marginBottom: s(6),
   },
   emptySpacer: {
     height: s(8),

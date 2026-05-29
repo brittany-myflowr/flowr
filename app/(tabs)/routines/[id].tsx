@@ -130,12 +130,13 @@ export default function RoutineDetailScreen() {
             />
           </View>
         }
-        renderItem={({ item, index, isActive, dragHandlers }) => (
+        renderItem={({ item, index, isActive, dragHandlers, dragTouchHandlers }) => (
           <RoutineStepRow
             step={item}
             index={index}
             isDragging={isActive}
             dragHandlers={dragHandlers}
+            dragTouchHandlers={dragTouchHandlers}
             onDelete={() =>
               setDeleteTarget({ type: 'step', stepId: item.id, stepName: item.name })
             }

@@ -5,6 +5,7 @@ import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { TabPageHeader } from '@/components/layout/TabPageHeader';
 import { Divider } from '@/components/ui/Divider';
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { tabPageStyles } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import { hasTrackableRoutines } from '@/lib/applicableSteps';
@@ -49,7 +50,7 @@ export default function CalendarScreen() {
           />
         ) : null}
 
-        <Divider label="This Week" large />
+        <Divider label="This Week" large outlined />
         <View style={styles.weekRow}>
           {weekDays.map((day) => (
             <View key={day.key} style={styles.weekCell}>
@@ -85,13 +86,13 @@ export default function CalendarScreen() {
           ))}
         </View>
 
-        <Divider label="Today" large />
+        <Divider label="Today" large outlined />
         {todayPeriods.map((period) => (
           <TodayProgressCard key={period.timeOfDay} period={period} />
         ))}
 
-        <Divider label="This Month" large />
-        <View style={styles.monthCard}>
+        <Divider label="This Month" large outlined />
+        <View style={[styles.monthCard, plannerCard()]}>
           <View style={styles.monthWeekdayRow}>
             {MONTH_WEEKDAY_LABELS.map((label, index) => (
               <Text key={`${label}-${index}`} style={styles.monthWeekdayLabel}>
@@ -139,7 +140,7 @@ export default function CalendarScreen() {
 
 function StatCard({ value, label }: { value: string; label: string }) {
   return (
-    <View style={styles.statCard}>
+    <View style={[styles.statCard, plannerCard()]}>
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
@@ -154,10 +155,6 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: s(10),
-    borderWidth: 1,
-    borderColor: colors.border,
     paddingVertical: vs(9),
     paddingHorizontal: s(4),
     alignItems: 'center',
@@ -195,7 +192,7 @@ const styles = StyleSheet.create({
     height: vs(24),
     borderRadius: s(12),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -213,7 +210,7 @@ const styles = StyleSheet.create({
   },
   dayCircleOffDay: {
     backgroundColor: colors.bg,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     borderStyle: 'dashed',
     opacity: 0.75,
   },
@@ -242,16 +239,12 @@ const styles = StyleSheet.create({
   weekDotOffDay: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
   },
   weekDotEmpty: {
     backgroundColor: colors.border,
   },
   monthCard: {
-    backgroundColor: colors.white,
-    borderRadius: s(10),
-    borderWidth: 1,
-    borderColor: colors.border,
     padding: s(10),
   },
   monthWeekdayRow: {
@@ -281,7 +274,7 @@ const styles = StyleSheet.create({
     height: vs(26),
     borderRadius: s(13),
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },

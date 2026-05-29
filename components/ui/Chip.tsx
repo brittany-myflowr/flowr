@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: s(11),
     paddingVertical: vs(5),
-    borderRadius: s(14),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
   },
   chipSmall: {
@@ -66,11 +67,11 @@ const styles = StyleSheet.create({
   chipForm: {
     paddingHorizontal: s(10),
     paddingVertical: vs(9),
-    borderRadius: s(14),
+    borderRadius: plannerCornerRadius,
   },
   chipDefault: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
   },
   chipSelected: {
     backgroundColor: colors.navy,

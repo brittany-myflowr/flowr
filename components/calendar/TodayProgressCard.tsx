@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import type { TodayPeriodProgress } from '@/hooks/useTodayProgressByTimeOfDay';
 import { s, vs, fs } from '@/lib/scale';
@@ -14,7 +15,7 @@ export function TodayProgressCard({ period }: TodayProgressCardProps) {
   const isOffDay = period.total === 0;
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, plannerCard()]}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>{period.label}</Text>
         <Text style={[styles.count, isOffDay && styles.countOffDay]}>
@@ -66,13 +67,9 @@ export function TodayProgressCard({ period }: TodayProgressCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: s(10),
     paddingHorizontal: s(12),
     paddingVertical: vs(10),
     marginBottom: s(6),
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   headerRow: {
     flexDirection: 'row',
@@ -100,7 +97,7 @@ const styles = StyleSheet.create({
   },
   track: {
     height: vs(4),
-    borderRadius: s(4),
+    borderRadius: plannerCornerRadius,
     backgroundColor: '#f0f0ee',
     marginBottom: s(6),
     overflow: 'hidden',
@@ -108,7 +105,7 @@ const styles = StyleSheet.create({
   fill: {
     height: '100%',
     backgroundColor: colors.blue,
-    borderRadius: s(4),
+    borderRadius: plannerCornerRadius,
   },
   chips: {
     flexDirection: 'row',
@@ -118,7 +115,7 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: s(7),
     paddingVertical: vs(2),
-    borderRadius: s(8),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
   },
   chipText: {

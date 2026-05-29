@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Daisy } from '@/components/brand';
 import { ChevronRightIcon } from '@/components/icons/ProfileIcons';
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -27,7 +28,7 @@ export function ProfileMenuRow({
     <Pressable
       onPress={onPress}
       disabled={!onPress}
-      style={[styles.row, danger && styles.rowDanger]}
+      style={[styles.row, plannerCard(), danger && styles.rowDanger]}
     >
       <View style={styles.iconWrap}>{icon}</View>
       <Text style={[styles.label, danger && styles.labelDanger]}>{label}</Text>
@@ -40,22 +41,20 @@ export function ProfileMenuRow({
 type ProfileUserCardProps = {
   firstName: string;
   email: string;
-  flowerStroke: string;
-  flowerBg: string;
+  flowerColor: string;
   onEdit?: () => void;
 };
 
 export function ProfileUserCard({
   firstName,
   email,
-  flowerStroke,
-  flowerBg,
+  flowerColor,
   onEdit,
 }: ProfileUserCardProps) {
   return (
     <View style={styles.card}>
-      <View style={[styles.avatar, { backgroundColor: flowerBg, borderColor: `${flowerStroke}66` }]}>
-        <Daisy color={flowerStroke} size={s(22)} />
+      <View style={styles.flowerWrap}>
+        <Daisy color={flowerColor} size={s(24)} />
       </View>
       <View style={styles.copy}>
         <Text style={styles.name}>{firstName}</Text>
@@ -73,13 +72,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: s(10),
-    backgroundColor: colors.white,
-    borderRadius: s(10),
     paddingHorizontal: s(12),
     paddingVertical: vs(10),
     marginBottom: s(5),
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   rowDanger: {
     borderColor: colors.dangerLight,
@@ -105,18 +100,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: s(12),
-    backgroundColor: colors.white,
-    borderRadius: s(12),
     padding: s(14),
-    borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: s(10),
   },
-  avatar: {
-    width: s(44),
-    height: vs(44),
-    borderRadius: s(22),
-    borderWidth: 2,
+  flowerWrap: {
+    flexShrink: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -138,7 +126,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light,
     borderWidth: 1,
     borderColor: '#c8d9e6',
-    borderRadius: s(8),
+    borderRadius: plannerCornerRadius,
     paddingHorizontal: s(10),
     paddingVertical: vs(5),
   },

@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
     paddingVertical: vs(10),
     paddingHorizontal: s(12),
     backgroundColor: colors.light,
-    borderRadius: s(10),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
     borderColor: '#c8d9e6',
     gap: s(8),

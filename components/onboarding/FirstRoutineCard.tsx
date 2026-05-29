@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Daisy } from '@/components/brand';
 import { FullWidthButton } from '@/components/ui/Button';
 import { colors } from '@/constants/colors';
+import { plannerCard } from '@/constants/plannerCardStyles';
 import { tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import { s } from '@/lib/scale';
@@ -13,7 +14,7 @@ type FirstRoutineCardProps = {
 
 export function FirstRoutineCard({ onGetStarted }: FirstRoutineCardProps) {
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, plannerCard()]}>
       <View style={styles.iconWrap}>
         <Daisy color={colors.blue} size={s(44)} />
       </View>
@@ -29,12 +30,9 @@ export function FirstRoutineCard({ onGetStarted }: FirstRoutineCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: s(16),
     padding: s(20),
-    borderWidth: 1,
-    borderColor: colors.border,
     alignItems: 'center',
+    marginBottom: s(10),
   },
   iconWrap: {
     marginBottom: s(12),

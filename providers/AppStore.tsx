@@ -62,6 +62,7 @@ export type AddStepInput = {
   name: string;
   note?: string;
   schedule?: Schedule;
+  productId?: string;
 };
 
 type SignUpInput = {
@@ -93,6 +94,7 @@ type AppStoreValue = {
   cycleSettings: CycleSettings;
   todayStepOrders: TodayStepOrderMap;
   pendingAddStepSchedule: Schedule | null;
+  pendingAddStepProduct: string | null;
   pendingGuidedStepScheduleInit: Schedule | null;
   pendingGuidedStepScheduleResult: { stepIndex: number; schedule: Schedule } | null;
   pendingGuidedStepProductResult: { stepIndex: number; productId: string | null } | null;
@@ -126,6 +128,8 @@ type AppStoreValue = {
   updateStepSchedule: (routineId: string, stepId: string, schedule: Schedule) => void;
   setPendingAddStepSchedule: (schedule: Schedule | null) => void;
   consumePendingAddStepSchedule: () => Schedule | null;
+  setPendingAddStepProduct: (productId: string | null) => void;
+  consumePendingAddStepProduct: () => string | null;
   setPendingGuidedStepScheduleInit: (schedule: Schedule | null) => void;
   consumePendingGuidedStepScheduleInit: () => Schedule | null;
   setPendingGuidedStepScheduleResult: (
@@ -168,6 +172,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const [todayStepOrders, setTodayStepOrders] =
     useState<TodayStepOrderMap>(EMPTY_TODAY_STEP_ORDERS);
   const [pendingAddStepSchedule, setPendingAddStepSchedule] = useState<Schedule | null>(null);
+  const [pendingAddStepProduct, setPendingAddStepProduct] = useState<string | null>(null);
   const [pendingGuidedStepScheduleInit, setPendingGuidedStepScheduleInit] =
     useState<Schedule | null>(null);
   const [pendingGuidedStepScheduleResult, setPendingGuidedStepScheduleResult] = useState<{
@@ -345,6 +350,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     setCycleSettings(DEFAULT_CYCLE_SETTINGS);
     setTodayStepOrders(EMPTY_TODAY_STEP_ORDERS);
     setPendingAddStepSchedule(null);
+    setPendingAddStepProduct(null);
     setPendingGuidedStepScheduleInit(null);
     setPendingGuidedStepScheduleResult(null);
     setPendingGuidedStepProductResult(null);
@@ -491,6 +497,10 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       const trimmedName = input.name.trim();
       if (!trimmedName) return null;
 
+      const product = input.productId
+        ? products.find((item) => item.id === input.productId)
+        : undefined;
+
       let created: Step | null = null;
 
       applyRoutineUpdate((current) =>
@@ -504,6 +514,8 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
             category: routine.category,
             done: false,
             schedule: input.schedule,
+            productId: product?.id,
+            productName: product?.name,
           };
 
           return { ...routine, steps: [...routine.steps, created] };
@@ -512,7 +524,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
       return created;
     },
-    [applyRoutineUpdate],
+    [applyRoutineUpdate, products],
   );
 
   const updateRoutine = useCallback(
@@ -547,6 +559,15 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       return null;
     });
     return schedule;
+  }, []);
+
+  const consumePendingAddStepProduct = useCallback(() => {
+    let productId: string | null = null;
+    setPendingAddStepProduct((current) => {
+      productId = current;
+      return null;
+    });
+    return productId;
   }, []);
 
   const consumePendingGuidedStepScheduleInit = useCallback(() => {
@@ -714,6 +735,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       cycleSettings,
       todayStepOrders,
       pendingAddStepSchedule,
+      pendingAddStepProduct,
       pendingGuidedStepScheduleInit,
       pendingGuidedStepScheduleResult,
       pendingGuidedStepProductResult,
@@ -737,6 +759,8 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       updateStepSchedule,
       setPendingAddStepSchedule,
       consumePendingAddStepSchedule,
+      setPendingAddStepProduct,
+      consumePendingAddStepProduct,
       setPendingGuidedStepScheduleInit,
       consumePendingGuidedStepScheduleInit,
       setPendingGuidedStepScheduleResult,
@@ -760,6 +784,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       cycleSettings,
       todayStepOrders,
       pendingAddStepSchedule,
+      pendingAddStepProduct,
       pendingGuidedStepScheduleInit,
       pendingGuidedStepScheduleResult,
       pendingGuidedStepProductResult,
@@ -782,6 +807,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       updateRoutineSchedule,
       updateStepSchedule,
       consumePendingAddStepSchedule,
+      consumePendingAddStepProduct,
       consumePendingGuidedStepScheduleInit,
       consumePendingGuidedStepScheduleResult,
       consumePendingGuidedStepProductResult,
@@ -834,9 +860,12 @@ export function useRoutines() {
     updateRoutineSchedule: store.updateRoutineSchedule,
     updateStepSchedule: store.updateStepSchedule,
     pendingAddStepSchedule: store.pendingAddStepSchedule,
+    pendingAddStepProduct: store.pendingAddStepProduct,
     pendingGuidedStepScheduleInit: store.pendingGuidedStepScheduleInit,
     setPendingAddStepSchedule: store.setPendingAddStepSchedule,
     consumePendingAddStepSchedule: store.consumePendingAddStepSchedule,
+    setPendingAddStepProduct: store.setPendingAddStepProduct,
+    consumePendingAddStepProduct: store.consumePendingAddStepProduct,
     setPendingGuidedStepScheduleInit: store.setPendingGuidedStepScheduleInit,
     consumePendingGuidedStepScheduleInit: store.consumePendingGuidedStepScheduleInit,
     setPendingGuidedStepScheduleResult: store.setPendingGuidedStepScheduleResult,

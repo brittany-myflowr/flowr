@@ -38,7 +38,7 @@ export function TodayGradientCanvas({ timeOfDay, style, children }: TodayGradien
           style={styles.fill}
         />
 
-        <GradientGrainOverlay style={styles.fill} intensity={0.36} />
+        <GradientGrainOverlay style={styles.fill} intensity={0.4} tone="paper" />
       </View>
 
       {children}

@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -24,7 +25,7 @@ export function Badge({
 
 const styles = StyleSheet.create({
   badge: {
-    borderRadius: s(5),
+    borderRadius: plannerCornerRadius,
     paddingHorizontal: s(6),
     paddingVertical: vs(1),
   },

@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { CheckIcon } from '@/components/icons/ActionIcons';
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import type { CycleSyncMethod } from '@/types';
 import { s, vs, fs } from '@/lib/scale';
@@ -34,7 +35,7 @@ export function SyncMethodPicker({ value, onChange }: SyncMethodPickerProps) {
           <Pressable
             key={method.value}
             onPress={() => onChange(method.value)}
-            style={[styles.row, selected && styles.rowSelected]}
+            style={[styles.row, plannerCard(), selected && styles.rowSelected]}
           >
             <View style={styles.copy}>
               <Text style={[styles.label, selected && styles.labelSelected]}>{method.label}</Text>
@@ -98,10 +99,6 @@ const styles = StyleSheet.create({
     gap: s(10),
     paddingHorizontal: s(12),
     paddingVertical: vs(10),
-    borderRadius: s(10),
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
     marginBottom: s(6),
   },
   rowSelected: {
@@ -129,9 +126,9 @@ const styles = StyleSheet.create({
   radio: {
     width: s(18),
     height: vs(18),
-    borderRadius: s(9),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -158,9 +155,9 @@ const styles = StyleSheet.create({
   counterButton: {
     width: s(28),
     height: vs(28),
-    borderRadius: s(14),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },

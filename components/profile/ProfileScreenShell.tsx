@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { colors } from '@/constants/colors';
+import { plannerCard } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -37,10 +38,7 @@ export function ProfileScreenShell({ title, subtitle, children }: ProfileScreenS
 
 export const profileBodyStyles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: s(12),
-    borderWidth: 1,
-    borderColor: colors.border,
+    ...plannerCard(),
     padding: s(14),
     marginBottom: s(10),
   },

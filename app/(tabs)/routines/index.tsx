@@ -38,7 +38,7 @@ export default function RoutinesScreen() {
 
   const cycleSection = (
     <>
-      <Divider label="Cycle & Hormonal Health" large />
+      <Divider label="Cycle & Hormonal Health" large outlined />
       <CycleSyncCard
         enabled={cycleSettings.enabled}
         onToggle={handleCycleToggle}
@@ -59,6 +59,8 @@ export default function RoutinesScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.cycleSection}>{cycleSection}</View>
+
         {routines.length === 0 ? (
           <FirstRoutineCard onGetStarted={openGuided} />
         ) : (
@@ -69,7 +71,7 @@ export default function RoutinesScreen() {
 
               return (
                 <View key={timeOfDay}>
-                  <Divider label={formatTimeOfDay(timeOfDay)} large />
+                  <Divider label={formatTimeOfDay(timeOfDay)} large outlined />
                   {grouped.map((routine) => (
                     <RoutineCard
                       key={routine.id}
@@ -87,8 +89,6 @@ export default function RoutinesScreen() {
             </View>
           </>
         )}
-
-        <View style={styles.cycleSection}>{cycleSection}</View>
       </ScrollView>
     </View>
   );
@@ -103,6 +103,6 @@ const styles = StyleSheet.create({
     marginBottom: s(8),
   },
   cycleSection: {
-    marginTop: s(4),
+    marginBottom: s(10),
   },
 });

@@ -9,6 +9,7 @@ import { ProductPickRow } from '@/components/products/ProductCard';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Divider } from '@/components/ui/Divider';
 import { colors } from '@/constants/colors';
+import { plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { tabPageStyles, tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import { useProducts, useRoutine, useRoutines } from '@/providers/AppStore';
@@ -24,6 +25,7 @@ export default function TagProductScreen() {
     stepId,
     selectedProductId,
     guided,
+    draft,
     stepIndex,
     stepName,
   } = useLocalSearchParams<{
@@ -31,17 +33,20 @@ export default function TagProductScreen() {
     stepId?: string;
     selectedProductId?: string;
     guided?: string;
+    draft?: string;
     stepIndex?: string;
     stepName?: string;
   }>();
   const isGuided = guided === '1';
+  const isDraft = draft === '1';
   const routine = routineId ? useRoutine(routineId) : undefined;
   const { products } = useProducts();
-  const { tagStepProduct, setPendingGuidedStepProductResult } = useRoutines();
+  const { tagStepProduct, setPendingGuidedStepProductResult, setPendingAddStepProduct } =
+    useRoutines();
   const { showToast } = useToast();
 
   const step = routine?.steps.find((item) => item.id === stepId);
-  const resolvedStepName = isGuided ? stepName : step?.name;
+  const resolvedStepName = isGuided || isDraft ? stepName : step?.name;
 
   const [selectedId, setSelectedId] = useState<string | null>(
     selectedProductId ?? step?.productId ?? null,
@@ -71,6 +76,12 @@ export default function TagProductScreen() {
       return;
     }
 
+    if (isDraft) {
+      setPendingAddStepProduct(selectedId);
+      router.back();
+      return;
+    }
+
     if (!routine || !step) return;
     tagStepProduct(routine.id, step.id, selectedId);
     showToast('Product tagged');
@@ -92,6 +103,20 @@ export default function TagProductScreen() {
       return;
     }
 
+    if (isDraft) {
+      router.push({
+        pathname: '/(tabs)/products/add',
+        params: {
+          returnTo: 'tag-product',
+          draft: '1',
+          routineId,
+          stepName: resolvedStepName ?? '',
+          selectedProductId: selectedId ?? '',
+        },
+      });
+      return;
+    }
+
     router.push({
       pathname: '/(tabs)/products/add',
       params: {
@@ -102,7 +127,7 @@ export default function TagProductScreen() {
     });
   };
 
-  if (!isGuided && (!routine || !step)) {
+  if (!isGuided && !isDraft && (!routine || !step)) {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
         <SubPageHeader title="Tag a Product" onBack={() => router.back()} />
@@ -157,7 +182,7 @@ export default function TagProductScreen() {
 
             {rest.length > 0 ? (
               <>
-                <Divider label="All Products" large />
+                <Divider label="All Products" large outlined />
                 {rest.map((product) => (
                   <ProductPickRow
                     key={product.id}
@@ -224,7 +249,7 @@ const styles = StyleSheet.create({
     marginTop: s(4),
     marginBottom: s(10),
     paddingVertical: vs(9),
-    borderRadius: s(10),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: '#c8d9e6',

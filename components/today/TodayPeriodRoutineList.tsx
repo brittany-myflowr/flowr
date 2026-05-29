@@ -47,12 +47,13 @@ export function TodayPeriodRoutineList({
       onDragEnd={(nextGroups) => onReorder(timeOfDay, nextGroups)}
       onScrollLockChange={onScrollLockChange}
       onItemPress={(group) => onToggleExpanded(group.routine.id)}
-      dragHandlersTarget="row"
-      renderItem={({ item, isActive }) => (
+      renderItem={({ item, isActive, dragHandlers, dragTouchHandlers }) => (
         <TodayRoutineSection
           group={item}
           expanded={expandedByRoutineId[item.routine.id] === true}
           pressableHeader={false}
+          headerDragHandlers={dragHandlers}
+          headerDragTouchHandlers={dragTouchHandlers}
           isDragging={isActive}
           onToggleExpanded={() => onToggleExpanded(item.routine.id)}
           renderStepRow={renderStepRow}

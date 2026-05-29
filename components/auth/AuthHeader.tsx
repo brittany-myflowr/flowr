@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandMark } from '@/components/brand';
 import { GradientBackground } from '@/components/ui/GradientBackground';
+import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { s, fs } from '@/lib/scale';
 
@@ -24,7 +25,7 @@ export function AuthHeader({ subtitle, compact = false }: AuthHeaderProps) {
         { paddingTop: topPadding },
       ]}
     >
-      <BrandMark flowerSize={s(36)} logoSize={s(32)} />
+      <BrandMark flowerSize={s(36)} logoSize={s(32)} color={colors.navy} />
       {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
     </GradientBackground>
   );
@@ -46,6 +47,6 @@ const styles = StyleSheet.create({
     fontSize: fs(9),
     letterSpacing: s(2),
     textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.55)',
+    color: colors.muted,
   },
 });

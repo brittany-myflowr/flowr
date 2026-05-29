@@ -101,7 +101,7 @@ export default function ProductsScreen() {
     if (shouldGroupByCategory && groupedProducts) {
       return groupedProducts.map((group) => (
         <View key={group.category}>
-          <Divider label={group.category} large />
+          <Divider label={group.category} large outlined />
           {group.products.map((product) => renderProductCard(product))}
         </View>
       ));

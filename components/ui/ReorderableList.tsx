@@ -21,11 +21,18 @@ import {
   hapticDragSwap,
 } from '@/lib/haptics';
 
+export type ReorderableDragTouchHandlers = {
+  onTouchStart: () => void;
+  onTouchEnd: () => void;
+  onTouchCancel: () => void;
+};
+
 export type ReorderableRenderItemInfo<T> = {
   item: T;
   index: number;
   isActive: boolean;
   dragHandlers: GestureResponderHandlers;
+  dragTouchHandlers: ReorderableDragTouchHandlers;
 };
 
 type ReorderableListProps<T> = {
@@ -103,7 +110,11 @@ export function ReorderableList<T>({
   const scrollRef = useRef<ScrollView>(null);
   const contentRef = useRef<View>(null);
   const rowRefs = useRef<Record<string, View | null>>({});
-  const touchLockCountRef = useRef(0);
+  const pendingDragRef = useRef<{
+    key: string;
+    timer: ReturnType<typeof setTimeout>;
+    pressStartedAt: number;
+  } | null>(null);
 
   useEffect(() => {
     if (activeKeyRef.current == null) {
@@ -146,20 +157,6 @@ export function ReorderableList<T>({
     scrollRef.current?.setNativeProps({ scrollEnabled: enabled });
   }, []);
 
-  const lockScroll = useCallback(() => {
-    touchLockCountRef.current += 1;
-    if (touchLockCountRef.current === 1) {
-      setScrollEnabled(false);
-    }
-  }, [setScrollEnabled]);
-
-  const unlockScroll = useCallback(() => {
-    touchLockCountRef.current = Math.max(0, touchLockCountRef.current - 1);
-    if (touchLockCountRef.current === 0 && activeKeyRef.current == null) {
-      setScrollEnabled(true);
-    }
-  }, [setScrollEnabled]);
-
   const refreshMetrics = useCallback(() => {
     const container = contentRef.current;
     if (!container) return;
@@ -199,10 +196,7 @@ export function ReorderableList<T>({
     activeIndexRef.current = -1;
     dragOffsetRef.current = 0;
     translateY.setValue(0);
-
-    if (touchLockCountRef.current === 0) {
-      setScrollEnabled(true);
-    }
+    setScrollEnabled(true);
   }, [onDragEnd, setScrollEnabled, translateY]);
 
   const trySwapWithNeighbor = useCallback(
@@ -265,20 +259,19 @@ export function ReorderableList<T>({
     [refreshMetrics, setScrollEnabled, translateY],
   );
 
+  const cancelPendingDrag = useCallback(() => {
+    if (pendingDragRef.current) {
+      clearTimeout(pendingDragRef.current.timer);
+      pendingDragRef.current = null;
+    }
+  }, []);
+
   const handleRowLayout = useCallback((key: string, event: LayoutChangeEvent) => {
     if (activeKeyRef.current === key) return;
 
     const { y, height } = event.nativeEvent.layout;
     metricsRef.current[key] = { y, height };
   }, []);
-
-  const handleRowTouchStart = useCallback(() => {
-    lockScroll();
-  }, [lockScroll]);
-
-  const handleRowTouchEnd = useCallback(() => {
-    unlockScroll();
-  }, [unlockScroll]);
 
   const rowRespondersRef = useRef<
     Map<
@@ -289,57 +282,66 @@ export function ReorderableList<T>({
     >
   >(new Map());
 
+  const getRowTouchHandlers = useCallback(
+    (key: string): ReorderableDragTouchHandlers => ({
+      onTouchStart: () => {
+        if (activeKeyRef.current != null) return;
+
+        cancelPendingDrag();
+        const pressStartedAt = Date.now();
+        const timer = setTimeout(() => {
+          pendingDragRef.current = null;
+          const index = itemsRef.current.findIndex((item) => keyExtractor(item) === key);
+          if (index >= 0) {
+            startDrag(key, index);
+          }
+        }, LONG_PRESS_MS);
+
+        pendingDragRef.current = { key, timer, pressStartedAt };
+      },
+      onTouchEnd: () => {
+        if (activeKeyRef.current === key) {
+          finishDrag();
+          return;
+        }
+
+        if (!pendingDragRef.current || pendingDragRef.current.key !== key) return;
+
+        const { pressStartedAt, timer } = pendingDragRef.current;
+        clearTimeout(timer);
+        pendingDragRef.current = null;
+
+        if (
+          onItemPressRef.current &&
+          Date.now() - pressStartedAt <= TAP_MAX_MS
+        ) {
+          const index = itemsRef.current.findIndex((item) => keyExtractor(item) === key);
+          const item = itemsRef.current[index];
+          if (index >= 0 && item) {
+            onItemPressRef.current(item, index);
+          }
+        }
+      },
+      onTouchCancel: () => {
+        if (pendingDragRef.current?.key === key) {
+          cancelPendingDrag();
+        }
+      },
+    }),
+    [cancelPendingDrag, finishDrag, keyExtractor, startDrag],
+  );
+
   const getRowPanHandlers = useCallback(
     (key: string) => {
       const existing = rowRespondersRef.current.get(key);
       if (existing) return existing.panHandlers;
 
-      let longPressTimer: ReturnType<typeof setTimeout> | null = null;
-      let longPressActivated = false;
-      let longPressPending = false;
-      let pressStartedAt = 0;
-
-      const clearLongPressTimer = () => {
-        if (longPressTimer != null) {
-          clearTimeout(longPressTimer);
-          longPressTimer = null;
-        }
-      };
-
       const panResponder = PanResponder.create({
-        onStartShouldSetPanResponder: () =>
-          activeKeyRef.current == null || activeKeyRef.current === key,
-        onStartShouldSetPanResponderCapture: () =>
-          activeKeyRef.current == null || activeKeyRef.current === key,
-        onMoveShouldSetPanResponder: () =>
-          longPressPending || longPressActivated || activeKeyRef.current === key,
-        onMoveShouldSetPanResponderCapture: () =>
-          longPressPending || longPressActivated || activeKeyRef.current === key,
-        onPanResponderTerminationRequest: () => {
-          if (longPressPending || activeKeyRef.current === key) {
-            return false;
-          }
-          return true;
-        },
-        onPanResponderGrant: () => {
-          if (activeKeyRef.current != null && activeKeyRef.current !== key) return;
-
-          pressStartedAt = Date.now();
-          longPressActivated = false;
-          longPressPending = true;
-          clearLongPressTimer();
-
-          longPressTimer = setTimeout(() => {
-            longPressTimer = null;
-            longPressPending = false;
-            longPressActivated = true;
-
-            const index = itemsRef.current.findIndex((item) => keyExtractor(item) === key);
-            if (index >= 0) {
-              startDrag(key, index);
-            }
-          }, LONG_PRESS_MS);
-        },
+        onStartShouldSetPanResponder: () => false,
+        onStartShouldSetPanResponderCapture: () => false,
+        onMoveShouldSetPanResponder: () => activeKeyRef.current === key,
+        onMoveShouldSetPanResponderCapture: () => false,
+        onPanResponderTerminationRequest: () => activeKeyRef.current !== key,
         onPanResponderMove: (_, gesture) => {
           if (activeKeyRef.current !== key) return;
 
@@ -350,28 +352,14 @@ export function ReorderableList<T>({
           }
         },
         onPanResponderRelease: () => {
-          clearLongPressTimer();
-          longPressPending = false;
-
-          if (longPressActivated) {
+          if (activeKeyRef.current === key) {
             finishDrag();
-          } else if (
-            onItemPressRef.current &&
-            Date.now() - pressStartedAt <= TAP_MAX_MS
-          ) {
-            const index = itemsRef.current.findIndex((item) => keyExtractor(item) === key);
-            const item = itemsRef.current[index];
-            if (index >= 0 && item) {
-              onItemPressRef.current(item, index);
-            }
           }
-
-          longPressActivated = false;
         },
         onPanResponderTerminate: () => {
-          clearLongPressTimer();
-          longPressPending = false;
-          longPressActivated = false;
+          if (activeKeyRef.current === key) {
+            finishDrag();
+          }
         },
       });
 
@@ -381,16 +369,8 @@ export function ReorderableList<T>({
 
       return panResponder.panHandlers;
     },
-    [finishDrag, keyExtractor, startDrag, trySwapWithNeighbor, translateY],
+    [finishDrag, trySwapWithNeighbor, translateY],
   );
-
-  const rowTouchHandlers = embedded
-    ? undefined
-    : {
-        onTouchStart: handleRowTouchStart,
-        onTouchEnd: handleRowTouchEnd,
-        onTouchCancel: handleRowTouchEnd,
-      };
 
   const listContent = (
     <View ref={contentRef} style={contentContainerStyle}>
@@ -398,12 +378,14 @@ export function ReorderableList<T>({
         const key = keyExtractor(item);
         const isActive = activeKey === key;
         const dragHandlers = getRowPanHandlers(key);
+        const dragTouchHandlers = getRowTouchHandlers(key);
         const attachHandlersToRow = dragHandlersTarget === 'row';
         const content = renderItem({
           item,
           index,
           isActive,
           dragHandlers: attachHandlersToRow ? {} : dragHandlers,
+          dragTouchHandlers,
         });
 
         return (
@@ -412,7 +394,7 @@ export function ReorderableList<T>({
             ref={(node) => {
               rowRefs.current[key] = node;
             }}
-            {...rowTouchHandlers}
+            {...(attachHandlersToRow ? dragTouchHandlers : undefined)}
             {...(attachHandlersToRow ? dragHandlers : undefined)}
             onLayout={(event) => handleRowLayout(key, event)}
             style={isActive ? styles.activeRow : undefined}
@@ -438,6 +420,7 @@ export function ReorderableList<T>({
       scrollEnabled={activeKey == null}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
+      onScrollBeginDrag={cancelPendingDrag}
     >
       {listContent}
     </ScrollView>

@@ -45,7 +45,7 @@ export const guidedFlowSizes = {
   progressBarWidth: s(14),
   progressBarCurrentWidth: s(22),
   stepBadge: s(22),
-  stepRowRadius: s(10),
+  stepRowRadius: 0,
   stepRowPaddingH: s(12),
   stepRowPaddingV: vs(10),
   reviewIcon: s(19),

@@ -1,11 +1,25 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { Animated, Dimensions, StyleSheet, View } from 'react-native';
+import { Animated, Dimensions, Modal, StyleSheet, View } from 'react-native';
 
 import { s } from '@/lib/scale';
 
-const COLORS = ['#f5c842', '#e8854a', '#c95c4a', '#a87898', '#7ba7c2', '#fda4af', '#ffffff'];
-const PARTICLE_COUNT = 28;
-const DURATION_MS = 2600;
+/** Pastel brand palette — cream, peach, blush, periwinkle, lavender, sage. */
+const COLORS = [
+  '#f0c0d0',
+  '#e8a0b0',
+  '#ecb090',
+  '#e8d4a8',
+  '#c0b0d8',
+  '#9eb0d4',
+  '#b0c8e0',
+  '#c4d4b8',
+  '#9cb088',
+  '#eee8f2',
+  '#e8eef8',
+  '#fceee0',
+];
+const PARTICLE_COUNT = 96;
+const DURATION_MS = 3400;
 
 type ConfettiBurstProps = {
   active: boolean;
@@ -17,23 +31,36 @@ type ParticleSpec = {
   color: string;
   size: number;
   startX: number;
+  startY: number;
   driftX: number;
   fallY: number;
   delay: number;
   spin: number;
 };
 
+function pseudoRandom(seed: number) {
+  const value = Math.sin(seed * 12.9898) * 43758.5453;
+  return value - Math.floor(value);
+}
+
 function buildParticles(width: number, height: number): ParticleSpec[] {
-  return Array.from({ length: PARTICLE_COUNT }, (_, index) => ({
-    id: index,
-    color: COLORS[index % COLORS.length],
-    size: s(4 + (index % 3)),
-    startX: width * (0.35 + (index / PARTICLE_COUNT) * 0.3),
-    driftX: (index % 2 === 0 ? -1 : 1) * (s(20) + (index % 5) * s(8)),
-    fallY: height * (0.45 + (index % 4) * 0.08),
-    delay: (index % 6) * 40,
-    spin: (index % 2 === 0 ? 1 : -1) * (180 + (index % 3) * 90),
-  }));
+  return Array.from({ length: PARTICLE_COUNT }, (_, index) => {
+    const spreadX = pseudoRandom(index + 1);
+    const spreadY = pseudoRandom(index + 11);
+    const drift = pseudoRandom(index + 21);
+
+    return {
+      id: index,
+      color: COLORS[index % COLORS.length],
+      size: s(5 + (index % 5)),
+      startX: spreadX * width,
+      startY: -s(32) - spreadY * height * 0.18,
+      driftX: (drift - 0.5) * width * 0.28,
+      fallY: height * (0.95 + pseudoRandom(index + 31) * 0.22),
+      delay: (index % 10) * 28,
+      spin: (index % 2 === 0 ? 1 : -1) * (180 + (index % 4) * 120),
+    };
+  });
 }
 
 export function ConfettiBurst({ active, onFinished }: ConfettiBurstProps) {
@@ -58,7 +85,7 @@ export function ConfettiBurst({ active, onFinished }: ConfettiBurstProps) {
       }),
     );
 
-    Animated.stagger(18, animations).start(({ finished }) => {
+    Animated.stagger(8, animations).start(({ finished }) => {
       if (finished) {
         finishedRef.current?.();
       }
@@ -68,54 +95,56 @@ export function ConfettiBurst({ active, onFinished }: ConfettiBurstProps) {
   if (!active) return null;
 
   return (
-    <View pointerEvents="none" style={styles.overlay}>
-      {particles.map((particle, index) => {
-        const value = progress[index];
+    <Modal visible transparent animationType="none" statusBarTranslucent>
+      <View pointerEvents="none" style={styles.overlay}>
+        {particles.map((particle, index) => {
+          const value = progress[index];
 
-        const translateY = value.interpolate({
-          inputRange: [0, 1],
-          outputRange: [-s(12), particle.fallY],
-        });
-        const translateX = value.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, particle.driftX],
-        });
-        const rotate = value.interpolate({
-          inputRange: [0, 1],
-          outputRange: ['0deg', `${particle.spin}deg`],
-        });
-        const opacity = value.interpolate({
-          inputRange: [0, 0.15, 0.85, 1],
-          outputRange: [0, 1, 1, 0],
-        });
+          const translateY = value.interpolate({
+            inputRange: [0, 1],
+            outputRange: [particle.startY, particle.fallY],
+          });
+          const translateX = value.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, particle.driftX],
+          });
+          const rotate = value.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['0deg', `${particle.spin}deg`],
+          });
+          const opacity = value.interpolate({
+            inputRange: [0, 0.1, 0.85, 1],
+            outputRange: [0, 1, 1, 0],
+          });
 
-        return (
-          <Animated.View
-            key={particle.id}
-            style={[
-              styles.particle,
-              {
-                backgroundColor: particle.color,
-                width: particle.size,
-                height: particle.size * (index % 3 === 0 ? 1.6 : 1),
-                borderRadius: index % 4 === 0 ? particle.size : s(1),
-                left: particle.startX,
-                top: height * 0.18,
-                opacity,
-                transform: [{ translateX }, { translateY }, { rotate }],
-              },
-            ]}
-          />
-        );
-      })}
-    </View>
+          return (
+            <Animated.View
+              key={particle.id}
+              style={[
+                styles.particle,
+                {
+                  backgroundColor: particle.color,
+                  width: particle.size,
+                  height: particle.size * (index % 3 === 0 ? 1.6 : 1),
+                  borderRadius: index % 4 === 0 ? particle.size : s(1),
+                  left: particle.startX,
+                  top: 0,
+                  opacity,
+                  transform: [{ translateX }, { translateY }, { rotate }],
+                },
+              ]}
+            />
+          );
+        })}
+      </View>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 20,
+    zIndex: 9999,
   },
   particle: {
     position: 'absolute',

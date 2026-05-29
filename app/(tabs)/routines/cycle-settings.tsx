@@ -9,6 +9,7 @@ import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Toggle } from '@/components/ui/Toggle';
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import {
   formatDisplayDate,
@@ -43,7 +44,7 @@ export default function CycleSettingsScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.toggleCard}>
+        <View style={[styles.toggleCard, plannerCard()]}>
           <View style={styles.toggleCopy}>
             <Text style={styles.toggleTitle}>Cycle Tracking On</Text>
             <Text style={styles.toggleSubtitle}>Routines synced to your phase</Text>
@@ -58,6 +59,7 @@ export default function CycleSettingsScreen() {
           <View
             style={[
               styles.currentPhaseCard,
+              plannerCard(),
               {
                 backgroundColor: `${phaseInfo.color}22`,
                 borderColor: `${phaseInfo.color}66`,
@@ -87,7 +89,7 @@ export default function CycleSettingsScreen() {
         />
 
         {cycleSettings.method === 'menstrual' ? (
-          <View style={styles.manualCard}>
+          <View style={[styles.manualCard, plannerCard()]}>
             <Text style={styles.fieldLabel}>Last Cycle Started</Text>
             <View style={styles.dateRow}>
               <Pressable
@@ -137,7 +139,7 @@ export default function CycleSettingsScreen() {
             />
           </View>
         ) : (
-          <View style={styles.lunarNote}>
+          <View style={[styles.lunarNote, plannerCard()]}>
             <Text style={styles.lunarText}>
               Calculated automatically from the lunar cycle. No input needed.{'\n'}
               <Text style={styles.lunarMuted}>
@@ -171,11 +173,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: s(10),
-    backgroundColor: colors.white,
-    borderRadius: s(12),
     padding: s(12),
-    borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: s(10),
   },
   toggleCopy: {
@@ -196,10 +194,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: s(10),
-    borderRadius: s(12),
     paddingHorizontal: s(12),
     paddingVertical: vs(10),
-    borderWidth: 1,
     marginBottom: s(10),
   },
   currentPhaseCopy: {
@@ -234,11 +230,7 @@ const styles = StyleSheet.create({
     marginTop: s(4),
   },
   manualCard: {
-    backgroundColor: colors.white,
-    borderRadius: s(10),
     padding: s(12),
-    borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: s(10),
   },
   fieldLabel: {
@@ -258,9 +250,9 @@ const styles = StyleSheet.create({
   dateButton: {
     width: s(28),
     height: vs(28),
-    borderRadius: s(14),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -278,7 +270,6 @@ const styles = StyleSheet.create({
   },
   lunarNote: {
     backgroundColor: colors.light,
-    borderRadius: s(10),
     paddingHorizontal: s(12),
     paddingVertical: vs(10),
     marginBottom: s(10),

@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { PhaseFlower } from '@/components/brand/PhaseFlower';
 import { colors } from '@/constants/colors';
+import { plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { phases } from '@/constants/phases';
 import { fonts } from '@/constants/typography';
 import type { PhaseKey } from '@/constants/phases';
@@ -32,7 +33,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: s(2),
-    borderRadius: s(5),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
     paddingHorizontal: s(5),
     paddingVertical: vs(1),

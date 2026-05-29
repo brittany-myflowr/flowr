@@ -4,6 +4,7 @@ import { PhaseFlower } from '@/components/brand';
 import { CheckIcon } from '@/components/icons/ActionIcons';
 import { phases, phaseKeys } from '@/constants/phases';
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import type { PhaseKey } from '@/constants/phases';
 import { s, vs, fs } from '@/lib/scale';
@@ -24,6 +25,7 @@ export function PhaseGuideList({ activePhase }: PhaseGuideListProps) {
             key={key}
             style={[
               styles.row,
+              plannerCard(),
               isActive && { backgroundColor: `${phase.color}22`, borderColor: `${phase.color}55` },
             ]}
           >
@@ -58,6 +60,7 @@ export function PhasePicker({ selectedPhases, onToggle }: PhasePickerProps) {
             onPress={() => onToggle(key)}
             style={[
               styles.pickRow,
+              plannerCard(),
               selected && { backgroundColor: `${phase.color}22`, borderColor: `${phase.color}88` },
             ]}
           >
@@ -88,10 +91,6 @@ const styles = StyleSheet.create({
     gap: s(8),
     paddingHorizontal: s(10),
     paddingVertical: vs(8),
-    borderRadius: s(8),
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: s(5),
   },
   pickRow: {
@@ -100,10 +99,6 @@ const styles = StyleSheet.create({
     gap: s(10),
     paddingHorizontal: s(12),
     paddingVertical: vs(10),
-    borderRadius: s(10),
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: s(7),
   },
   copy: {
@@ -133,9 +128,9 @@ const styles = StyleSheet.create({
   radio: {
     width: s(18),
     height: vs(18),
-    borderRadius: s(9),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },

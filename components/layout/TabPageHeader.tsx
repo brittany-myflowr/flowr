@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/colors';
+import { plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import { s, fs } from '@/lib/scale';
@@ -11,6 +12,7 @@ type TabPageHeaderProps = {
   subtitle?: string;
   actionLabel?: string;
   onActionPress?: () => void;
+  onBackPress?: () => void;
 };
 
 export function TabPageHeader({
@@ -18,6 +20,7 @@ export function TabPageHeader({
   subtitle,
   actionLabel,
   onActionPress,
+  onBackPress,
 }: TabPageHeaderProps) {
   const insets = useSafeAreaInsets();
 
@@ -25,6 +28,16 @@ export function TabPageHeader({
     <View
       style={[styles.header, { paddingTop: tabPageTypography.headerTopOffset + insets.top }]}
     >
+      {onBackPress ? (
+        <Pressable
+          onPress={onBackPress}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <Text style={styles.backLabel}>← Back</Text>
+        </Pressable>
+      ) : null}
       <View style={styles.headerRow}>
         <View style={styles.titleBlock}>
           <Text style={styles.title}>{title}</Text>
@@ -50,6 +63,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: tabPageTypography.headerPaddingHorizontal,
     paddingBottom: tabPageTypography.headerPaddingBottom,
   },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: s(6),
+  },
+  backLabel: {
+    fontFamily: fonts.dmSans,
+    fontSize: fs(10),
+    color: colors.blue,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -74,7 +96,7 @@ const styles = StyleSheet.create({
     marginTop: s(2),
     paddingHorizontal: s(10),
     paddingVertical: s(6),
-    borderRadius: s(14),
+    borderRadius: plannerCornerRadius,
     backgroundColor: colors.navy,
   },
   actionLabel: {

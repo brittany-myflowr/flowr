@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { s, vs } from '@/lib/scale';
 
 type ToggleProps = {
@@ -21,22 +22,22 @@ export function Toggle({ value, onValueChange }: ToggleProps) {
 
 const styles = StyleSheet.create({
   track: {
-    width: s(36),
-    height: vs(20),
-    borderRadius: s(10),
+    width: s(30),
+    height: vs(17),
+    borderRadius: plannerCornerRadius,
     justifyContent: 'center',
   },
   trackOn: {
     backgroundColor: colors.blue,
   },
   trackOff: {
-    backgroundColor: colors.border,
+    backgroundColor: plannerCardBorder,
   },
   thumb: {
     position: 'absolute',
-    width: s(16),
-    height: vs(16),
-    borderRadius: s(8),
+    width: s(13),
+    height: vs(13),
+    borderRadius: plannerCornerRadius,
     backgroundColor: colors.white,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },

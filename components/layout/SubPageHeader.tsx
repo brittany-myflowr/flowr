@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { plannerCardBorder } from '@/constants/plannerCardStyles';
 import { tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import { s } from '@/lib/scale';
@@ -35,7 +36,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: s(14),
     paddingBottom: s(10),
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: plannerCardBorder,
     backgroundColor: colors.bg,
   },
   back: {

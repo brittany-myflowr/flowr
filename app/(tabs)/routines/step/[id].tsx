@@ -13,13 +13,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
-import { CheckIcon } from '@/components/icons/ActionIcons';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { ScheduleDefaultRow } from '@/components/routines/ScheduleDefaultRow';
+import {
+  StepProductChipButton,
+  TagProductButton,
+} from '@/components/steps/StepProductChip';
 import { FullWidthButton } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { formatSchedulePreview } from '@/constants/schedules';
 import { colors } from '@/constants/colors';
+import { plannerCardBorder } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { useRoutine, useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
@@ -135,15 +139,13 @@ export default function StepDetailScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Product</Text>
           {step.productName ? (
-            <Pressable onPress={openTagProduct} style={styles.productChip}>
-              <CheckIcon size={s(10)} color={colors.blue} />
-              <Text style={styles.productChipText}>{step.productName}</Text>
-              <Text style={styles.productChipAction}>Edit</Text>
-            </Pressable>
+            <StepProductChipButton
+              label={step.productName}
+              onPress={openTagProduct}
+              actionLabel="Edit"
+            />
           ) : (
-            <Pressable onPress={openTagProduct} style={styles.tagProductChip}>
-              <Text style={styles.tagProductText}>+ Tag a product</Text>
-            </Pressable>
+            <TagProductButton onPress={openTagProduct} />
           )}
         </View>
 
@@ -198,43 +200,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     color: colors.muted,
     marginBottom: s(6),
-  },
-  productChip: {
-    backgroundColor: colors.light,
-    borderWidth: 1,
-    borderColor: '#c8d9e6',
-    borderRadius: s(7),
-    paddingHorizontal: s(10),
-    paddingVertical: vs(8),
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: s(6),
-  },
-  productChipText: {
-    flex: 1,
-    fontFamily: fonts.dmSans,
-    fontSize: fs(11),
-    color: colors.navy,
-  },
-  productChipAction: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(9),
-    color: colors.blue,
-    textDecorationLine: 'underline',
-  },
-  tagProductChip: {
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#c8d9e6',
-    borderRadius: s(7),
-    paddingHorizontal: s(10),
-    paddingVertical: vs(8),
-    alignItems: 'center',
-  },
-  tagProductText: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(11),
-    color: colors.blue,
   },
   footerSpacer: {
     height: vs(12),

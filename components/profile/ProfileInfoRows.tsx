@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -24,7 +25,7 @@ export function PlanOptionCard({
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.planCard, selected && styles.planCardSelected]}
+      style={[styles.planCard, plannerCard(), selected && styles.planCardSelected]}
     >
       <View style={styles.planCopy}>
         <View style={styles.planHeader}>
@@ -66,10 +67,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: s(12),
-    backgroundColor: colors.white,
-    borderRadius: s(12),
-    borderWidth: 1,
-    borderColor: colors.border,
     paddingHorizontal: s(14),
     paddingVertical: vs(12),
     marginBottom: s(8),
@@ -95,7 +92,7 @@ const styles = StyleSheet.create({
   },
   planBadge: {
     backgroundColor: `${colors.blue}22`,
-    borderRadius: s(999),
+    borderRadius: plannerCornerRadius,
     paddingHorizontal: s(6),
     paddingVertical: vs(2),
   },
@@ -117,9 +114,9 @@ const styles = StyleSheet.create({
   radio: {
     width: s(18),
     height: vs(18),
-    borderRadius: s(9),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -129,7 +126,7 @@ const styles = StyleSheet.create({
   radioDot: {
     width: s(8),
     height: vs(8),
-    borderRadius: s(4),
+    borderRadius: plannerCornerRadius,
     backgroundColor: colors.blue,
   },
   policyRow: {
@@ -138,7 +135,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: vs(10),
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: plannerCardBorder,
   },
   policyRowFirst: {
     borderTopWidth: 0,

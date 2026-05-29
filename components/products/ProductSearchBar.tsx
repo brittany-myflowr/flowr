@@ -3,6 +3,7 @@ import Svg, { Circle, Line } from 'react-native-svg';
 
 import { CloseIcon } from '@/components/icons/ActionIcons';
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -64,8 +65,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: s(12),
     paddingVertical: vs(9),
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: s(10),
+    borderColor: plannerCardBorder,
+    borderRadius: plannerCornerRadius,
     backgroundColor: colors.white,
     marginHorizontal: s(10),
     marginBottom: s(6),

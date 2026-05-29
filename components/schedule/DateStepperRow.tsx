@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { formatDisplayDate, shiftIsoDate } from '@/lib/cycle';
 import { formatDateKey } from '@/lib/dateKey';
@@ -55,19 +56,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: s(10),
+    ...plannerCard(),
     paddingHorizontal: s(10),
     paddingVertical: vs(8),
   },
   button: {
     width: s(28),
     height: vs(28),
-    borderRadius: s(8),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.bg,

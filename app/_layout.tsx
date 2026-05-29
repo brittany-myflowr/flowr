@@ -6,6 +6,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { LoadingDots } from '@/components/feedback/LoadingDots';
 import { GradientBackground } from '@/components/ui/GradientBackground';
+import { colors } from '@/constants/colors';
 import { AppProviders } from '@/providers/AppProviders';
 import {
   DMSans_400Regular,
@@ -36,9 +37,9 @@ export default function RootLayout() {
     return (
       <View style={styles.boot}>
         <GradientBackground style={styles.bootGradient}>
-          <LoadingDots color="rgba(255,255,255,0.5)" />
+          <LoadingDots color={`${colors.navy}88`} />
         </GradientBackground>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
       </View>
     );
   }

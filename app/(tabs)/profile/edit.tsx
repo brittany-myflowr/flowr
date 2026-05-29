@@ -88,15 +88,7 @@ export default function EditProfileScreen() {
           <Text style={styles.back}>← Back</Text>
         </Pressable>
         <View style={styles.profilePreview}>
-          <View
-            style={[
-              styles.avatar,
-              {
-                backgroundColor: selectedColor.bg,
-                borderColor: `${selectedColor.stroke}66`,
-              },
-            ]}
-          >
+          <View style={styles.flowerWrap}>
             <Daisy color={selectedColor.stroke} size={s(24)} />
           </View>
           <View>
@@ -171,11 +163,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: s(12),
   },
-  avatar: {
-    width: s(46),
-    height: vs(46),
-    borderRadius: s(23),
-    borderWidth: 2,
+  flowerWrap: {
+    flexShrink: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
