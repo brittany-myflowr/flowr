@@ -59,7 +59,6 @@ export default function TodayScreen() {
   const [showDoneToday, setShowDoneToday] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [scrollLocked, setScrollLocked] = useState(false);
-  const initialExpandDone = useRef(false);
   const previousDayDone = useRef(0);
   const { user } = useAuth();
   const { routines, toggleStepDone, reorderTodayRoutineGroups } = useRoutines();
@@ -84,25 +83,6 @@ export default function TodayScreen() {
 
     return items;
   }, [periodSections]);
-
-  useEffect(() => {
-    if (initialExpandDone.current) return;
-
-    const currentSection = periodSections.find((section) => section.timeOfDay === actualTimeOfDay);
-    if (!currentSection) {
-      initialExpandDone.current = true;
-      return;
-    }
-
-    setExpandedByRoutineId((current) => {
-      const next = { ...current };
-      for (const group of currentSection.activeGroups) {
-        next[group.routine.id] = true;
-      }
-      return next;
-    });
-    initialExpandDone.current = true;
-  }, [periodSections, actualTimeOfDay]);
 
   useEffect(() => {
     if (dayTotal > 0 && dayDone === dayTotal && previousDayDone.current < dayTotal) {
