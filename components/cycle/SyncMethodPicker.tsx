@@ -16,7 +16,7 @@ const METHODS: { value: CycleSyncMethod; label: string; description: string }[] 
   {
     value: 'lunar',
     label: 'Lunar Cycle',
-    description: 'New moon = Day 1, always 28 days',
+    description: 'New moon = Day 1, ~29.5 day lunar month',
   },
 ];
 

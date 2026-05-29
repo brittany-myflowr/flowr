@@ -12,9 +12,11 @@ export type CyclePhaseInfo = {
   color: string;
 };
 
-/** Known reference new moon: January 6, 2000. Lunar cycles are 28 days from each new moon. */
-const LUNAR_REFERENCE_NEW_MOON = new Date(2000, 0, 6);
-const LUNAR_CYCLE_LENGTH = 28;
+/** Mean synodic month — average days from new moon to new moon. */
+const SYNODIC_MONTH = 29.530588;
+
+/** Verified new moon anchor used to locate recent new moons. */
+const LUNAR_REFERENCE_NEW_MOON = new Date(2026, 4, 16);
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -38,6 +40,45 @@ function parseIsoDate(value: string): Date | null {
   return new Date(year, month - 1, day);
 }
 
+function getMostRecentNewMoon(date: Date): Date {
+  const daysSinceReference = daysBetween(LUNAR_REFERENCE_NEW_MOON, date);
+
+  if (daysSinceReference >= 0) {
+    const cyclesSinceReference = Math.floor(daysSinceReference / SYNODIC_MONTH);
+    let newMoon = addDays(
+      LUNAR_REFERENCE_NEW_MOON,
+      Math.round(cyclesSinceReference * SYNODIC_MONTH),
+    );
+
+    if (daysBetween(newMoon, date) < 0) {
+      newMoon = addDays(newMoon, -Math.round(SYNODIC_MONTH));
+    }
+
+    return newMoon;
+  }
+
+  let newMoon = LUNAR_REFERENCE_NEW_MOON;
+  while (daysBetween(newMoon, date) < 0) {
+    newMoon = addDays(newMoon, -Math.round(SYNODIC_MONTH));
+  }
+
+  return newMoon;
+}
+
+function getNextNewMoon(newMoon: Date): Date {
+  return addDays(newMoon, Math.round(SYNODIC_MONTH));
+}
+
+function lunarCycleLengthForDate(date: Date): number {
+  const mostRecentNewMoon = getMostRecentNewMoon(date);
+  return daysBetween(mostRecentNewMoon, getNextNewMoon(mostRecentNewMoon));
+}
+
+function getLunarDayInCycle(date: Date): number {
+  const mostRecentNewMoon = getMostRecentNewMoon(date);
+  return daysBetween(mostRecentNewMoon, date) + 1;
+}
+
 function menstrualPhaseForDay(dayInCycle: number, cycleLength: number, periodLength: number): PhaseKey {
   const menstrualEnd = Math.min(periodLength, cycleLength);
   const ovulationCenter = Math.round(cycleLength * 0.5);
@@ -55,18 +96,6 @@ function lunarPhaseForDay(dayInCycle: number): PhaseKey {
   if (dayInCycle <= 14) return 'follicular';
   if (dayInCycle <= 19) return 'ovulatory';
   return 'luteal';
-}
-
-function getLunarDayInCycle(date: Date): number {
-  const daysSinceReference = daysBetween(LUNAR_REFERENCE_NEW_MOON, date);
-  const cyclesSinceReference = Math.floor(daysSinceReference / LUNAR_CYCLE_LENGTH);
-  const mostRecentNewMoon = addDays(
-    LUNAR_REFERENCE_NEW_MOON,
-    cyclesSinceReference * LUNAR_CYCLE_LENGTH,
-  );
-  const daysSinceNewMoon = daysBetween(mostRecentNewMoon, date);
-
-  return daysSinceNewMoon + 1;
 }
 
 export function getDayInCycle(settings: CycleSettings, date = new Date()): number | null {
@@ -90,15 +119,30 @@ export function getCurrentPhaseInfo(
 ): CyclePhaseInfo | null {
   if (!settings.enabled) return null;
 
-  const cycleLength =
-    settings.method === 'lunar' ? LUNAR_CYCLE_LENGTH : settings.cycleLength || 28;
   const dayInCycle = getDayInCycle(settings, date);
   if (!dayInCycle) return null;
 
-  const phase =
-    settings.method === 'lunar'
-      ? lunarPhaseForDay(dayInCycle)
-      : menstrualPhaseForDay(dayInCycle, cycleLength, settings.periodLength || 5);
+  if (settings.method === 'lunar') {
+    const mostRecentNewMoon = getMostRecentNewMoon(date);
+    const nextNewMoon = getNextNewMoon(mostRecentNewMoon);
+    const cycleLength = lunarCycleLengthForDate(date);
+    const phase = lunarPhaseForDay(dayInCycle);
+    const meta = phases[phase];
+    const daysRemaining = Math.max(0, daysBetween(date, nextNewMoon));
+
+    return {
+      phase,
+      dayInCycle,
+      cycleLength,
+      daysRemaining,
+      label: meta.label,
+      description: meta.description,
+      color: meta.color,
+    };
+  }
+
+  const cycleLength = settings.cycleLength || 28;
+  const phase = menstrualPhaseForDay(dayInCycle, cycleLength, settings.periodLength || 5);
   const meta = phases[phase];
   const daysRemaining = cycleLength - dayInCycle;
 
