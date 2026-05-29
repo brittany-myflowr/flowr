@@ -18,15 +18,18 @@ import { s, vs, fs } from '@/lib/scale';
 type RoutineCardProps = {
   routine: Routine;
   onPress?: () => void;
+  onLongPress?: () => void;
   onToggleActive?: () => void;
 };
 
-export function RoutineCard({ routine, onPress, onToggleActive }: RoutineCardProps) {
+export function RoutineCard({ routine, onPress, onLongPress, onToggleActive }: RoutineCardProps) {
   const categoryColor = categoryColors[routine.category];
 
   return (
     <Pressable
       onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={350}
       style={[
         styles.card,
         plannerCard(categoryColor),

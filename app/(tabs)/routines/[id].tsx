@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -7,6 +7,7 @@ import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { RoutineDetailHeader } from '@/components/routines/RoutineDetailHeader';
+import { RoutineRenameSheet } from '@/components/routines/RoutineRenameSheet';
 import { RoutineStepRow } from '@/components/routines/RoutineStepRow';
 import { FullWidthButton } from '@/components/ui/Button';
 import { ReorderableList } from '@/components/ui/ReorderableList';
@@ -25,12 +26,20 @@ type DeleteTarget =
 export default function RoutineDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, promptRename } = useLocalSearchParams<{ id: string; promptRename?: string }>();
   const routine = useRoutine(id);
-  const { reorderSteps, removeStep, removeRoutine, updateRoutine } = useRoutines();
+  const { reorderSteps, removeStep, removeRoutine, updateRoutine, duplicateRoutine } =
+    useRoutines();
   const { showToast } = useToast();
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
+  const [showRename, setShowRename] = useState(false);
+
+  useEffect(() => {
+    if (promptRename === '1') {
+      setShowRename(true);
+    }
+  }, [promptRename, id]);
 
   if (!routine) {
     return (
@@ -45,6 +54,27 @@ export default function RoutineDetailScreen() {
       </View>
     );
   }
+
+  const clearRenamePrompt = () => {
+    setShowRename(false);
+    router.setParams({ promptRename: undefined });
+  };
+
+  const handleDuplicate = () => {
+    const duplicated = duplicateRoutine(routine.id);
+    if (!duplicated) return;
+
+    showToast('Routine duplicated');
+    router.replace({
+      pathname: '/(tabs)/routines/[id]',
+      params: { id: duplicated.id, promptRename: '1' },
+    });
+  };
+
+  const handleRenameSave = (name: string) => {
+    updateRoutine(routine.id, { name });
+    clearRenamePrompt();
+  };
 
   const confirmDelete = () => {
     if (!deleteTarget) return;
@@ -128,6 +158,8 @@ export default function RoutineDetailScreen() {
               variant="danger"
               onPress={() => setDeleteTarget({ type: 'routine' })}
             />
+            <View style={styles.footerSpacer} />
+            <FullWidthButton label="Duplicate Routine" onPress={handleDuplicate} />
           </View>
         }
         renderItem={({ item, index, isActive, dragHandlers, dragTouchHandlers }) => (
@@ -150,6 +182,13 @@ export default function RoutineDetailScreen() {
         message={deleteMessage}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      <RoutineRenameSheet
+        visible={showRename}
+        initialName={routine.name}
+        onSave={handleRenameSave}
+        onCancel={clearRenamePrompt}
       />
     </View>
   );

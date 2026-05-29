@@ -10,7 +10,8 @@ import {
 
 import { defaultFlowerColor } from '@/constants/flowerColors';
 import { createId } from '@/lib/createId';
-import { defaultScheduleForTimeOfDay, normalizeSchedule } from '@/constants/schedules';
+import { buildDuplicateRoutineName } from '@/lib/routineNames';
+import { defaultScheduleForTimeOfDay, normalizeSchedule, cloneSchedule } from '@/constants/schedules';
 import {
   type DailyCompletionMap,
   reconcileDailyCompletionsOnLoad,
@@ -105,6 +106,7 @@ type AppStoreValue = {
   updateAccount: (input: UpdateAccountInput) => string | null;
   resetAllData: () => Promise<void>;
   addRoutine: (input: CreateRoutineInput) => Routine;
+  duplicateRoutine: (routineId: string) => Routine | null;
   toggleRoutineActive: (id: string) => void;
   removeRoutine: (id: string) => void;
   reorderSteps: (routineId: string, steps: Step[]) => void;
@@ -400,6 +402,51 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       return routine;
     },
     [products, applyRoutineUpdate],
+  );
+
+  const duplicateRoutine = useCallback(
+    (routineId: string) => {
+      let created: Routine | null = null;
+
+      applyRoutineUpdate((current) => {
+        const source = current.find((routine) => routine.id === routineId);
+        if (!source) return current;
+
+        created = {
+          id: createId('routine'),
+          name: buildDuplicateRoutineName(source.name),
+          category: source.category,
+          timeOfDay: source.timeOfDay,
+          active: false,
+          schedule: cloneSchedule(source.schedule),
+          steps: source.steps.map((step) => ({
+            id: createId('step'),
+            name: step.name,
+            note: step.note,
+            category: step.category,
+            done: false,
+            productId: step.productId,
+            productName: step.productName,
+            schedule: step.schedule ? cloneSchedule(step.schedule) : undefined,
+          })),
+        };
+
+        let insertIndex = current.length;
+        for (let i = current.length - 1; i >= 0; i -= 1) {
+          if (current[i].timeOfDay === source.timeOfDay) {
+            insertIndex = i + 1;
+            break;
+          }
+        }
+
+        const next = [...current];
+        next.splice(insertIndex, 0, created);
+        return next;
+      });
+
+      return created;
+    },
+    [applyRoutineUpdate],
   );
 
   const toggleRoutineActive = useCallback(
@@ -746,6 +793,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       updateAccount,
       resetAllData,
       addRoutine,
+      duplicateRoutine,
       toggleRoutineActive,
       removeRoutine,
       reorderSteps,
@@ -795,6 +843,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       updateAccount,
       resetAllData,
       addRoutine,
+      duplicateRoutine,
       toggleRoutineActive,
       removeRoutine,
       reorderSteps,
@@ -847,6 +896,7 @@ export function useRoutines() {
   return {
     routines: store.routines,
     addRoutine: store.addRoutine,
+    duplicateRoutine: store.duplicateRoutine,
     toggleRoutineActive: store.toggleRoutineActive,
     removeRoutine: store.removeRoutine,
     reorderSteps: store.reorderSteps,
