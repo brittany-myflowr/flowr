@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { TAB_BAR_SCROLL_INSET } from '@/components/layout/TabBar';
 import { fs, s, vs } from '@/lib/scale';
 
 /** Typography and spacing for main tab list screens — aligned with Calendar. */
@@ -64,6 +65,6 @@ export const tabPageStyles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: s(10),
-    paddingBottom: s(24),
+    paddingBottom: TAB_BAR_SCROLL_INSET,
   },
 });

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ConfettiBurst } from '@/components/feedback/ConfettiBurst';
+import { TAB_BAR_SCROLL_INSET } from '@/components/layout/TabBar';
 import { FirstRoutineCard } from '@/components/onboarding/FirstRoutineCard';
 import { TodayAllDoneMessage } from '@/components/today/TodayAllDoneMessage';
 import { TodayCompletedRoutineRow } from '@/components/today/TodayCompletedRoutineRow';
@@ -325,7 +326,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    paddingBottom: s(24),
+    paddingBottom: TAB_BAR_SCROLL_INSET,
   },
   body: {
     paddingHorizontal: s(14),

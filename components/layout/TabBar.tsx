@@ -10,7 +10,6 @@ import {
   SunIcon,
 } from '@/components/icons/TabIcons';
 import { colors } from '@/constants/colors';
-import { plannerCardBorder } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -23,13 +22,21 @@ const TAB_CONFIG = {
 
 const HIDDEN_TAB_ROUTES = new Set(['profile']);
 
+/** Scroll content padding so lists clear the floating tab bar. */
+export const TAB_BAR_SCROLL_INSET = vs(76);
+
 type TabRouteName = keyof typeof TAB_CONFIG;
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, s(16)) }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingBottom: Math.max(insets.bottom, s(8)) },
+      ]}
+    >
       {state.routes.map((route, index) => {
         if (HIDDEN_TAB_ROUTES.has(route.name)) return null;
 
@@ -38,7 +45,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
         const isFocused = state.index === index;
         const { Icon, label } = config;
-        const color = isFocused ? colors.navy : colors.muted;
+        const color = isFocused ? colors.blue : colors.muted;
 
         const onPress = () => {
           const event = navigation.emit({
@@ -80,7 +87,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             accessibilityLabel={descriptors[route.key].options.title ?? label}
           >
             <View style={[styles.iconWrap, !isFocused && styles.iconInactive]}>
-              <Icon size={s(22)} color={color} />
+              <Icon size={s(20)} color={color} />
             </View>
             <Text style={[styles.label, isFocused ? styles.labelActive : styles.labelInactive]}>
               {label}
@@ -94,35 +101,37 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
 const styles = StyleSheet.create({
   container: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     flexDirection: 'row',
-    backgroundColor: 'rgba(250,250,248,0.97)',
-    borderTopWidth: 1,
-    borderTopColor: plannerCardBorder,
-    paddingTop: s(10),
-    minHeight: vs(56),
+    backgroundColor: colors.bg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(26,26,46,0.1)',
+    paddingTop: s(7),
+    minHeight: vs(46),
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    gap: s(4),
-    paddingVertical: s(2),
+    gap: s(2),
+    paddingVertical: s(1),
   },
   iconWrap: {
-    height: vs(28),
+    height: vs(22),
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconInactive: {
-    opacity: 0.4,
+    opacity: 0.55,
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(10),
-    letterSpacing: s(0.5),
-    textTransform: 'uppercase',
+    fontSize: fs(9),
   },
   labelActive: {
-    color: colors.navy,
+    color: colors.blue,
     fontFamily: fonts.dmSansSemiBold,
     fontWeight: '600',
   },
