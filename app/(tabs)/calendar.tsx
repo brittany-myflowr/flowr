@@ -1,286 +1,179 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
-import { TodayProgressCard } from '@/components/calendar/TodayProgressCard';
+import { CalendarMonthGrid } from '@/components/calendar/CalendarMonthGrid';
+import { CalendarStatsFooter } from '@/components/calendar/CalendarStatsFooter';
+import { PlannerDateHeader } from '@/components/calendar/PlannerDateHeader';
+import { PlannerDayCompleteMessage } from '@/components/calendar/PlannerDayCompleteMessage';
+import { PlannerDayEmpty } from '@/components/calendar/PlannerDayEmpty';
+import { PlannerDayOutOfMonthHint } from '@/components/calendar/PlannerDayOutOfMonthHint';
+import { PlannerDaySection } from '@/components/calendar/PlannerDaySection';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { TabPageHeader } from '@/components/layout/TabPageHeader';
-import { Divider } from '@/components/ui/Divider';
-import { colors } from '@/constants/colors';
-import { plannerCard, plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
+import { plannerCard } from '@/constants/plannerCardStyles';
 import { tabPageStyles } from '@/constants/tabPageTypography';
-import { fonts } from '@/constants/typography';
 import { hasTrackableRoutines } from '@/lib/applicableSteps';
+import { addMonths, formatDateKey, isSameMonth, startOfMonth } from '@/lib/dateKey';
 import { useCalendarStats } from '@/hooks/useCalendarStats';
-import { useTodayProgressByTimeOfDay } from '@/hooks/useTodayProgressByTimeOfDay';
+import { usePlannerDay } from '@/hooks/usePlannerDay';
 import { useRoutines } from '@/providers/AppStore';
-import { s, vs, fs } from '@/lib/scale';
+import { s } from '@/lib/scale';
 
-const MONTH_WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+function hapticDateSelect() {
+  if (Platform.OS !== 'ios' && Platform.OS !== 'android') return;
+  void Haptics.selectionAsync();
+}
 
 export default function CalendarScreen() {
   const { routines } = useRoutines();
   const hasScheduledSteps = hasTrackableRoutines(routines);
-  const todayPeriods = useTodayProgressByTimeOfDay();
+  const [viewMonth, setViewMonth] = useState(() => startOfMonth(new Date()));
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [expandedByRoutineId, setExpandedByRoutineId] = useState<Record<string, boolean>>({});
+  const selectedDateKey = formatDateKey(selectedDate);
+  const today = new Date();
+  const isSelectedInViewMonth = isSameMonth(selectedDate, viewMonth);
+
   const {
     streak,
     daysThisMonth,
     monthProgress,
-    weekDays,
     monthGrid,
-  } = useCalendarStats();
+  } = useCalendarStats(viewMonth, selectedDateKey);
+
+  const plannerDay = usePlannerDay(selectedDate);
+  const activeSections = useMemo(
+    () => plannerDay.sections.filter((section) => section.total > 0),
+    [plannerDay.sections],
+  );
+  const isDayComplete =
+    plannerDay.hasScheduledSteps && plannerDay.dayDone === plannerDay.dayTotal;
+
+  const showTodayButton =
+    !isSameMonth(viewMonth, today) || selectedDateKey !== formatDateKey(today);
+
+  const selectedMonthLabel = selectedDate.toLocaleDateString(undefined, {
+    month: 'long',
+    year: 'numeric',
+  });
+  const monthShortLabel = viewMonth.toLocaleDateString(undefined, { month: 'short' });
+
+  const handleSelectDate = useCallback((date: Date) => {
+    hapticDateSelect();
+    setSelectedDate(date);
+    setExpandedByRoutineId({});
+  }, []);
+
+  const handlePreviousMonth = useCallback(() => {
+    hapticDateSelect();
+    setViewMonth((current) => addMonths(current, -1));
+  }, []);
+
+  const handleNextMonth = useCallback(() => {
+    hapticDateSelect();
+    setViewMonth((current) => addMonths(current, 1));
+  }, []);
+
+  const handleToday = useCallback(() => {
+    hapticDateSelect();
+    const now = new Date();
+    setViewMonth(startOfMonth(now));
+    setSelectedDate(now);
+    setExpandedByRoutineId({});
+  }, []);
+
+  const handleJumpToSelectedMonth = useCallback(() => {
+    hapticDateSelect();
+    setViewMonth(startOfMonth(selectedDate));
+  }, [selectedDate]);
+
+  const handleToggleRoutineExpanded = useCallback((routineId: string) => {
+    setExpandedByRoutineId((current) => ({
+      ...current,
+      [routineId]: !current[routineId],
+    }));
+  }, []);
 
   return (
     <View style={tabPageStyles.screen}>
-      <TabPageHeader title="My Calendar" subtitle="Your consistency" />
+      <TabPageHeader title="Calendar" />
 
       <ScrollView
         style={tabPageStyles.scroll}
         contentContainerStyle={tabPageStyles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.statsRow}>
-          <StatCard value={String(streak)} label="Streak" />
-          <StatCard value={String(daysThisMonth)} label="This Month" />
-          <StatCard value={`${monthProgress}%`} label="Done" />
-        </View>
-
         {!hasScheduledSteps ? (
           <InlineEmptyCard
+            compact
             title="No routines to track yet"
-            body="Create a routine with steps on the Routines tab. Your streak and progress will show up here."
+            body="Create a routine with steps on the Routines tab. Your schedule will show up here."
           />
         ) : null}
 
-        <Divider label="This Week" large outlined />
-        <View style={styles.weekRow}>
-          {weekDays.map((day) => (
-            <View key={day.key} style={styles.weekCell}>
-              <Text style={styles.weekLabel}>{day.label}</Text>
-              <View
-                style={[
-                  styles.dayCircle,
-                  day.isOffDay && styles.dayCircleOffDay,
-                  day.isToday && styles.dayCircleToday,
-                  day.isComplete && !day.isToday && !day.isOffDay && styles.dayCircleComplete,
-                  day.hasProgress && !day.isComplete && !day.isToday && !day.isOffDay && styles.dayCircleProgress,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.dayNumber,
-                    day.isOffDay && styles.dayNumberOffDay,
-                    day.isToday && styles.dayNumberToday,
-                    day.isComplete && !day.isToday && !day.isOffDay && styles.dayNumberComplete,
-                  ]}
-                >
-                  {day.date.getDate()}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.weekDot,
-                  day.isOffDay && styles.weekDotOffDay,
-                  day.isComplete ? styles.weekDotComplete : styles.weekDotEmpty,
-                ]}
+        {!isSelectedInViewMonth ? (
+          <PlannerDayOutOfMonthHint
+            selectedMonthLabel={selectedMonthLabel}
+            onJumpToMonth={handleJumpToSelectedMonth}
+          />
+        ) : null}
+
+        <CalendarMonthGrid
+          viewDate={viewMonth}
+          cells={monthGrid}
+          showTodayButton={showTodayButton}
+          onSelectDate={handleSelectDate}
+          onPreviousMonth={handlePreviousMonth}
+          onNextMonth={handleNextMonth}
+          onToday={handleToday}
+        />
+
+        {hasScheduledSteps ? (
+          <View style={[styles.dayDetailCard, plannerCard()]}>
+            <PlannerDateHeader
+              date={selectedDate}
+              dayDone={plannerDay.dayDone}
+              dayTotal={plannerDay.dayTotal}
+              isToday={plannerDay.isToday}
+            />
+
+            {isDayComplete ? <PlannerDayCompleteMessage isToday={plannerDay.isToday} /> : null}
+
+            {plannerDay.hasScheduledSteps ? (
+              activeSections.map((section) => (
+                <PlannerDaySection
+                  key={section.timeOfDay}
+                  section={section}
+                  expandedByRoutineId={expandedByRoutineId}
+                  onToggleRoutineExpanded={handleToggleRoutineExpanded}
+                />
+              ))
+            ) : (
+              <PlannerDayEmpty
+                isToday={plannerDay.isToday}
+                isFuture={plannerDay.isFuture}
               />
-            </View>
-          ))}
-        </View>
-
-        <Divider label="Today" large outlined />
-        {todayPeriods.map((period) => (
-          <TodayProgressCard key={period.timeOfDay} period={period} />
-        ))}
-
-        <Divider label="This Month" large outlined />
-        <View style={[styles.monthCard, plannerCard()]}>
-          <View style={styles.monthWeekdayRow}>
-            {MONTH_WEEKDAY_LABELS.map((label, index) => (
-              <Text key={`${label}-${index}`} style={styles.monthWeekdayLabel}>
-                {label}
-              </Text>
-            ))}
+            )}
           </View>
-          <View style={styles.monthGrid}>
-            {monthGrid.map((cell, index) => (
-              <View key={`${cell.key ?? 'empty'}-${index}`} style={styles.monthCell}>
-                {cell.day ? (
-                  <View
-                    style={[
-                      styles.monthDay,
-                      cell.isOffDay && styles.dayCircleOffDay,
-                      cell.isToday && styles.dayCircleToday,
-                      cell.isComplete && !cell.isToday && !cell.isOffDay && styles.dayCircleComplete,
-                      cell.hasProgress &&
-                        !cell.isComplete &&
-                        !cell.isToday &&
-                        !cell.isOffDay &&
-                        styles.dayCircleProgress,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.monthDayText,
-                        cell.isOffDay && styles.dayNumberOffDay,
-                        cell.isToday && styles.dayNumberToday,
-                        cell.isComplete && !cell.isToday && !cell.isOffDay && styles.dayNumberComplete,
-                      ]}
-                    >
-                      {cell.day}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-            ))}
-          </View>
-        </View>
+        ) : null}
+
+        {hasScheduledSteps ? (
+          <CalendarStatsFooter
+            streak={streak}
+            daysThisMonth={daysThisMonth}
+            monthProgress={monthProgress}
+            monthLabel={monthShortLabel}
+          />
+        ) : null}
       </ScrollView>
     </View>
   );
 }
 
-function StatCard({ value, label }: { value: string; label: string }) {
-  return (
-    <View style={[styles.statCard, plannerCard()]}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  statsRow: {
-    flexDirection: 'row',
-    gap: s(5),
-    marginBottom: s(8),
-  },
-  statCard: {
-    flex: 1,
-    paddingVertical: vs(9),
-    paddingHorizontal: s(4),
-    alignItems: 'center',
-  },
-  statValue: {
-    fontFamily: fonts.cardTitle,
-    fontSize: fs(18.05),
-    color: colors.navy,
-  },
-  statLabel: {
-    marginTop: s(2),
-    fontFamily: fonts.dmSans,
-    fontSize: fs(9.5),
-    letterSpacing: s(0.8),
-    textTransform: 'uppercase',
-    color: colors.muted,
-  },
-  weekRow: {
-    flexDirection: 'row',
-    gap: s(3),
-    marginBottom: s(8),
-  },
-  weekCell: {
-    flex: 1,
-    alignItems: 'center',
-    gap: s(2),
-  },
-  weekLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(9),
-    color: colors.muted,
-  },
-  dayCircle: {
-    width: s(24),
-    height: vs(24),
-    borderRadius: s(12),
-    borderWidth: 1,
-    borderColor: plannerCardBorder,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dayCircleToday: {
-    backgroundColor: colors.navy,
-    borderColor: colors.navy,
-  },
-  dayCircleComplete: {
-    backgroundColor: colors.light,
-    borderColor: '#c8d9e6',
-  },
-  dayCircleProgress: {
-    backgroundColor: colors.white,
-    borderColor: '#c8d9e6',
-  },
-  dayCircleOffDay: {
-    backgroundColor: colors.bg,
-    borderColor: plannerCardBorder,
-    borderStyle: 'dashed',
-    opacity: 0.75,
-  },
-  dayNumber: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(10.45),
-    color: colors.gray,
-  },
-  dayNumberToday: {
-    color: colors.white,
-  },
-  dayNumberOffDay: {
-    color: colors.muted,
-  },
-  dayNumberComplete: {
-    color: colors.blue,
-  },
-  weekDot: {
-    width: s(5),
-    height: vs(5),
-    borderRadius: s(2.5),
-  },
-  weekDotComplete: {
-    backgroundColor: colors.blue,
-  },
-  weekDotOffDay: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: plannerCardBorder,
-  },
-  weekDotEmpty: {
-    backgroundColor: colors.border,
-  },
-  monthCard: {
-    padding: s(10),
-  },
-  monthWeekdayRow: {
-    flexDirection: 'row',
-    marginBottom: s(3),
-  },
-  monthWeekdayLabel: {
-    flex: 1,
-    textAlign: 'center',
-    fontFamily: fonts.dmSans,
-    fontSize: fs(6.65),
-    color: colors.muted,
-  },
-  monthGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  monthCell: {
-    width: `${100 / 7}%`,
-    aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: s(2),
-  },
-  monthDay: {
-    width: s(26),
-    height: vs(26),
-    borderRadius: s(13),
-    borderWidth: 1,
-    borderColor: plannerCardBorder,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  monthDayText: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(10.45),
-    color: colors.gray,
+  dayDetailCard: {
+    padding: s(12),
+    marginBottom: s(4),
   },
 });
