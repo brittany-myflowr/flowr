@@ -97,7 +97,7 @@ export default function CalendarScreen() {
 
   return (
     <View style={tabPageStyles.screen}>
-      <TabPageHeader title="Calendar" />
+      <TabPageHeader title="My Calendar" />
 
       <ScrollView
         style={tabPageStyles.scroll}
