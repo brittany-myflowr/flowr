@@ -109,3 +109,11 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
 });
+
+/** Keeps Today section bar aligned when Up Next is hidden. */
+export const upNextReservedSpaceStyle = StyleSheet.create({
+  placeholder: {
+    minHeight: vs(126),
+    marginBottom: s(10),
+  },
+});

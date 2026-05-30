@@ -4,20 +4,19 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ConfettiBurst } from '@/components/feedback/ConfettiBurst';
 import { FirstRoutineCard } from '@/components/onboarding/FirstRoutineCard';
-import { TodayCompleteMessage } from '@/components/today/TodayCompleteMessage';
+import { TodayAllDoneMessage } from '@/components/today/TodayAllDoneMessage';
 import { TodayCompletedRoutineRow } from '@/components/today/TodayCompletedRoutineRow';
 import { TodayPeriodRoutineList } from '@/components/today/TodayPeriodRoutineList';
 import { TodayStepRow } from '@/components/today/TodayStepRow';
 import { TimeOfDayHeader } from '@/components/today/TimeOfDayHeader';
 import { TodaySectionBar } from '@/components/today/TodaySectionBar';
-import { UpNextCard } from '@/components/today/UpNextCard';
+import { UpNextCard, upNextReservedSpaceStyle } from '@/components/today/UpNextCard';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Divider } from '@/components/ui/Divider';
 import { TodayGradientCanvas } from '@/components/today/TodayGradientCanvas';
 import { colors } from '@/constants/colors';
 import { tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
-import { useCalendarStats } from '@/hooks/useCalendarStats';
 import { useUpNextStep } from '@/hooks/useUpNextStep';
 import {
   TIME_OF_DAY_ORDER,
@@ -66,7 +65,6 @@ export default function TodayScreen() {
   const periodSections = useTodaySections();
   const allPeriodSections = useTodayAllPeriodSections();
   const upNext = useUpNextStep(actualTimeOfDay);
-  const { streak } = useCalendarStats();
 
   const completedToday = useMemo(() => {
     const items: CompletedTodayItem[] = [];
@@ -83,6 +81,15 @@ export default function TodayScreen() {
 
     return items;
   }, [periodSections]);
+
+  const hasActiveWork = periodSections.some((section) => section.activeGroups.length > 0);
+  const allRoutinesDoneToday = dayTotal > 0 && dayDone === dayTotal && !hasActiveWork;
+
+  useEffect(() => {
+    if (allRoutinesDoneToday && completedToday.length > 0) {
+      setShowDoneToday(true);
+    }
+  }, [allRoutinesDoneToday, completedToday.length]);
 
   useEffect(() => {
     if (dayTotal > 0 && dayDone === dayTotal && previousDayDone.current < dayTotal) {
@@ -227,7 +234,6 @@ export default function TodayScreen() {
     );
   };
 
-  const hasActiveWork = periodSections.some((section) => section.activeGroups.length > 0);
   const useStickyHeader = routines.length > 0 && dayTotal > 0;
 
   const renderScheduledScrollContent = () => (
@@ -249,15 +255,15 @@ export default function TodayScreen() {
           <View style={styles.stickyHeader}>
             <TimeOfDayHeader />
 
-            {upNext && hasActiveWork ? (
-              <View style={styles.stickyCardWrap}>
+            <View style={styles.stickyCardWrap}>
+              {upNext && hasActiveWork ? (
                 <UpNextCard upNext={upNext} onComplete={handleUpNextComplete} />
-              </View>
-            ) : !hasActiveWork ? (
-              <View style={styles.stickyCardWrap}>
-                <TodayCompleteMessage streak={streak} />
-              </View>
-            ) : null}
+              ) : allRoutinesDoneToday ? (
+                <TodayAllDoneMessage />
+              ) : (
+                <View style={upNextReservedSpaceStyle.placeholder} />
+              )}
+            </View>
 
             <View style={styles.stickyCardWrap}>
               <TodaySectionBar firstName={user?.firstName} />
