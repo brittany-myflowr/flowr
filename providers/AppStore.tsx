@@ -227,19 +227,36 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   cycleSettingsRef.current = cycleSettings;
   const routinesRef = useRef(routines);
   routinesRef.current = routines;
+  const productsRef = useRef(products);
+  productsRef.current = products;
+  const dailyCompletionsRef = useRef(dailyCompletions);
+  dailyCompletionsRef.current = dailyCompletions;
+  const todayStepOrdersRef = useRef(todayStepOrders);
+  todayStepOrdersRef.current = todayStepOrders;
+  const userRef = useRef(user);
+  userRef.current = user;
+  const trialStartedAtRef = useRef(trialStartedAt);
+  trialStartedAtRef.current = trialStartedAt;
 
   const applyRoutineUpdate = useCallback((updater: (current: Routine[]) => Routine[]) => {
     setRoutines((current) => {
       const next = updater(current);
+      routinesRef.current = next;
       const stepIds = new Set(collectStepIds(next));
-      setDailyCompletions((existing) =>
-        snapshotTodayCompletion(
+      setDailyCompletions((existing) => {
+        const updated = snapshotTodayCompletion(
           next,
           cycleSettingsRef.current,
           pruneDailyCompletions(existing, stepIds),
-        ),
-      );
-      setTodayStepOrders((orders) => pruneTodayStepOrders(orders, collectStepIds(next)));
+        );
+        dailyCompletionsRef.current = updated;
+        return updated;
+      });
+      setTodayStepOrders((orders) => {
+        const updated = pruneTodayStepOrders(orders, collectStepIds(next));
+        todayStepOrdersRef.current = updated;
+        return updated;
+      });
       return next;
     });
   }, []);
@@ -259,6 +276,13 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     }) => {
       isLoggedInRef.current = input.isLoggedIn;
       authUserIdRef.current = input.authUserId;
+      userRef.current = input.user;
+      trialStartedAtRef.current = input.trialStartedAt;
+      routinesRef.current = input.routines;
+      productsRef.current = input.products;
+      dailyCompletionsRef.current = input.dailyCompletions;
+      cycleSettingsRef.current = input.cycleSettings;
+      todayStepOrdersRef.current = input.todayStepOrders;
       setAuthUserId(input.authUserId);
       setIsLoggedIn(input.isLoggedIn);
       setUser(input.user);
@@ -274,26 +298,56 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const buildSyncPayload = useCallback((): SyncPayload | null => {
-    if (!authUserIdRef.current || !user) return null;
+    if (!authUserIdRef.current || !userRef.current) {
+      console.log('[sync] buildSyncPayload skipped', {
+        authUserId: authUserIdRef.current,
+        hasUser: Boolean(userRef.current),
+        isLoggedInRef: isLoggedInRef.current,
+      });
+      return null;
+    }
 
-    return {
+    const payload = {
       authUserId: authUserIdRef.current,
-      user,
-      trialStartedAt,
-      routines,
-      products,
-      dailyCompletions,
-      cycleSettings,
-      todayStepOrders,
+      user: userRef.current,
+      trialStartedAt: trialStartedAtRef.current,
+      routines: routinesRef.current,
+      products: productsRef.current,
+      dailyCompletions: dailyCompletionsRef.current,
+      cycleSettings: cycleSettingsRef.current,
+      todayStepOrders: todayStepOrdersRef.current,
     };
-  }, [user, trialStartedAt, routines, products, dailyCompletions, cycleSettings, todayStepOrders]);
+
+    console.log('[sync] buildSyncPayload', {
+      authUserId: payload.authUserId,
+      routineCount: payload.routines.length,
+      stepCount: payload.routines.reduce((count, routine) => count + routine.steps.length, 0),
+      productCount: payload.products.length,
+    });
+
+    return payload;
+  }, []);
 
   const flushRemoteSync = useCallback(async () => {
+    console.log('[sync] flushRemoteSync attempted', {
+      isSyncing: isSyncingRef.current,
+      pendingSync: pendingSyncRef.current,
+    });
+
     const payload = buildSyncPayload();
-    if (!payload || isSyncingRef.current) return;
+    if (!payload) {
+      console.log('[sync] flushRemoteSync skipped: no payload');
+      return;
+    }
+
+    if (isSyncingRef.current) {
+      console.log('[sync] flushRemoteSync skipped: sync already in progress');
+      return;
+    }
 
     const online = await checkOnline();
     if (!online) {
+      console.log('[sync] flushRemoteSync skipped: offline or Supabase unavailable');
       setPendingSync(true);
       return;
     }
@@ -317,7 +371,9 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
           lastSyncedAt: new Date().toISOString(),
         }),
       );
-    } catch {
+      console.log('[sync] flushRemoteSync completed');
+    } catch (error) {
+      console.log('[sync] flushRemoteSync failed', error);
       setPendingSync(true);
     } finally {
       isSyncingRef.current = false;
@@ -325,13 +381,25 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   }, [buildSyncPayload]);
 
   const queueRemoteSync = useCallback(() => {
-    if (!authUserIdRef.current || !isLoggedInRef.current) return;
+    if (!authUserIdRef.current || !isLoggedInRef.current) {
+      console.log('[sync] queueRemoteSync skipped', {
+        authUserId: authUserIdRef.current,
+        isLoggedInRef: isLoggedInRef.current,
+      });
+      return;
+    }
 
     if (syncTimerRef.current) {
       clearTimeout(syncTimerRef.current);
     }
 
+    console.log('[sync] queueRemoteSync scheduled', {
+      authUserId: authUserIdRef.current,
+      routineCount: routinesRef.current.length,
+    });
+
     syncTimerRef.current = setTimeout(() => {
+      console.log('[sync] queueRemoteSync debounce fired');
       void flushRemoteSync();
     }, 1200);
   }, [flushRemoteSync]);
