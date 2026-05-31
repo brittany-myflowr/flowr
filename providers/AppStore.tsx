@@ -161,6 +161,8 @@ type AppStoreValue = {
   consumePendingAddStepSchedule: () => Schedule | null;
   setPendingAddStepProduct: (productId: string | null) => void;
   consumePendingAddStepProduct: () => string | null;
+  setPendingTagProductSelection: (productId: string) => void;
+  consumePendingTagProductSelection: () => string | undefined;
   setPendingGuidedStepScheduleInit: (schedule: Schedule | null) => void;
   consumePendingGuidedStepScheduleInit: () => Schedule | null;
   setPendingGuidedStepScheduleResult: (
@@ -219,6 +221,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const skipNextSave = useRef(true);
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSyncingRef = useRef(false);
+  const pendingTagProductSelectionRef = useRef<string | undefined>(undefined);
   const isLoggedInRef = useRef(false);
   const authUserIdRef = useRef<string | null>(null);
   const pendingSyncRef = useRef(pendingSync);
@@ -1038,6 +1041,16 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     return productId;
   }, []);
 
+  const setPendingTagProductSelection = useCallback((productId: string) => {
+    pendingTagProductSelectionRef.current = productId;
+  }, []);
+
+  const consumePendingTagProductSelection = useCallback(() => {
+    const productId = pendingTagProductSelectionRef.current;
+    pendingTagProductSelectionRef.current = undefined;
+    return productId;
+  }, []);
+
   const consumePendingGuidedStepScheduleInit = useCallback(() => {
     let schedule: Schedule | null = null;
     setPendingGuidedStepScheduleInit((current) => {
@@ -1258,6 +1271,8 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       consumePendingAddStepSchedule,
       setPendingAddStepProduct,
       consumePendingAddStepProduct,
+      setPendingTagProductSelection,
+      consumePendingTagProductSelection,
       setPendingGuidedStepScheduleInit,
       consumePendingGuidedStepScheduleInit,
       setPendingGuidedStepScheduleResult,
@@ -1310,6 +1325,8 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       updateStepSchedule,
       consumePendingAddStepSchedule,
       consumePendingAddStepProduct,
+      setPendingTagProductSelection,
+      consumePendingTagProductSelection,
       consumePendingGuidedStepScheduleInit,
       consumePendingGuidedStepScheduleResult,
       consumePendingGuidedStepProductResult,
@@ -1390,6 +1407,8 @@ export function useRoutines() {
     consumePendingAddStepSchedule: store.consumePendingAddStepSchedule,
     setPendingAddStepProduct: store.setPendingAddStepProduct,
     consumePendingAddStepProduct: store.consumePendingAddStepProduct,
+    setPendingTagProductSelection: store.setPendingTagProductSelection,
+    consumePendingTagProductSelection: store.consumePendingTagProductSelection,
     setPendingGuidedStepScheduleInit: store.setPendingGuidedStepScheduleInit,
     consumePendingGuidedStepScheduleInit: store.consumePendingGuidedStepScheduleInit,
     setPendingGuidedStepScheduleResult: store.setPendingGuidedStepScheduleResult,

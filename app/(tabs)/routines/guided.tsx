@@ -137,7 +137,7 @@ export default function GuidedSetupScreen() {
       return;
     }
 
-    addRoutine({
+    const routine = addRoutine({
       name,
       category,
       schedule: routineSchedule,
@@ -148,6 +148,8 @@ export default function GuidedSetupScreen() {
         productId: entry.productId ?? undefined,
       })),
     });
+
+    if (!routine) return;
 
     showToast('Routine created');
     router.replace('/(tabs)/routines');

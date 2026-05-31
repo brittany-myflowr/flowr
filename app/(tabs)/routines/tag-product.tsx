@@ -1,5 +1,5 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -41,7 +41,7 @@ export default function TagProductScreen() {
   const isDraft = draft === '1';
   const routine = routineId ? useRoutine(routineId) : undefined;
   const { products } = useProducts();
-  const { tagStepProduct, setPendingGuidedStepProductResult, setPendingAddStepProduct } =
+  const { tagStepProduct, setPendingGuidedStepProductResult, setPendingAddStepProduct, consumePendingTagProductSelection } =
     useRoutines();
   const { showToast } = useToast();
 
@@ -58,6 +58,15 @@ export default function TagProductScreen() {
     }
   }, [selectedProductId]);
 
+  useFocusEffect(
+    useCallback(() => {
+      const pendingSelection = consumePendingTagProductSelection();
+      if (pendingSelection !== undefined) {
+        setSelectedId(pendingSelection);
+      }
+    }, [consumePendingTagProductSelection]),
+  );
+
   const { suggested, rest } = useMemo(() => {
     if (!resolvedStepName) {
       return { suggested: [], rest: products };
@@ -65,6 +74,10 @@ export default function TagProductScreen() {
 
     return suggestProductsForStep(resolvedStepName, products);
   }, [products, resolvedStepName]);
+
+  const handleBack = () => {
+    router.back();
+  };
 
   const handleConfirm = () => {
     if (isGuided) {
@@ -89,60 +102,25 @@ export default function TagProductScreen() {
   };
 
   const openAddProduct = () => {
-    if (isGuided) {
-      router.push({
-        pathname: '/(tabs)/products/add',
-        params: {
-          returnTo: 'tag-product',
-          guided: '1',
-          stepIndex,
-          stepName: resolvedStepName ?? '',
-          selectedProductId: selectedId ?? '',
-        },
-      });
-      return;
-    }
-
-    if (isDraft) {
-      router.push({
-        pathname: '/(tabs)/products/add',
-        params: {
-          returnTo: 'tag-product',
-          draft: '1',
-          routineId,
-          stepName: resolvedStepName ?? '',
-          selectedProductId: selectedId ?? '',
-        },
-      });
-      return;
-    }
-
-    router.push({
-      pathname: '/(tabs)/products/add',
-      params: {
-        returnTo: 'tag-product',
-        routineId,
-        stepId,
-      },
-    });
+    router.push('/(tabs)/routines/add-product');
   };
 
   if (!isGuided && !isDraft && (!routine || !step)) {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
-        <SubPageHeader title="Tag a Product" onBack={() => router.back()} />
+        <SubPageHeader title="Tag a Product" onBack={handleBack} />
         <InlineEmptyCard
           title="Step not found"
           body="Go back and open product tagging from an existing step."
         />
-        <FullWidthButton label="← Back" onPress={() => router.back()} />
+        <FullWidthButton label="← Back" onPress={handleBack} />
       </View>
     );
   }
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <SubPageHeader title="Tag a Product" onBack={() => router.back()} />
+      <SubPageHeader title="Tag a Product" onBack={handleBack} />
       <ScrollView
         style={tabPageStyles.scroll}
         contentContainerStyle={styles.content}
