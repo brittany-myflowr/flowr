@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppleSignInButton } from '@/components/auth/AppleSignInButton';
@@ -15,38 +15,50 @@ import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { openExternalUrl } from '@/lib/appLinking';
 import { signInWithApplePlaceholder, signInWithGooglePlaceholder } from '@/lib/socialAuth';
+import { isValidEmail } from '@/lib/validation';
 import { useAuth } from '@/providers/AppStore';
 import { s, fs } from '@/lib/scale';
 
 export default function SignUpScreen() {
   const router = useRouter();
-  const { signUp } = useAuth();
+  const { signUp, isLoggedIn } = useAuth();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [awaitingEntry, setAwaitingEntry] = useState(false);
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    if (!awaitingEntry || !isLoggedIn) return;
+    router.replace('/(tabs)');
+  }, [awaitingEntry, isLoggedIn, router]);
+
+  const handleSubmit = async () => {
+    if (!isValidEmail(email)) {
+      setError('Enter a valid email address.');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
 
-    const message = signUp({ firstName, lastName, email, password });
+    const message = await signUp({ firstName, lastName, email, password });
     if (message) {
       setError(message);
       return;
     }
 
-    router.replace('/(tabs)');
+    setAwaitingEntry(true);
   };
 
   const canSubmit =
     firstName.trim().length > 0 &&
     lastName.trim().length > 0 &&
-    email.trim().length > 0 &&
+    isValidEmail(email) &&
     password.length >= 8 &&
     confirmPassword.length > 0;
 

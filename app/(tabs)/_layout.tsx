@@ -6,10 +6,11 @@ import { shouldHideTabBar } from '@/lib/tabBarVisibility';
 import { useAppStore } from '@/providers/AppStore';
 
 export default function TabsLayout() {
-  const { hydrated, isLoggedIn } = useAppStore();
+  const { hydrated, isLoggedIn, checkAuthenticated } = useAppStore();
   const segments = useSegments();
+  const authenticated = isLoggedIn || checkAuthenticated();
 
-  if (hydrated && !isLoggedIn) {
+  if (hydrated && !authenticated) {
     return <Redirect href="/(auth)/splash" />;
   }
 

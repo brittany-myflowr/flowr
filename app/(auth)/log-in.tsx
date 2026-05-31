@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppleSignInButton } from '@/components/auth/AppleSignInButton';
@@ -13,26 +13,38 @@ import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { useAuth } from '@/providers/AppStore';
 import { signInWithApplePlaceholder, signInWithGooglePlaceholder } from '@/lib/socialAuth';
+import { isValidEmail } from '@/lib/validation';
 import { s, vs, fs } from '@/lib/scale';
 
 export default function LogInScreen() {
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, isLoggedIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [awaitingEntry, setAwaitingEntry] = useState(false);
 
-  const handleSubmit = () => {
-    const message = signIn({ email, password });
+  useEffect(() => {
+    if (!awaitingEntry || !isLoggedIn) return;
+    router.replace('/(tabs)');
+  }, [awaitingEntry, isLoggedIn, router]);
+
+  const handleSubmit = async () => {
+    if (!isValidEmail(email)) {
+      setError('Enter a valid email address.');
+      return;
+    }
+
+    const message = await signIn({ email, password });
     if (message) {
       setError(message);
       return;
     }
 
-    router.replace('/(tabs)');
+    setAwaitingEntry(true);
   };
 
-  const canSubmit = email.trim().length > 0 && password.length > 0;
+  const canSubmit = isValidEmail(email) && password.length > 0;
 
   return (
     <AuthFormLayout headerSubtitle="Welcome back">

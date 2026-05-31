@@ -7,23 +7,47 @@ import {
   useRef,
   useState,
 } from 'react';
+import { AppState } from 'react-native';
 
-import { defaultFlowerColor } from '@/constants/flowerColors';
+import { supabase } from '@/constants/supabase';
+
+
 import { createId } from '@/lib/createId';
 import { buildDuplicateRoutineName } from '@/lib/routineNames';
 import { defaultScheduleForTimeOfDay, normalizeSchedule, cloneSchedule } from '@/constants/schedules';
 import {
   type DailyCompletionMap,
+  pruneDailyCompletions,
   reconcileDailyCompletionsOnLoad,
   snapshotTodayCompletion,
 } from '@/lib/completion';
+import { reconcileStepProducts } from '@/lib/reconcile';
+import { isValidEmail } from '@/lib/validation';
 import {
   buildPersistedState,
   clearPersistedState,
   loadPersistedState,
   savePersistedState,
-  type LocalCredentials,
 } from '@/lib/persistence';
+import {
+  ACCOUNT_DELETION_GRACE_DAYS,
+  getCurrentSessionUserId,
+  requestPasswordReset,
+  scheduleAccountDeletion,
+  signInWithSupabase,
+  signOutFromSupabase,
+  signUpWithSupabase,
+  updateAccountEmail,
+} from '@/lib/supabase/auth';
+import { checkOnline } from '@/lib/supabase/network';
+import { profileRowToUser } from '@/lib/supabase/mappers';
+import {
+  fetchRemoteUserData,
+  pushRemoteUserData,
+  remoteDataToAppState,
+  remoteHasAnyUserData,
+  type SyncPayload,
+} from '@/lib/supabase/sync';
 import type { Category } from '@/constants/categories';
 import { formatDateKey } from '@/lib/dateKey';
 import type {
@@ -37,6 +61,7 @@ import type {
   User,
 } from '@/types';
 import { DEFAULT_CYCLE_SETTINGS } from '@/types';
+import { runPremiumMutation, runPremiumMutationVoid } from '@/lib/premiumGate';
 import {
   collectStepIds,
   EMPTY_TODAY_STEP_ORDERS,
@@ -88,7 +113,9 @@ type UpdateAccountInput = {
 type AppStoreValue = {
   hydrated: boolean;
   isLoggedIn: boolean;
+  checkAuthenticated: () => boolean;
   user: User | null;
+  trialStartedAt: string | null;
   routines: Routine[];
   products: Product[];
   dailyCompletions: DailyCompletionMap;
@@ -99,13 +126,15 @@ type AppStoreValue = {
   pendingGuidedStepScheduleInit: Schedule | null;
   pendingGuidedStepScheduleResult: { stepIndex: number; schedule: Schedule } | null;
   pendingGuidedStepProductResult: { stepIndex: number; productId: string | null } | null;
-  signUp: (input: SignUpInput) => string | null;
-  signIn: (input: SignInInput) => string | null;
-  signOut: () => void;
+  signUp: (input: SignUpInput) => Promise<string | null>;
+  signIn: (input: SignInInput) => Promise<string | null>;
+  signOut: () => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
-  updateAccount: (input: UpdateAccountInput) => string | null;
+  updateAccount: (input: UpdateAccountInput) => Promise<string | null>;
   resetAllData: () => Promise<void>;
-  addRoutine: (input: CreateRoutineInput) => Routine;
+  deleteAccount: () => Promise<string | null>;
+  requestPasswordReset: (email: string) => Promise<string | null>;
+  addRoutine: (input: CreateRoutineInput) => Routine | null;
   duplicateRoutine: (routineId: string) => Routine | null;
   toggleRoutineActive: (id: string) => void;
   removeRoutine: (id: string) => void;
@@ -148,7 +177,7 @@ type AppStoreValue = {
     stepIndex: number;
     productId: string | null;
   } | null;
-  addProduct: (input: Omit<Product, 'id'>) => Product;
+  addProduct: (input: Omit<Product, 'id'>) => Product | null;
   updateProduct: (id: string, updates: Partial<Omit<Product, 'id'>>) => void;
   removeProduct: (id: string) => void;
   tagStepProduct: (routineId: string, stepId: string, productId: string | null) => void;
@@ -165,8 +194,10 @@ function normalizeEmail(email: string) {
 export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+  const [pendingSync, setPendingSync] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [credentials, setCredentials] = useState<LocalCredentials | null>(null);
+  const [trialStartedAt, setTrialStartedAt] = useState<string | null>(null);
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [dailyCompletions, setDailyCompletions] = useState<DailyCompletionMap>({});
@@ -186,6 +217,12 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     productId: string | null;
   } | null>(null);
   const skipNextSave = useRef(true);
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isSyncingRef = useRef(false);
+  const isLoggedInRef = useRef(false);
+  const authUserIdRef = useRef<string | null>(null);
+  const pendingSyncRef = useRef(pendingSync);
+  pendingSyncRef.current = pendingSync;
   const cycleSettingsRef = useRef(cycleSettings);
   cycleSettingsRef.current = cycleSettings;
   const routinesRef = useRef(routines);
@@ -194,40 +231,275 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const applyRoutineUpdate = useCallback((updater: (current: Routine[]) => Routine[]) => {
     setRoutines((current) => {
       const next = updater(current);
+      const stepIds = new Set(collectStepIds(next));
       setDailyCompletions((existing) =>
-        snapshotTodayCompletion(next, cycleSettingsRef.current, existing),
+        snapshotTodayCompletion(
+          next,
+          cycleSettingsRef.current,
+          pruneDailyCompletions(existing, stepIds),
+        ),
       );
       setTodayStepOrders((orders) => pruneTodayStepOrders(orders, collectStepIds(next)));
       return next;
     });
   }, []);
 
+  const applyLoadedState = useCallback(
+    (input: {
+      authUserId: string | null;
+      isLoggedIn: boolean;
+      user: User | null;
+      trialStartedAt: string | null;
+      routines: Routine[];
+      products: Product[];
+      dailyCompletions: DailyCompletionMap;
+      cycleSettings: CycleSettings;
+      todayStepOrders: TodayStepOrderMap;
+      pendingSync?: boolean;
+    }) => {
+      isLoggedInRef.current = input.isLoggedIn;
+      authUserIdRef.current = input.authUserId;
+      setAuthUserId(input.authUserId);
+      setIsLoggedIn(input.isLoggedIn);
+      setUser(input.user);
+      setTrialStartedAt(input.trialStartedAt);
+      setRoutines(input.routines);
+      setProducts(input.products);
+      setDailyCompletions(input.dailyCompletions);
+      setCycleSettings(input.cycleSettings);
+      setTodayStepOrders(input.todayStepOrders);
+      setPendingSync(input.pendingSync ?? false);
+    },
+    [],
+  );
+
+  const buildSyncPayload = useCallback((): SyncPayload | null => {
+    if (!authUserIdRef.current || !user) return null;
+
+    return {
+      authUserId: authUserIdRef.current,
+      user,
+      trialStartedAt,
+      routines,
+      products,
+      dailyCompletions,
+      cycleSettings,
+      todayStepOrders,
+    };
+  }, [user, trialStartedAt, routines, products, dailyCompletions, cycleSettings, todayStepOrders]);
+
+  const flushRemoteSync = useCallback(async () => {
+    const payload = buildSyncPayload();
+    if (!payload || isSyncingRef.current) return;
+
+    const online = await checkOnline();
+    if (!online) {
+      setPendingSync(true);
+      return;
+    }
+
+    isSyncingRef.current = true;
+    try {
+      await pushRemoteUserData(payload);
+      setPendingSync(false);
+      await savePersistedState(
+        buildPersistedState({
+          authUserId: payload.authUserId,
+          isLoggedIn: true,
+          user: payload.user,
+          trialStartedAt: payload.trialStartedAt,
+          routines: payload.routines,
+          products: payload.products,
+          dailyCompletions: payload.dailyCompletions,
+          cycleSettings: payload.cycleSettings,
+          todayStepOrders: payload.todayStepOrders,
+          pendingSync: false,
+          lastSyncedAt: new Date().toISOString(),
+        }),
+      );
+    } catch {
+      setPendingSync(true);
+    } finally {
+      isSyncingRef.current = false;
+    }
+  }, [buildSyncPayload]);
+
+  const queueRemoteSync = useCallback(() => {
+    if (!authUserIdRef.current || !isLoggedInRef.current) return;
+
+    if (syncTimerRef.current) {
+      clearTimeout(syncTimerRef.current);
+    }
+
+    syncTimerRef.current = setTimeout(() => {
+      void flushRemoteSync();
+    }, 1200);
+  }, [flushRemoteSync]);
+
+  const flushRemoteSyncRef = useRef(flushRemoteSync);
+  flushRemoteSyncRef.current = flushRemoteSync;
+
   useEffect(() => {
-    loadPersistedState().then((state) => {
-      const routines = state.routines;
-      const loadedCycleSettings = state.cycleSettings ?? DEFAULT_CYCLE_SETTINGS;
-      setIsLoggedIn(state.isLoggedIn);
-      setUser(state.user);
-      setCredentials(state.credentials);
-      setRoutines(routines);
-      setProducts(state.products);
-      setCycleSettings(loadedCycleSettings);
-      setDailyCompletions(
-        reconcileDailyCompletionsOnLoad(
-          routines,
-          loadedCycleSettings,
-          state.dailyCompletions ?? {},
-        ),
-      );
-      setTodayStepOrders(
-        pruneTodayStepOrders(
-          state.todayStepOrders ?? EMPTY_TODAY_STEP_ORDERS,
-          collectStepIds(routines),
-        ),
-      );
-      setHydrated(true);
+    let cancelled = false;
+
+    void (async () => {
+      const cached = await loadPersistedState();
+      if (cancelled) return;
+
+      const cachedRoutines = reconcileStepProducts(cached.routines, cached.products);
+      const cachedCycleSettings = cached.cycleSettings ?? DEFAULT_CYCLE_SETTINGS;
+
+      const sessionUserId = await getCurrentSessionUserId();
+      if (cancelled) return;
+
+      if (sessionUserId) {
+        try {
+          const online = await checkOnline();
+          if (online) {
+            const remote = await fetchRemoteUserData(sessionUserId);
+            if (remote && !cancelled) {
+              const hasRemoteData = await remoteHasAnyUserData(sessionUserId);
+              const shouldMigrateLocal =
+                !hasRemoteData &&
+                (cachedRoutines.length > 0 ||
+                  cached.products.length > 0 ||
+                  Object.keys(cached.dailyCompletions).length > 0) &&
+                (cached.authUserId === sessionUserId || cached.authUserId === null);
+
+              if (shouldMigrateLocal) {
+                applyLoadedState({
+                  authUserId: sessionUserId,
+                  isLoggedIn: true,
+                  user: cached.user
+                    ? { ...cached.user, id: sessionUserId }
+                    : profileRowToUser(remote.profile),
+                  trialStartedAt: cached.trialStartedAt,
+                  routines: cachedRoutines,
+                  products: cached.products,
+                  dailyCompletions: reconcileDailyCompletionsOnLoad(
+                    cachedRoutines,
+                    cachedCycleSettings,
+                    cached.dailyCompletions,
+                  ),
+                  cycleSettings: cachedCycleSettings,
+                  todayStepOrders: pruneTodayStepOrders(
+                    cached.todayStepOrders ?? EMPTY_TODAY_STEP_ORDERS,
+                    collectStepIds(cachedRoutines),
+                  ),
+                  pendingSync: true,
+                });
+                setHydrated(true);
+                void flushRemoteSyncRef.current();
+                return;
+              }
+
+              const appState = remoteDataToAppState(remote, sessionUserId);
+              applyLoadedState({
+                ...appState,
+                routines: reconcileStepProducts(appState.routines, appState.products),
+                dailyCompletions: reconcileDailyCompletionsOnLoad(
+                  appState.routines,
+                  appState.cycleSettings,
+                  appState.dailyCompletions,
+                ),
+                todayStepOrders: pruneTodayStepOrders(
+                  appState.todayStepOrders,
+                  collectStepIds(appState.routines),
+                ),
+                pendingSync: false,
+              });
+              setHydrated(true);
+              return;
+            }
+          }
+        } catch {
+          // Fall back to cache below.
+        }
+
+        if (!cancelled && cached.authUserId === sessionUserId && cached.isLoggedIn && cached.user) {
+          applyLoadedState({
+            authUserId: sessionUserId,
+            isLoggedIn: true,
+            user: cached.user,
+            trialStartedAt: cached.trialStartedAt,
+            routines: cachedRoutines,
+            products: cached.products,
+            dailyCompletions: reconcileDailyCompletionsOnLoad(
+              cachedRoutines,
+              cachedCycleSettings,
+              cached.dailyCompletions,
+            ),
+            cycleSettings: cachedCycleSettings,
+            todayStepOrders: pruneTodayStepOrders(
+              cached.todayStepOrders ?? EMPTY_TODAY_STEP_ORDERS,
+              collectStepIds(cachedRoutines),
+            ),
+            pendingSync: cached.pendingSync || true,
+          });
+          setHydrated(true);
+          void flushRemoteSyncRef.current();
+          return;
+        }
+      }
+
+      if (!cancelled) {
+        if (isLoggedInRef.current || (await getCurrentSessionUserId())) {
+          setHydrated(true);
+          return;
+        }
+
+        applyLoadedState({
+          authUserId: null,
+          isLoggedIn: false,
+          user: null,
+          trialStartedAt: null,
+          routines: [],
+          products: [],
+          dailyCompletions: {},
+          cycleSettings: DEFAULT_CYCLE_SETTINGS,
+          todayStepOrders: EMPTY_TODAY_STEP_ORDERS,
+          pendingSync: false,
+        });
+        setHydrated(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    };
+  }, [applyLoadedState]);
+
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        isLoggedInRef.current = true;
+        authUserIdRef.current = session.user.id;
+        return;
+      }
+
+      if (event !== 'SIGNED_OUT') return;
+
+      isLoggedInRef.current = false;
+      authUserIdRef.current = null;
+      setIsLoggedIn(false);
+      setAuthUserId(null);
     });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active' && pendingSyncRef.current) {
+        void flushRemoteSync();
+      }
+    });
+
+    return () => subscription.remove();
+  }, [flushRemoteSync]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -238,75 +510,111 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
     void savePersistedState(
       buildPersistedState({
+        authUserId,
         isLoggedIn,
         user,
-        credentials,
+        trialStartedAt,
         routines,
         products,
         dailyCompletions,
         cycleSettings,
         todayStepOrders,
+        pendingSync,
       }),
     );
+
+    queueRemoteSync();
   }, [
     hydrated,
+    authUserId,
     isLoggedIn,
     user,
-    credentials,
+    trialStartedAt,
     routines,
     products,
     dailyCompletions,
     cycleSettings,
     todayStepOrders,
+    pendingSync,
+    queueRemoteSync,
   ]);
 
-  const signUp = useCallback(
-    (input: SignUpInput): string | null => {
-      const email = normalizeEmail(input.email);
-      const firstName = input.firstName.trim();
-      const lastName = input.lastName.trim();
+  const signUp = useCallback(async (input: SignUpInput): Promise<string | null> => {
+    const result = await signUpWithSupabase(input);
+    if (result.error) return result.error;
 
-      if (!firstName) return 'First name is required.';
-      if (!email) return 'Email is required.';
-      if (input.password.length < 8) return 'Password must be at least 8 characters.';
+    skipNextSave.current = false;
+    applyLoadedState({
+      authUserId: result.userId,
+      isLoggedIn: true,
+      user: result.user,
+      trialStartedAt: result.trialStartedAt,
+      routines: [],
+      products: [],
+      dailyCompletions: {},
+      cycleSettings: DEFAULT_CYCLE_SETTINGS,
+      todayStepOrders: EMPTY_TODAY_STEP_ORDERS,
+      pendingSync: true,
+    });
+    queueRemoteSync();
+    return null;
+  }, [applyLoadedState, queueRemoteSync]);
 
-      if (credentials) {
-        return 'An account already exists on this device. Log in instead.';
-      }
-
-      const nextUser: User = {
-        firstName,
-        lastName,
-        email,
-        flowerColorName: defaultFlowerColor.name,
-      };
-
-      setUser(nextUser);
-      setCredentials({ email, password: input.password });
-      setIsLoggedIn(true);
-      return null;
-    },
-    [credentials],
+  const checkAuthenticated = useCallback(
+    () => isLoggedInRef.current || isLoggedIn,
+    [isLoggedIn],
   );
 
-  const signIn = useCallback(
-    (input: SignInInput): string | null => {
-      const email = normalizeEmail(input.email);
+  const signIn = useCallback(async (input: SignInInput): Promise<string | null> => {
+    const result = await signInWithSupabase(input);
+    if (result.error) return result.error;
 
-      if (!email || !input.password) return 'Email and password are required.';
-      if (!credentials || !user) return 'No account found. Sign up first.';
-      if (credentials.email !== email || credentials.password !== input.password) {
-        return 'Email or password is incorrect.';
+    skipNextSave.current = true;
+
+    try {
+      const online = await checkOnline();
+      if (online) {
+        const remote = await fetchRemoteUserData(result.userId);
+        if (remote) {
+          const appState = remoteDataToAppState(remote, result.userId);
+          applyLoadedState({
+            ...appState,
+            routines: reconcileStepProducts(appState.routines, appState.products),
+            dailyCompletions: reconcileDailyCompletionsOnLoad(
+              appState.routines,
+              appState.cycleSettings,
+              appState.dailyCompletions,
+            ),
+            todayStepOrders: pruneTodayStepOrders(
+              appState.todayStepOrders,
+              collectStepIds(appState.routines),
+            ),
+            pendingSync: false,
+          });
+          return null;
+        }
       }
+    } catch {
+      // Fall back to cached profile below.
+    }
 
-      setIsLoggedIn(true);
-      return null;
-    },
-    [credentials, user],
-  );
+    isLoggedInRef.current = true;
+    authUserIdRef.current = result.userId;
+    setAuthUserId(result.userId);
+    setUser(result.user);
+    setTrialStartedAt(result.trialStartedAt);
+    setIsLoggedIn(true);
+    setPendingSync(true);
+    queueRemoteSync();
+    return null;
+  }, [applyLoadedState, queueRemoteSync]);
 
-  const signOut = useCallback(() => {
+  const signOut = useCallback(async () => {
+    await signOutFromSupabase();
+    isLoggedInRef.current = false;
+    authUserIdRef.current = null;
     setIsLoggedIn(false);
+    setAuthUserId(null);
   }, []);
 
   const updateUser = useCallback((updates: Partial<User>) => {
@@ -314,43 +622,51 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updateAccount = useCallback(
-    (input: UpdateAccountInput): string | null => {
+    async (input: UpdateAccountInput): Promise<string | null> => {
       const firstName = input.firstName.trim();
       const lastName = input.lastName.trim();
       const email = normalizeEmail(input.email);
       const flowerColorName = input.flowerColorName.trim();
 
       if (!firstName) return 'First name is required.';
+      if (!lastName.trim()) return 'Last name is required.';
       if (!email) return 'Email is required.';
+      if (!isValidEmail(email)) return 'Enter a valid email address.';
+      if (!user || !authUserId) return 'Not signed in.';
 
-      setUser((current) =>
-        current
-          ? {
-              ...current,
-              firstName,
-              lastName,
-              email,
-              flowerColorName,
-            }
-          : current,
-      );
+      if (email !== user.email) {
+        const emailError = await updateAccountEmail(email);
+        if (emailError) return emailError;
+      }
 
-      setCredentials((current) => (current ? { ...current, email } : current));
+      setUser({
+        ...user,
+        firstName,
+        lastName,
+        email,
+        flowerColorName,
+      });
+
       return null;
     },
-    [],
+    [authUserId, user],
   );
 
   const resetAllData = useCallback(async () => {
+    await signOutFromSupabase();
     await clearPersistedState();
+    isLoggedInRef.current = false;
+    authUserIdRef.current = null;
     setIsLoggedIn(false);
+    setAuthUserId(null);
     setUser(null);
-    setCredentials(null);
+    setTrialStartedAt(null);
     setRoutines([]);
     setProducts([]);
     setDailyCompletions({});
     setCycleSettings(DEFAULT_CYCLE_SETTINGS);
     setTodayStepOrders(EMPTY_TODAY_STEP_ORDERS);
+    setPendingSync(false);
     setPendingAddStepSchedule(null);
     setPendingAddStepProduct(null);
     setPendingGuidedStepScheduleInit(null);
@@ -358,119 +674,147 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     setPendingGuidedStepProductResult(null);
   }, []);
 
+  const deleteAccount = useCallback(async (): Promise<string | null> => {
+    if (!authUserId) return 'Not signed in.';
+
+    const error = await scheduleAccountDeletion(authUserId);
+    if (error) return error;
+
+    await clearPersistedState();
+    setIsLoggedIn(false);
+    setAuthUserId(null);
+    setUser(null);
+    setTrialStartedAt(null);
+    setRoutines([]);
+    setProducts([]);
+    setDailyCompletions({});
+    setCycleSettings(DEFAULT_CYCLE_SETTINGS);
+    setTodayStepOrders(EMPTY_TODAY_STEP_ORDERS);
+    setPendingSync(false);
+    return null;
+  }, [authUserId]);
+
   const addRoutine = useCallback(
-    (input: CreateRoutineInput) => {
-      const routineId = createId('routine');
-      const steps: Step[] = input.steps
-        .map((stepInput) => ({
-          name: stepInput.name.trim(),
-          note: stepInput.note?.trim(),
-          schedule: stepInput.schedule,
-          productId: stepInput.productId,
-        }))
-        .filter((stepInput) => stepInput.name.length > 0)
-        .map((stepInput) => {
-          const product = stepInput.productId
-            ? products.find((item) => item.id === stepInput.productId)
-            : undefined;
-
-          return {
-            id: createId('step'),
-            name: stepInput.name,
-            note: stepInput.note || undefined,
-            category: input.category,
-            done: false,
+    (input: CreateRoutineInput) =>
+      runPremiumMutation(() => {
+        const routineId = createId('routine');
+        const steps: Step[] = input.steps
+          .map((stepInput) => ({
+            name: stepInput.name.trim(),
+            note: stepInput.note?.trim(),
             schedule: stepInput.schedule,
-            productId: product?.id,
-            productName: product?.name,
-          };
-        });
+            productId: stepInput.productId,
+          }))
+          .filter((stepInput) => stepInput.name.length > 0)
+          .map((stepInput) => {
+            const product = stepInput.productId
+              ? products.find((item) => item.id === stepInput.productId)
+              : undefined;
 
-      const routineSchedule = normalizeSchedule(input.schedule);
+            return {
+              id: createId('step'),
+              name: stepInput.name,
+              note: stepInput.note || undefined,
+              category: input.category,
+              done: false,
+              schedule: stepInput.schedule,
+              productId: product?.id,
+              productName: product?.name,
+            };
+          });
 
-      const routine: Routine = {
-        id: routineId,
-        name: input.name.trim(),
-        category: input.category,
-        timeOfDay: routineSchedule.timeOfDay,
-        active: true,
-        steps,
-        schedule: routineSchedule,
-      };
+        const routineSchedule = normalizeSchedule(input.schedule);
 
-      applyRoutineUpdate((current) => [...current, routine]);
-      return routine;
-    },
+        const routine: Routine = {
+          id: routineId,
+          name: input.name.trim(),
+          category: input.category,
+          timeOfDay: routineSchedule.timeOfDay,
+          active: true,
+          steps,
+          schedule: routineSchedule,
+        };
+
+        applyRoutineUpdate((current) => [...current, routine]);
+        return routine;
+      }),
     [products, applyRoutineUpdate],
   );
 
   const duplicateRoutine = useCallback(
-    (routineId: string) => {
-      let created: Routine | null = null;
+    (routineId: string) =>
+      runPremiumMutation(() => {
+        let created: Routine | null = null;
 
-      applyRoutineUpdate((current) => {
-        const source = current.find((routine) => routine.id === routineId);
-        if (!source) return current;
+        applyRoutineUpdate((current) => {
+          const source = current.find((routine) => routine.id === routineId);
+          if (!source) return current;
 
-        created = {
-          id: createId('routine'),
-          name: buildDuplicateRoutineName(source.name),
-          category: source.category,
-          timeOfDay: source.timeOfDay,
-          active: false,
-          schedule: cloneSchedule(source.schedule),
-          steps: source.steps.map((step) => ({
-            id: createId('step'),
-            name: step.name,
-            note: step.note,
-            category: step.category,
-            done: false,
-            productId: step.productId,
-            productName: step.productName,
-            schedule: step.schedule ? cloneSchedule(step.schedule) : undefined,
-          })),
-        };
+          created = {
+            id: createId('routine'),
+            name: buildDuplicateRoutineName(source.name),
+            category: source.category,
+            timeOfDay: source.timeOfDay,
+            active: false,
+            schedule: cloneSchedule(source.schedule),
+            steps: source.steps.map((step) => ({
+              id: createId('step'),
+              name: step.name,
+              note: step.note,
+              category: step.category,
+              done: false,
+              productId: step.productId,
+              productName: step.productName,
+              schedule: step.schedule ? cloneSchedule(step.schedule) : undefined,
+            })),
+          };
 
-        let insertIndex = current.length;
-        for (let i = current.length - 1; i >= 0; i -= 1) {
-          if (current[i].timeOfDay === source.timeOfDay) {
-            insertIndex = i + 1;
-            break;
+          let insertIndex = current.length;
+          for (let i = current.length - 1; i >= 0; i -= 1) {
+            if (current[i].timeOfDay === source.timeOfDay) {
+              insertIndex = i + 1;
+              break;
+            }
           }
-        }
 
-        const next = [...current];
-        next.splice(insertIndex, 0, created);
-        return next;
-      });
+          const next = [...current];
+          next.splice(insertIndex, 0, created);
+          return next;
+        });
 
-      return created;
-    },
+        return created;
+      }),
     [applyRoutineUpdate],
   );
 
   const toggleRoutineActive = useCallback(
     (id: string) => {
-      applyRoutineUpdate((current) =>
-        current.map((routine) =>
-          routine.id === id ? { ...routine, active: !routine.active } : routine,
-        ),
-      );
+      runPremiumMutationVoid(() => {
+        applyRoutineUpdate((current) =>
+          current.map((routine) =>
+            routine.id === id ? { ...routine, active: !routine.active } : routine,
+          ),
+        );
+      });
     },
     [applyRoutineUpdate],
   );
 
   const removeRoutine = useCallback(
     (id: string) => {
-      applyRoutineUpdate((current) => current.filter((routine) => routine.id !== id));
+      runPremiumMutationVoid(() => {
+        applyRoutineUpdate((current) => current.filter((routine) => routine.id !== id));
+      });
     },
     [applyRoutineUpdate],
   );
 
   const reorderSteps = useCallback((routineId: string, steps: Step[]) => {
-    setRoutines((current) =>
-      current.map((routine) => (routine.id === routineId ? { ...routine, steps } : routine)),
-    );
+    runPremiumMutationVoid(() => {
+      setRoutines((current) =>
+        current.map((routine) => (routine.id === routineId ? { ...routine, steps } : routine)),
+      );
+    });
   }, []);
 
   const reorderTodayRoutineGroups = useCallback(
@@ -478,23 +822,27 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       timeOfDay: TimeOfDay,
       groups: Array<{ steps: Array<{ step: { id: string } }> }>,
     ) => {
-      setTodayStepOrders((orders) => ({
-        ...orders,
-        [timeOfDay]: mergeReorderedActiveStepIds(orders[timeOfDay] ?? [], groups),
-      }));
+      runPremiumMutationVoid(() => {
+        setTodayStepOrders((orders) => ({
+          ...orders,
+          [timeOfDay]: mergeReorderedActiveStepIds(orders[timeOfDay] ?? [], groups),
+        }));
+      });
     },
     [],
   );
 
   const removeStep = useCallback(
     (routineId: string, stepId: string) => {
-      applyRoutineUpdate((current) =>
-        current.map((routine) =>
-          routine.id === routineId
-            ? { ...routine, steps: routine.steps.filter((step) => step.id !== stepId) }
-            : routine,
-        ),
-      );
+      runPremiumMutationVoid(() => {
+        applyRoutineUpdate((current) =>
+          current.map((routine) =>
+            routine.id === routineId
+              ? { ...routine, steps: routine.steps.filter((step) => step.id !== stepId) }
+              : routine,
+          ),
+        );
+      });
     },
     [applyRoutineUpdate],
   );
@@ -505,18 +853,20 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       stepId: string,
       updates: Partial<Pick<Step, 'name' | 'note' | 'productName' | 'productId' | 'done'>>,
     ) => {
-      setRoutines((current) =>
-        current.map((routine) =>
-          routine.id === routineId
-            ? {
-                ...routine,
-                steps: routine.steps.map((step) =>
-                  step.id === stepId ? { ...step, ...updates } : step,
-                ),
-              }
-            : routine,
-        ),
-      );
+      runPremiumMutationVoid(() => {
+        setRoutines((current) =>
+          current.map((routine) =>
+            routine.id === routineId
+              ? {
+                  ...routine,
+                  steps: routine.steps.map((step) =>
+                    step.id === stepId ? { ...step, ...updates } : step,
+                  ),
+                }
+              : routine,
+          ),
+        );
+      });
     },
     [],
   );
@@ -540,37 +890,38 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addStep = useCallback(
-    (routineId: string, input: AddStepInput) => {
-      const trimmedName = input.name.trim();
-      if (!trimmedName) return null;
+    (routineId: string, input: AddStepInput) =>
+      runPremiumMutation(() => {
+        const trimmedName = input.name.trim();
+        if (!trimmedName) return null;
 
-      const product = input.productId
-        ? products.find((item) => item.id === input.productId)
-        : undefined;
+        const product = input.productId
+          ? products.find((item) => item.id === input.productId)
+          : undefined;
 
-      let created: Step | null = null;
+        let created: Step | null = null;
 
-      applyRoutineUpdate((current) =>
-        current.map((routine) => {
-          if (routine.id !== routineId) return routine;
+        applyRoutineUpdate((current) =>
+          current.map((routine) => {
+            if (routine.id !== routineId) return routine;
 
-          created = {
-            id: createId('step'),
-            name: trimmedName,
-            note: input.note?.trim() || undefined,
-            category: routine.category,
-            done: false,
-            schedule: input.schedule,
-            productId: product?.id,
-            productName: product?.name,
-          };
+            created = {
+              id: createId('step'),
+              name: trimmedName,
+              note: input.note?.trim() || undefined,
+              category: routine.category,
+              done: false,
+              schedule: input.schedule,
+              productId: product?.id,
+              productName: product?.name,
+            };
 
-          return { ...routine, steps: [...routine.steps, created] };
-        }),
-      );
+            return { ...routine, steps: [...routine.steps, created] };
+          }),
+        );
 
-      return created;
-    },
+        return created;
+      }),
     [applyRoutineUpdate, products],
   );
 
@@ -579,22 +930,24 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       routineId: string,
       updates: Partial<Pick<Routine, 'name' | 'category' | 'timeOfDay' | 'active'>>,
     ) => {
-      setRoutines((current) =>
-        current.map((routine) => {
-          if (routine.id !== routineId) return routine;
+      runPremiumMutationVoid(() => {
+        setRoutines((current) =>
+          current.map((routine) => {
+            if (routine.id !== routineId) return routine;
 
-          const nextRoutine = { ...routine, ...updates };
+            const nextRoutine = { ...routine, ...updates };
 
-          if (updates.category && updates.category !== routine.category) {
-            nextRoutine.steps = routine.steps.map((step) => ({
-              ...step,
-              category: updates.category!,
-            }));
-          }
+            if (updates.category && updates.category !== routine.category) {
+              nextRoutine.steps = routine.steps.map((step) => ({
+                ...step,
+                category: updates.category!,
+              }));
+            }
 
-          return nextRoutine;
-        }),
-      );
+            return nextRoutine;
+          }),
+        );
+      });
     },
     [],
   );
@@ -646,128 +999,152 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
   const updateRoutineSchedule = useCallback(
     (routineId: string, schedule: Schedule) => {
-      applyRoutineUpdate((current) =>
-        current.map((routine) =>
-          routine.id === routineId
-            ? { ...routine, timeOfDay: schedule.timeOfDay, schedule }
-            : routine,
-        ),
-      );
+      runPremiumMutationVoid(() => {
+        applyRoutineUpdate((current) =>
+          current.map((routine) =>
+            routine.id === routineId
+              ? { ...routine, timeOfDay: schedule.timeOfDay, schedule }
+              : routine,
+          ),
+        );
+      });
     },
     [applyRoutineUpdate],
   );
 
   const updateStepSchedule = useCallback(
     (routineId: string, stepId: string, schedule: Schedule) => {
-      applyRoutineUpdate((current) =>
-        current.map((routine) =>
-          routine.id === routineId
-            ? {
-                ...routine,
-                steps: routine.steps.map((step) =>
-                  step.id === stepId ? { ...step, schedule } : step,
-                ),
-              }
-            : routine,
-        ),
-      );
+      runPremiumMutationVoid(() => {
+        applyRoutineUpdate((current) =>
+          current.map((routine) =>
+            routine.id === routineId
+              ? {
+                  ...routine,
+                  steps: routine.steps.map((step) =>
+                    step.id === stepId ? { ...step, schedule } : step,
+                  ),
+                }
+              : routine,
+          ),
+        );
+      });
     },
     [applyRoutineUpdate],
   );
 
-  const addProduct = useCallback((input: Omit<Product, 'id'>) => {
-    const product: Product = { ...input, id: createId('product') };
-    setProducts((current) => [...current, product]);
-    return product;
-  }, []);
+  const addProduct = useCallback(
+    (input: Omit<Product, 'id'>) =>
+      runPremiumMutation(() => {
+        const product: Product = { ...input, id: createId('product') };
+        setProducts((current) => [...current, product]);
+        return product;
+      }),
+    [],
+  );
 
   const updateProduct = useCallback((id: string, updates: Partial<Omit<Product, 'id'>>) => {
-    setProducts((current) =>
-      current.map((product) => (product.id === id ? { ...product, ...updates } : product)),
-    );
+    runPremiumMutationVoid(() => {
+      setProducts((current) =>
+        current.map((product) => (product.id === id ? { ...product, ...updates } : product)),
+      );
 
-    if (updates.name !== undefined) {
-      const nextName = updates.name.trim();
+      if (updates.name !== undefined) {
+        const nextName = updates.name.trim();
+        setRoutines((current) =>
+          current.map((routine) => ({
+            ...routine,
+            steps: routine.steps.map((step) =>
+              step.productId === id ? { ...step, productName: nextName } : step,
+            ),
+          })),
+        );
+      }
+    });
+  }, []);
+
+  const removeProduct = useCallback((id: string) => {
+    runPremiumMutationVoid(() => {
+      setProducts((current) => current.filter((product) => product.id !== id));
       setRoutines((current) =>
         current.map((routine) => ({
           ...routine,
           steps: routine.steps.map((step) =>
-            step.productId === id ? { ...step, productName: nextName } : step,
+            step.productId === id
+              ? { ...step, productId: undefined, productName: undefined }
+              : step,
           ),
         })),
       );
-    }
-  }, []);
-
-  const removeProduct = useCallback((id: string) => {
-    setProducts((current) => current.filter((product) => product.id !== id));
-    setRoutines((current) =>
-      current.map((routine) => ({
-        ...routine,
-        steps: routine.steps.map((step) =>
-          step.productId === id
-            ? { ...step, productId: undefined, productName: undefined }
-            : step,
-        ),
-      })),
-    );
+      setPendingAddStepProduct((current) => (current === id ? null : current));
+      setPendingGuidedStepProductResult((current) =>
+        current?.productId === id ? { ...current, productId: null } : current,
+      );
+    });
   }, []);
 
   const tagStepProduct = useCallback(
     (routineId: string, stepId: string, productId: string | null) => {
-      setRoutines((current) =>
-        current.map((routine) => {
-          if (routine.id !== routineId) return routine;
+      runPremiumMutationVoid(() => {
+        setRoutines((current) =>
+          current.map((routine) => {
+            if (routine.id !== routineId) return routine;
 
-          return {
-            ...routine,
-            steps: routine.steps.map((step) => {
-              if (step.id !== stepId) return step;
+            return {
+              ...routine,
+              steps: routine.steps.map((step) => {
+                if (step.id !== stepId) return step;
 
-              if (!productId) {
-                return { ...step, productId: undefined, productName: undefined };
-              }
+                if (!productId) {
+                  return { ...step, productId: undefined, productName: undefined };
+                }
 
-              const product = products.find((item) => item.id === productId);
-              if (!product) {
-                return { ...step, productId: undefined, productName: undefined };
-              }
+                const product = products.find((item) => item.id === productId);
+                if (!product) {
+                  return { ...step, productId: undefined, productName: undefined };
+                }
 
-              return {
-                ...step,
-                productId: product.id,
-                productName: product.name,
-              };
-            }),
-          };
-        }),
-      );
+                return {
+                  ...step,
+                  productId: product.id,
+                  productName: product.name,
+                };
+              }),
+            };
+          }),
+        );
+      });
     },
     [products],
   );
 
   const updateCycleSettings = useCallback((updates: Partial<CycleSettings>) => {
-    setCycleSettings((current) => {
-      const next = { ...current, ...updates };
-      setDailyCompletions((existing) =>
-        snapshotTodayCompletion(routinesRef.current, next, existing),
-      );
-      return next;
+    runPremiumMutationVoid(() => {
+      setCycleSettings((current) => {
+        const next = { ...current, ...updates };
+        setDailyCompletions((existing) =>
+          snapshotTodayCompletion(routinesRef.current, next, existing),
+        );
+        return next;
+      });
     });
   }, []);
 
   const setCycleEnabled = useCallback((enabled: boolean) => {
-    setCycleSettings((current) => {
-      const next = {
-        ...current,
-        enabled,
-        lastPeriodStart:
-          enabled && !current.lastPeriodStart ? formatDateKey(new Date()) : current.lastPeriodStart,
-      };
-      setDailyCompletions((existing) =>
-        snapshotTodayCompletion(routinesRef.current, next, existing),
-      );
-      return next;
+    runPremiumMutationVoid(() => {
+      setCycleSettings((current) => {
+        const next = {
+          ...current,
+          enabled,
+          lastPeriodStart:
+            enabled && !current.lastPeriodStart
+              ? formatDateKey(new Date())
+              : current.lastPeriodStart,
+        };
+        setDailyCompletions((existing) =>
+          snapshotTodayCompletion(routinesRef.current, next, existing),
+        );
+        return next;
+      });
     });
   }, []);
 
@@ -775,7 +1152,9 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     () => ({
       hydrated,
       isLoggedIn,
+      checkAuthenticated,
       user,
+      trialStartedAt,
       routines,
       products,
       dailyCompletions,
@@ -791,6 +1170,8 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       signOut,
       updateUser,
       updateAccount,
+      deleteAccount,
+      requestPasswordReset,
       resetAllData,
       addRoutine,
       duplicateRoutine,
@@ -825,7 +1206,9 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     [
       hydrated,
       isLoggedIn,
+      checkAuthenticated,
       user,
+      trialStartedAt,
       routines,
       products,
       dailyCompletions,
@@ -841,6 +1224,8 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       signOut,
       updateUser,
       updateAccount,
+      deleteAccount,
+      requestPasswordReset,
       resetAllData,
       addRoutine,
       duplicateRoutine,
@@ -881,9 +1266,30 @@ export function useAppStore() {
 }
 
 export function useAuth() {
-  const { isLoggedIn, user, signUp, signIn, signOut, updateUser, updateAccount, resetAllData } =
-    useAppStore();
-  return { isLoggedIn, user, signUp, signIn, signOut, updateUser, updateAccount, resetAllData };
+  const {
+    isLoggedIn,
+    user,
+    signUp,
+    signIn,
+    signOut,
+    updateUser,
+    updateAccount,
+    resetAllData,
+    deleteAccount,
+    requestPasswordReset,
+  } = useAppStore();
+  return {
+    isLoggedIn,
+    user,
+    signUp,
+    signIn,
+    signOut,
+    updateUser,
+    updateAccount,
+    resetAllData,
+    deleteAccount,
+    requestPasswordReset,
+  };
 }
 
 export function useCycleSettings() {
