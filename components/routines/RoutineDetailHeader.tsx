@@ -31,13 +31,19 @@ export function RoutineDetailHeader({
 }: RoutineDetailHeaderProps) {
   const categoryColor = categoryColors[routine.category];
   const [isEditingName, setIsEditingName] = useState(false);
+  const [draftName, setDraftName] = useState(routine.name);
+
+  const startEditingName = () => {
+    setDraftName(routine.name);
+    setIsEditingName(true);
+  };
 
   const finishEditingName = () => {
-    setIsEditingName(false);
-    const trimmed = routine.name.trim();
-    if (!trimmed && onNameChange) {
-      onNameChange('My Routine');
+    const trimmed = draftName.trim();
+    if (onNameChange) {
+      onNameChange(trimmed || 'My Routine');
     }
+    setIsEditingName(false);
   };
 
   return (
@@ -48,32 +54,29 @@ export function RoutineDetailHeader({
 
       <View style={styles.titleRow}>
         <Daisy color={categoryColor} size={s(18)} />
-        <Pressable
-          style={styles.meta}
-          onPress={onNameChange ? () => setIsEditingName(true) : undefined}
-        >
+        <View style={styles.meta}>
           {isEditingName ? (
             <TextInput
-              value={routine.name}
-              onChangeText={onNameChange}
+              value={draftName}
+              onChangeText={setDraftName}
               onBlur={finishEditingName}
               autoFocus
+              autoCapitalize="words"
+              autoCorrect
               style={styles.nameInput}
               placeholder="Routine name"
               placeholderTextColor={colors.muted}
             />
           ) : (
-            <>
+            <Pressable onPress={onNameChange ? startEditingName : undefined}>
               <Text style={styles.name}>{routine.name}</Text>
               {onNameChange ? <Text style={styles.editHint}>tap to edit</Text> : null}
-            </>
+              <Text style={styles.subtitle}>
+                {routine.category} · {routine.steps.length} steps
+              </Text>
+            </Pressable>
           )}
-          {!isEditingName ? (
-            <Text style={styles.subtitle}>
-              {routine.category} · {routine.steps.length} steps
-            </Text>
-          ) : null}
-        </Pressable>
+        </View>
       </View>
 
       <Pressable onPress={onEditSchedule} style={styles.scheduleChip}>

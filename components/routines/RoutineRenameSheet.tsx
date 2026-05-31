@@ -6,11 +6,11 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Input } from '@/components/ui/Input';
 import { colors } from '@/constants/colors';
 import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
@@ -54,15 +54,17 @@ export function RoutineRenameSheet({
           <View style={styles.handle} />
           <Text style={styles.title}>Name your routine</Text>
           <Text style={styles.message}>Give this duplicate a name before you start editing.</Text>
-          <Input
+          <TextInput
             value={name}
             onChangeText={setName}
             placeholder="Routine name"
+            placeholderTextColor={colors.muted}
             autoCapitalize="words"
+            autoCorrect
             autoFocus
             returnKeyType="done"
             onSubmitEditing={handleSave}
-            style={styles.input}
+            style={styles.inputField}
           />
           <Pressable onPress={handleSave} style={styles.saveButton}>
             <Text style={styles.saveLabel}>Save</Text>
@@ -119,8 +121,17 @@ const styles = StyleSheet.create({
     lineHeight: fs(19),
     marginBottom: s(14),
   },
-  input: {
+  inputField: {
     marginBottom: s(16),
+    paddingVertical: vs(10),
+    paddingHorizontal: s(12),
+    borderWidth: 1,
+    borderColor: plannerCardBorder,
+    borderRadius: plannerCornerRadius,
+    backgroundColor: colors.white,
+    fontFamily: fonts.dmSans,
+    fontSize: fs(12),
+    color: colors.navy,
   },
   saveButton: {
     paddingVertical: vs(12),
