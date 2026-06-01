@@ -81,9 +81,10 @@ function getLunarDayInCycle(date: Date): number {
 
 function menstrualPhaseForDay(dayInCycle: number, cycleLength: number, periodLength: number): PhaseKey {
   const menstrualEnd = Math.min(periodLength, cycleLength);
-  const ovulationCenter = Math.round(cycleLength * 0.5);
-  const ovulationStart = Math.max(menstrualEnd + 1, ovulationCenter - 1);
-  const ovulationEnd = Math.min(cycleLength, ovulationCenter + 1);
+  // 5-day ovulatory window (±2), centered so a 28-day cycle lands on days 15–19.
+  const ovulationCenter = Math.round((cycleLength * 17) / 28);
+  const ovulationStart = Math.max(menstrualEnd + 1, ovulationCenter - 2);
+  const ovulationEnd = Math.min(cycleLength, ovulationCenter + 2);
 
   if (dayInCycle <= menstrualEnd) return 'menstrual';
   if (dayInCycle < ovulationStart) return 'follicular';
