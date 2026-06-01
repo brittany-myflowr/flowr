@@ -9,26 +9,32 @@ import {
 import { FullWidthButton } from '@/components/ui/Button';
 import { PRIVACY_POLICY_URL, TERMS_URL } from '@/constants/appInfo';
 import { openExternalUrl } from '@/lib/appLinking';
+import { ACCOUNT_DELETION_GRACE_DAYS } from '@/lib/supabase/auth';
 import { useAuth } from '@/providers/AppStore';
 import { useToast } from '@/providers/ToastProvider';
 
 export default function PrivacyScreen() {
   const router = useRouter();
-  const { resetAllData } = useAuth();
+  const { deleteAccount } = useAuth();
   const { showToast } = useToast();
 
   const handleDeleteAccount = () => {
     Alert.alert(
       'Delete my account?',
-      'This permanently removes your profile, routines, products, and all saved data from this device. This cannot be undone.',
+      `Your account will be scheduled for deletion. You have ${ACCOUNT_DELETION_GRACE_DAYS} days to sign back in and restore it before your profile, routines, products, and history are permanently removed.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete My Account',
           style: 'destructive',
           onPress: async () => {
-            await resetAllData();
-            showToast('Account deleted', 'destructive');
+            const error = await deleteAccount();
+            if (error) {
+              Alert.alert('Could not delete account', error);
+              return;
+            }
+
+            showToast('Account scheduled for deletion', 'destructive');
             router.replace('/(auth)/splash');
           },
         },
@@ -42,7 +48,7 @@ export default function PrivacyScreen() {
         <Text style={styles.cardTitle}>What we collect</Text>
         <Text style={styles.paragraph}>
           Account details you provide (name and email), routines, products, cycle settings, and
-          completion history. This data is stored locally on your device.
+          completion history. Your data is synced securely to flowr cloud storage.
         </Text>
       </View>
 
@@ -53,8 +59,7 @@ export default function PrivacyScreen() {
           progress, and syncing routines to your cycle.
         </Text>
         <Text style={[styles.paragraph, styles.paragraphLast]}>
-          We do not sell your data. Cloud sync and analytics may be added in future releases with
-          updated policies.
+          We do not sell your data. See our privacy policy for full details.
         </Text>
       </View>
 

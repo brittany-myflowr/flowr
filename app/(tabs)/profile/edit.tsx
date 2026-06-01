@@ -21,6 +21,7 @@ import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { defaultFlowerColor } from '@/constants/flowerColors';
 import { getFlowerColorByName } from '@/lib/flowerColor';
+import { isValidEmail } from '@/lib/validation';
 import { useAuth } from '@/providers/AppStore';
 import { useToast } from '@/providers/ToastProvider';
 import { s, vs, fs } from '@/lib/scale';
@@ -45,8 +46,13 @@ export default function EditProfileScreen() {
     setSelectedColor(getFlowerColorByName(user.flowerColorName));
   }, [user]);
 
-  const handleSave = () => {
-    const message = updateAccount({
+  const handleSave = async () => {
+    if (!isValidEmail(email)) {
+      setError('Enter a valid email address.');
+      return;
+    }
+
+    const message = await updateAccount({
       firstName,
       lastName,
       email,
@@ -63,7 +69,9 @@ export default function EditProfileScreen() {
   };
 
   const canSave =
-    firstName.trim().length > 0 && lastName.trim().length > 0 && email.trim().length > 0;
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    isValidEmail(email);
 
   if (!user) {
     return (
