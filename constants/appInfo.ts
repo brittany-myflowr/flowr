@@ -31,7 +31,7 @@ export const PREMIUM_PLANS: PremiumPlan[] = [
     label: 'Yearly',
     price: '$34.99',
     interval: 'per year',
-    badge: 'Best value',
+    badge: 'Save 42%',
   },
 ];
 

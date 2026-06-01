@@ -9,6 +9,7 @@ import {
   ShieldOutlineIcon,
   WarningOutlineIcon,
 } from '@/components/icons/ProfileIcons';
+import { TrialBanner } from '@/components/subscription/TrialBanner';
 import { TabPageHeader } from '@/components/layout/TabPageHeader';
 import { ProfileMenuRow, ProfileUserCard } from '@/components/profile/ProfileMenuRow';
 import { Divider } from '@/components/ui/Divider';
@@ -16,11 +17,13 @@ import { colors } from '@/constants/colors';
 import { tabPageStyles } from '@/constants/tabPageTypography';
 import { getFlowerColorByName } from '@/lib/flowerColor';
 import { useAuth } from '@/providers/AppStore';
+import { useSubscription } from '@/providers/SubscriptionProvider';
 import { s } from '@/lib/scale';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, signOut, resetAllData } = useAuth();
+  const { trialInfo, accessStatus } = useSubscription();
 
   const flowerColor = getFlowerColorByName(user?.flowerColorName);
 
@@ -30,8 +33,8 @@ export default function ProfileScreen() {
       {
         text: 'Log Out',
         style: 'destructive',
-        onPress: () => {
-          signOut();
+        onPress: async () => {
+          await signOut();
           router.replace('/(auth)/splash');
         },
       },
@@ -58,7 +61,16 @@ export default function ProfileScreen() {
 
   return (
     <View style={tabPageStyles.screen}>
-      <TabPageHeader title="My Profile" onBackPress={() => router.back()} />
+      <TabPageHeader
+        title="My Profile"
+        onBackPress={() => {
+          if (router.canGoBack()) {
+            router.back();
+          } else {
+            router.replace('/(tabs)');
+          }
+        }}
+      />
 
       <ScrollView
         style={tabPageStyles.scroll}
@@ -71,6 +83,13 @@ export default function ProfileScreen() {
             email={user.email}
             flowerColor={flowerColor.stroke}
             onEdit={() => router.push('/(tabs)/profile/edit')}
+          />
+        ) : null}
+
+        {accessStatus === 'trial' && trialInfo?.isActive ? (
+          <TrialBanner
+            trialInfo={trialInfo}
+            onPress={() => router.push('/(tabs)/profile/subscription')}
           />
         ) : null}
 
