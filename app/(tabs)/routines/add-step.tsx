@@ -1,5 +1,5 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -101,15 +101,29 @@ export default function AddStepScreen() {
     });
   };
 
+  useEffect(() => {
+    if (routines.length === 0) return;
+    setSelectedRoutineIndex((current) => Math.min(current, routines.length - 1));
+  }, [routines.length]);
+
+  useEffect(() => {
+    if (selectedProductId && !products.some((product) => product.id === selectedProductId)) {
+      setSelectedProductId(null);
+    }
+  }, [products, selectedProductId]);
+
   const handleSubmit = () => {
     if (!selectedRoutine || !stepName.trim()) return;
 
-    addStep(selectedRoutine.id, {
+    const step = addStep(selectedRoutine.id, {
       name: stepName,
       note: note.trim() || undefined,
       schedule: customSchedule ?? undefined,
       productId: selectedProductId ?? undefined,
     });
+
+    if (!step) return;
+
     setPendingAddStepSchedule(null);
     setPendingAddStepProduct(null);
     showToast('Step added');

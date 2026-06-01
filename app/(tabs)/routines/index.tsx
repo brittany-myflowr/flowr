@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { CycleSyncCard } from '@/components/cycle/CycleSyncCard';
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { FirstRoutineCard } from '@/components/onboarding/FirstRoutineCard';
 import { TabPageHeader } from '@/components/layout/TabPageHeader';
 import { RoutineCard } from '@/components/routines/RoutineCard';
@@ -100,6 +101,13 @@ export default function RoutinesScreen() {
           <FirstRoutineCard onGetStarted={openGuided} />
         ) : (
           <>
+            {activeCount === 0 ? (
+              <InlineEmptyCard
+                title="No active routines"
+                body="Turn a routine on to see it on Today and your calendar."
+              />
+            ) : null}
+
             {TIME_OF_DAY_ORDER.map((timeOfDay) => {
               const grouped = routines.filter((routine) => routine.timeOfDay === timeOfDay);
               if (grouped.length === 0) return null;

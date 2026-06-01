@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
@@ -90,6 +90,11 @@ export default function ScheduleEditorScreen() {
   if (stepId && !step) {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
+        <SubPageHeader title="Schedule" onBack={() => router.back()} />
+        <InlineEmptyCard
+          title="Step not found"
+          body="This step may have been removed. Go back and open schedule from an existing step."
+        />
         <FullWidthButton label="← Back" onPress={() => router.back()} />
       </View>
     );
@@ -190,7 +195,10 @@ function RoutineScheduleEditor({
   const handleScheduleChange = onScheduleChange ?? setInternalSchedule;
 
   return (
-    <View style={[styles.screen, { paddingTop: insetsTop }]}>
+    <KeyboardAvoidingView
+      style={[styles.screen, { paddingTop: insetsTop }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <SubPageHeader subtitle="Schedule" title={title} onBack={onBack} />
       <ScrollView
         contentContainerStyle={styles.content}
@@ -203,7 +211,7 @@ function RoutineScheduleEditor({
           onSave={() => onSave(normalizeSchedule(schedule))}
         />
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
