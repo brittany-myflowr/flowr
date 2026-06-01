@@ -1,5 +1,6 @@
 import { getApplicableSteps } from '@/lib/applicableSteps';
 import { formatDateKey } from '@/lib/dateKey';
+import { collectStepIds } from '@/lib/todayOrder';
 import type { CycleSettings, Routine } from '@/types';
 
 export type DailyCompletion = {
@@ -92,6 +93,32 @@ export function buildDailyCompletionSnapshot(
   return { scheduled, completed };
 }
 
+export function pruneDailyCompletions(
+  dailyCompletions: DailyCompletionMap,
+  validStepIds: Set<string>,
+): DailyCompletionMap {
+  const cleaned: DailyCompletionMap = {};
+
+  for (const [key, entry] of Object.entries(dailyCompletions)) {
+    if (isLegacyDailyCompletion(entry)) {
+      cleaned[key] = entry;
+      continue;
+    }
+
+    const normalized = normalizeDailyCompletionEntry(entry);
+    if (!normalized) continue;
+
+    const scheduled = normalized.scheduled.filter((id) => validStepIds.has(id));
+    if (scheduled.length === 0) continue;
+
+    const scheduledSet = new Set(scheduled);
+    const completed = normalized.completed.filter((id) => scheduledSet.has(id));
+    cleaned[key] = { scheduled, completed };
+  }
+
+  return cleaned;
+}
+
 export function snapshotTodayCompletion(
   routines: Routine[],
   cycleSettings: CycleSettings,
@@ -126,7 +153,8 @@ export function reconcileDailyCompletionsOnLoad(
     }
   }
 
-  return snapshotTodayCompletion(routines, cycleSettings, cleaned);
+  const pruned = pruneDailyCompletions(cleaned, new Set(collectStepIds(routines)));
+  return snapshotTodayCompletion(routines, cycleSettings, pruned);
 }
 
 export function getCompletionForDate(
