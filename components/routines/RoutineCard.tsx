@@ -30,6 +30,8 @@ export function RoutineCard({ routine, onPress, onLongPress, onToggleActive }: R
       onPress={onPress}
       onLongPress={onLongPress}
       delayLongPress={350}
+      accessibilityRole="button"
+      accessibilityLabel={`${routine.name}, ${routine.steps.length} steps, ${routine.active ? 'active' : 'inactive'}`}
       style={[
         styles.card,
         plannerCard(categoryColor),
@@ -46,7 +48,11 @@ export function RoutineCard({ routine, onPress, onLongPress, onToggleActive }: R
             {routine.steps.length} steps · {routine.category}
           </Text>
         </View>
-        <Toggle value={routine.active} onValueChange={onToggleActive} />
+        <Toggle
+          value={routine.active}
+          onValueChange={onToggleActive}
+          accessibilityLabel={`${routine.active ? 'Deactivate' : 'Activate'} ${routine.name}`}
+        />
       </View>
     </Pressable>
   );

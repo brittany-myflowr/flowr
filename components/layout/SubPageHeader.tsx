@@ -21,7 +21,12 @@ export function SubPageHeader({
 }: SubPageHeaderProps) {
   return (
     <View style={styles.container}>
-      <Pressable onPress={onBack} disabled={!onBack}>
+      <Pressable
+        onPress={onBack}
+        disabled={!onBack}
+        accessibilityRole="button"
+        accessibilityLabel={backLabel}
+      >
         <Text style={[styles.back, !onBack && styles.backDisabled]}>{backLabel}</Text>
       </Pressable>
       {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}

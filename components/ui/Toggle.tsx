@@ -7,12 +7,17 @@ import { s, vs } from '@/lib/scale';
 type ToggleProps = {
   value: boolean;
   onValueChange?: (value: boolean) => void;
+  accessibilityLabel?: string;
 };
 
-export function Toggle({ value, onValueChange }: ToggleProps) {
+export function Toggle({ value, onValueChange, accessibilityLabel = 'Toggle' }: ToggleProps) {
   return (
     <Pressable
       onPress={() => onValueChange?.(!value)}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value }}
+      accessibilityLabel={accessibilityLabel}
+      hitSlop={8}
       style={[styles.track, value ? styles.trackOn : styles.trackOff]}
     >
       <View style={[styles.thumb, value ? styles.thumbOn : styles.thumbOff]} />

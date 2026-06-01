@@ -28,6 +28,8 @@ export function ProfileMenuRow({
     <Pressable
       onPress={onPress}
       disabled={!onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
       style={[styles.row, plannerCard(), danger && styles.rowDanger]}
     >
       <View style={styles.iconWrap}>{icon}</View>
@@ -60,7 +62,12 @@ export function ProfileUserCard({
         <Text style={styles.name}>{firstName}</Text>
         <Text style={styles.email}>{email}</Text>
       </View>
-      <Pressable onPress={onEdit} style={styles.editButton}>
+      <Pressable
+        onPress={onEdit}
+        style={styles.editButton}
+        accessibilityRole="button"
+        accessibilityLabel="Edit profile"
+      >
         <Text style={styles.editLabel}>Edit</Text>
       </Pressable>
     </View>
