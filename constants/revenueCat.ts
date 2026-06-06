@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 /** Replace with keys from the RevenueCat dashboard before shipping. */
 export const REVENUECAT_API_KEYS = {
-  ios: 'appl_PLACEHOLDER_REPLACE_WITH_IOS_KEY',
+  ios: 'appl_VArotJUjXrKZglkWWFPWMubvEke',
   android: 'goog_PLACEHOLDER_REPLACE_WITH_ANDROID_KEY',
 } as const;
 
