@@ -18,6 +18,10 @@ type FormFieldProps = {
   onChangeText?: TextInputProps['onChangeText'];
   keyboardType?: TextInputProps['keyboardType'];
   autoCapitalize?: TextInputProps['autoCapitalize'];
+  textContentType?: TextInputProps['textContentType'];
+  autoComplete?: TextInputProps['autoComplete'];
+  passwordRules?: TextInputProps['passwordRules'];
+  importantForAutofill?: TextInputProps['importantForAutofill'];
 };
 
 export function FormField({
@@ -31,6 +35,10 @@ export function FormField({
   onChangeText,
   keyboardType,
   autoCapitalize,
+  textContentType,
+  autoComplete,
+  passwordRules,
+  importantForAutofill,
 }: FormFieldProps) {
   return (
     <View style={styles.container}>
@@ -55,6 +63,10 @@ export function FormField({
           onChangeText={onChangeText}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
+          textContentType={textContentType}
+          autoComplete={autoComplete}
+          passwordRules={passwordRules}
+          importantForAutofill={importantForAutofill}
         />
       )}
     </View>

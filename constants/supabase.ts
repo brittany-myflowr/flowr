@@ -16,8 +16,11 @@ export const supabase = createClient(supabaseUrl ?? '', supabaseAnonKey ?? '', {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
+    flowType: 'pkce',
   },
 });
+
+export const PASSWORD_RESET_REDIRECT_URL = 'com.brittanytheodore.flowr://reset-password';
 
 export function isSupabaseConfigured(): boolean {
   return Boolean(supabaseUrl && supabaseAnonKey);

@@ -70,6 +70,9 @@ export default function ForgotPasswordScreen() {
         }}
         keyboardType="email-address"
         autoCapitalize="none"
+        textContentType="username"
+        autoComplete="username"
+        importantForAutofill="yes"
       />
 
       {error ? <Text style={styles.error}>{error}</Text> : null}

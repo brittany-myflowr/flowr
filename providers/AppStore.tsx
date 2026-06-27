@@ -32,12 +32,14 @@ import {
 import {
   ACCOUNT_DELETION_GRACE_DAYS,
   getCurrentSessionUserId,
+  fetchProfile,
   requestPasswordReset,
   scheduleAccountDeletion,
   signInWithSupabase,
   signOutFromSupabase,
   signUpWithSupabase,
   updateAccountEmail,
+  updatePassword as updatePasswordInSupabase,
 } from '@/lib/supabase/auth';
 import { checkOnline } from '@/lib/supabase/network';
 import { profileRowToUser } from '@/lib/supabase/mappers';
@@ -134,6 +136,7 @@ type AppStoreValue = {
   resetAllData: () => Promise<void>;
   deleteAccount: () => Promise<string | null>;
   requestPasswordReset: (email: string) => Promise<string | null>;
+  updatePassword: (password: string) => Promise<string | null>;
   addRoutine: (input: CreateRoutineInput) => Routine | null;
   duplicateRoutine: (routineId: string) => Routine | null;
   toggleRoutineActive: (id: string) => void;
@@ -765,6 +768,10 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     return null;
   }, [authUserId]);
 
+  const updatePassword = useCallback(async (password: string): Promise<string | null> => {
+    return updatePasswordInSupabase(password);
+  }, []);
+
   const addRoutine = useCallback(
     (input: CreateRoutineInput) =>
       runPremiumMutation(() => {
@@ -1253,6 +1260,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       updateAccount,
       deleteAccount,
       requestPasswordReset,
+      updatePassword,
       resetAllData,
       addRoutine,
       duplicateRoutine,
@@ -1309,6 +1317,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       updateAccount,
       deleteAccount,
       requestPasswordReset,
+      updatePassword,
       resetAllData,
       addRoutine,
       duplicateRoutine,
@@ -1362,6 +1371,7 @@ export function useAuth() {
     resetAllData,
     deleteAccount,
     requestPasswordReset,
+    updatePassword,
   } = useAppStore();
   return {
     isLoggedIn,
@@ -1374,6 +1384,7 @@ export function useAuth() {
     resetAllData,
     deleteAccount,
     requestPasswordReset,
+    updatePassword,
   };
 }
 

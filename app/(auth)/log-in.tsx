@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -18,11 +18,22 @@ import { s, vs, fs } from '@/lib/scale';
 
 export default function LogInScreen() {
   const router = useRouter();
+  const { passwordUpdated, email: emailParam } = useLocalSearchParams<{
+    passwordUpdated?: string;
+    email?: string;
+  }>();
   const { signIn, isLoggedIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [awaitingEntry, setAwaitingEntry] = useState(false);
+  const showPasswordUpdatedBanner = passwordUpdated === '1';
+
+  useEffect(() => {
+    if (typeof emailParam === 'string' && emailParam.length > 0) {
+      setEmail(emailParam);
+    }
+  }, [emailParam]);
 
   useEffect(() => {
     if (!awaitingEntry || !isLoggedIn) return;
@@ -52,12 +63,23 @@ export default function LogInScreen() {
         <TextLink onPress={() => router.replace('/(auth)/splash')}>← Back</TextLink>
       </View>
 
+      {showPasswordUpdatedBanner ? (
+        <View style={styles.successBanner}>
+          <Text style={styles.successBannerText}>
+            Password updated. Sign in with your new password so iPhone can save it.
+          </Text>
+        </View>
+      ) : null}
+
       <FormField
         label="Email"
         placeholder="you@email.com"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
+        textContentType="username"
+        autoComplete="username"
+        importantForAutofill="yes"
       />
       <FormField
         label="Password"
@@ -65,6 +87,9 @@ export default function LogInScreen() {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        textContentType="password"
+        autoComplete="password"
+        importantForAutofill="yes"
       />
 
       <TextLink
@@ -96,6 +121,21 @@ export default function LogInScreen() {
 const styles = StyleSheet.create({
   backLink: {
     marginBottom: s(12),
+  },
+  successBanner: {
+    marginBottom: s(14),
+    paddingVertical: s(10),
+    paddingHorizontal: s(12),
+    borderRadius: s(8),
+    backgroundColor: `${colors.blue}14`,
+    borderWidth: 1,
+    borderColor: `${colors.blue}33`,
+  },
+  successBannerText: {
+    fontFamily: fonts.dmSans,
+    fontSize: fs(11),
+    lineHeight: fs(17),
+    color: colors.navy,
   },
   spacer: {
     height: vs(14),

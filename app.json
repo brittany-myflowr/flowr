@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "scheme": "flowr",
+    "scheme": ["flowr", "com.brittanytheodore.flowr"],
     "newArchEnabled": true,
     "experiments": {
       "typedRoutes": true

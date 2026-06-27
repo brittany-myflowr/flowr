@@ -1,5 +1,5 @@
 import { defaultFlowerColor } from '@/constants/flowerColors';
-import { supabase } from '@/constants/supabase';
+import { PASSWORD_RESET_REDIRECT_URL, supabase } from '@/constants/supabase';
 import { startTrialIso } from '@/lib/subscription';
 import { isValidEmail } from '@/lib/validation';
 
@@ -27,6 +27,11 @@ function normalizeEmail(email: string) {
 export async function getCurrentSessionUserId(): Promise<string | null> {
   const { data } = await supabase.auth.getSession();
   return data.session?.user.id ?? null;
+}
+
+export async function getCurrentSessionEmail(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user.email ?? null;
 }
 
 export async function fetchProfile(userId: string): Promise<ProfileRow | null> {
@@ -354,8 +359,22 @@ export async function requestPasswordReset(email: string): Promise<string | null
   if (!normalized) return 'Email is required.';
   if (!isValidEmail(normalized)) return 'Enter a valid email address.';
 
-  const { error } = await supabase.auth.resetPasswordForEmail(normalized);
+  const { error } = await supabase.auth.resetPasswordForEmail(normalized, {
+    redirectTo: PASSWORD_RESET_REDIRECT_URL,
+  });
 
+  if (error) return mapAuthError(error.message);
+  return null;
+}
+
+export { establishRecoverySessionFromUrl as establishSessionFromRecoveryUrl } from './recoveryLink';
+
+export async function updatePassword(password: string): Promise<string | null> {
+  if (password.length < 8) {
+    return 'Password must be at least 8 characters.';
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
   if (error) return mapAuthError(error.message);
   return null;
 }
