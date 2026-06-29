@@ -20,6 +20,13 @@ export type SignInInput = {
   password: string;
 };
 
+export type AppleAuthCredential = {
+  identityToken: string;
+  email?: string | null;
+  firstName?: string;
+  lastName?: string;
+};
+
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
@@ -335,6 +342,112 @@ export async function signInWithSupabase(input: SignInInput): Promise<{
   }
 
   const profile = await ensureProfileExists(data.user.id, email);
+  const graceError = await handleDeletionGrace(profile);
+  if (graceError) {
+    return { userId: '', user: null as never, trialStartedAt: null, error: graceError };
+  }
+
+  const refreshed = (await fetchProfile(data.user.id)) ?? profile;
+
+  return {
+    userId: data.user.id,
+    user: profileRowToUser(refreshed),
+    trialStartedAt: refreshed.trial_started_at,
+    error: null,
+  };
+}
+
+export async function signInWithAppleFromCredential(input: AppleAuthCredential): Promise<{
+  userId: string;
+  user: ReturnType<typeof profileRowToUser>;
+  trialStartedAt: string | null;
+  error: string | null;
+}> {
+  const { data, error } = await supabase.auth.signInWithIdToken({
+    provider: 'apple',
+    token: input.identityToken,
+  });
+
+  if (error) {
+    return { userId: '', user: null as never, trialStartedAt: null, error: mapAuthError(error.message) };
+  }
+
+  if (!data.user) {
+    return {
+      userId: '',
+      user: null as never,
+      trialStartedAt: null,
+      error: 'Could not sign in with Apple. Please try again.',
+    };
+  }
+
+  const email = normalizeEmail(data.user.email ?? input.email ?? '');
+  const firstName = input.firstName ?? '';
+  const lastName = input.lastName ?? '';
+  const profileEmail = email || data.user.email || `${data.user.id}@apple.private`;
+
+  let profile = await fetchProfile(data.user.id);
+  const isNewUser = !profile;
+
+  if (isNewUser) {
+    const trialStartedAt = startTrialIso();
+    profile = await ensureProfileExists(data.user.id, profileEmail);
+
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        ...(profileEmail ? { email: profileEmail } : {}),
+        ...(firstName ? { first_name: firstName } : {}),
+        ...(lastName ? { last_name: lastName } : {}),
+        flower_color_name: defaultFlowerColor.name,
+        trial_started_at: trialStartedAt,
+        deletion_scheduled_at: null,
+      })
+      .eq('id', data.user.id);
+
+    if (profileError) {
+      return {
+        userId: '',
+        user: null as never,
+        trialStartedAt: null,
+        error: mapAuthError(profileError.message),
+      };
+    }
+
+    if (firstName || lastName) {
+      await supabase.auth.updateUser({
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          flower_color_name: defaultFlowerColor.name,
+          trial_started_at: trialStartedAt,
+        },
+      });
+    }
+  } else if (
+    (firstName || lastName) &&
+    !profile.first_name?.trim() &&
+    !profile.last_name?.trim()
+  ) {
+    await supabase
+      .from('profiles')
+      .update({
+        ...(firstName ? { first_name: firstName } : {}),
+        ...(lastName ? { last_name: lastName } : {}),
+      })
+      .eq('id', data.user.id);
+  }
+
+  profile = (await fetchProfile(data.user.id)) ?? profile;
+  if (!profile) {
+    return {
+      userId: '',
+      user: null as never,
+      trialStartedAt: null,
+      error: 'Could not load your account. Please try again.',
+    };
+  }
+
   const graceError = await handleDeletionGrace(profile);
   if (graceError) {
     return { userId: '', user: null as never, trialStartedAt: null, error: graceError };

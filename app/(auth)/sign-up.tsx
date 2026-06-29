@@ -14,14 +14,14 @@ import { PRIVACY_POLICY_URL, TERMS_URL } from '@/constants/appInfo';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { openExternalUrl } from '@/lib/appLinking';
-import { signInWithApplePlaceholder, signInWithGooglePlaceholder } from '@/lib/socialAuth';
+import { signInWithGooglePlaceholder } from '@/lib/socialAuth';
 import { isValidEmail } from '@/lib/validation';
 import { useAuth } from '@/providers/AppStore';
 import { s, fs } from '@/lib/scale';
 
 export default function SignUpScreen() {
   const router = useRouter();
-  const { signUp, isLoggedIn } = useAuth();
+  const { signUp, signInWithApple, isLoggedIn } = useAuth();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -29,6 +29,7 @@ export default function SignUpScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [awaitingEntry, setAwaitingEntry] = useState(false);
+  const [isAppleSigningIn, setIsAppleSigningIn] = useState(false);
 
   useEffect(() => {
     if (!awaitingEntry || !isLoggedIn) return;
@@ -47,6 +48,22 @@ export default function SignUpScreen() {
     }
 
     const message = await signUp({ firstName, lastName, email, password });
+    if (message) {
+      setError(message);
+      return;
+    }
+
+    setAwaitingEntry(true);
+  };
+
+  const handleAppleSignIn = async () => {
+    setIsAppleSigningIn(true);
+    setError(null);
+
+    const message = await signInWithApple();
+    setIsAppleSigningIn(false);
+
+    if (message === undefined) return;
     if (message) {
       setError(message);
       return;
@@ -116,7 +133,13 @@ export default function SignUpScreen() {
       <FullWidthButton label="Create Account" onPress={handleSubmit} disabled={!canSubmit} />
 
       <Divider label="or" />
-      <AppleSignInButton onPress={signInWithApplePlaceholder} />
+      <AppleSignInButton
+        onPress={() => {
+          void handleAppleSignIn();
+        }}
+        loading={isAppleSigningIn}
+        disabled={isAppleSigningIn}
+      />
       <GoogleSignInButton onPress={signInWithGooglePlaceholder} />
 
       <Pressable onPress={() => router.push('/(auth)/log-in')} style={styles.footerLink}>

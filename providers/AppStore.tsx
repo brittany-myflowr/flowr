@@ -36,11 +36,13 @@ import {
   requestPasswordReset,
   scheduleAccountDeletion,
   signInWithSupabase,
+  signInWithAppleFromCredential,
   signOutFromSupabase,
   signUpWithSupabase,
   updateAccountEmail,
   updatePassword as updatePasswordInSupabase,
 } from '@/lib/supabase/auth';
+import { getAppleCredential } from '@/lib/socialAuth';
 import { checkOnline } from '@/lib/supabase/network';
 import { profileRowToUser } from '@/lib/supabase/mappers';
 import {
@@ -130,6 +132,7 @@ type AppStoreValue = {
   pendingGuidedStepProductResult: { stepIndex: number; productId: string | null } | null;
   signUp: (input: SignUpInput) => Promise<string | null>;
   signIn: (input: SignInInput) => Promise<string | null>;
+  signInWithApple: () => Promise<string | null | undefined>;
   signOut: () => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
   updateAccount: (input: UpdateAccountInput) => Promise<string | null>;
@@ -639,49 +642,76 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     [isLoggedIn],
   );
 
+  const hydrateSignedInUser = useCallback(
+    async (result: {
+      userId: string;
+      user: User;
+      trialStartedAt: string | null;
+    }): Promise<void> => {
+      skipNextSave.current = true;
+
+      try {
+        const online = await checkOnline();
+        if (online) {
+          const remote = await fetchRemoteUserData(result.userId);
+          if (remote) {
+            const appState = remoteDataToAppState(remote, result.userId);
+            applyLoadedState({
+              ...appState,
+              routines: reconcileStepProducts(appState.routines, appState.products),
+              dailyCompletions: reconcileDailyCompletionsOnLoad(
+                appState.routines,
+                appState.cycleSettings,
+                appState.dailyCompletions,
+              ),
+              todayStepOrders: pruneTodayStepOrders(
+                appState.todayStepOrders,
+                collectStepIds(appState.routines),
+              ),
+              pendingSync: false,
+            });
+            return;
+          }
+        }
+      } catch {
+        // Fall back to cached profile below.
+      }
+
+      isLoggedInRef.current = true;
+      authUserIdRef.current = result.userId;
+      setAuthUserId(result.userId);
+      setUser(result.user);
+      setTrialStartedAt(result.trialStartedAt);
+      setIsLoggedIn(true);
+      setPendingSync(true);
+      queueRemoteSync();
+    },
+    [applyLoadedState, queueRemoteSync],
+  );
+
   const signIn = useCallback(async (input: SignInInput): Promise<string | null> => {
     const result = await signInWithSupabase(input);
     if (result.error) return result.error;
 
-    skipNextSave.current = true;
-
-    try {
-      const online = await checkOnline();
-      if (online) {
-        const remote = await fetchRemoteUserData(result.userId);
-        if (remote) {
-          const appState = remoteDataToAppState(remote, result.userId);
-          applyLoadedState({
-            ...appState,
-            routines: reconcileStepProducts(appState.routines, appState.products),
-            dailyCompletions: reconcileDailyCompletionsOnLoad(
-              appState.routines,
-              appState.cycleSettings,
-              appState.dailyCompletions,
-            ),
-            todayStepOrders: pruneTodayStepOrders(
-              appState.todayStepOrders,
-              collectStepIds(appState.routines),
-            ),
-            pendingSync: false,
-          });
-          return null;
-        }
-      }
-    } catch {
-      // Fall back to cached profile below.
-    }
-
-    isLoggedInRef.current = true;
-    authUserIdRef.current = result.userId;
-    setAuthUserId(result.userId);
-    setUser(result.user);
-    setTrialStartedAt(result.trialStartedAt);
-    setIsLoggedIn(true);
-    setPendingSync(true);
-    queueRemoteSync();
+    await hydrateSignedInUser(result);
     return null;
-  }, [applyLoadedState, queueRemoteSync]);
+  }, [hydrateSignedInUser]);
+
+  const signInWithApple = useCallback(async (): Promise<string | null | undefined> => {
+    try {
+      const appleCredential = await getAppleCredential();
+      if (appleCredential === 'cancelled') return undefined;
+
+      const result = await signInWithAppleFromCredential(appleCredential);
+      if (result.error) return result.error;
+
+      await hydrateSignedInUser(result);
+      return null;
+    } catch (error) {
+      console.log('[signInWithApple] failed', error);
+      return error instanceof Error ? error.message : 'Could not sign in with Apple.';
+    }
+  }, [hydrateSignedInUser]);
 
   const signOut = useCallback(async () => {
     await signOutFromSupabase();
@@ -1255,6 +1285,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       pendingGuidedStepProductResult,
       signUp,
       signIn,
+      signInWithApple,
       signOut,
       updateUser,
       updateAccount,
@@ -1312,6 +1343,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       pendingGuidedStepProductResult,
       signUp,
       signIn,
+      signInWithApple,
       signOut,
       updateUser,
       updateAccount,
@@ -1365,6 +1397,7 @@ export function useAuth() {
     user,
     signUp,
     signIn,
+    signInWithApple,
     signOut,
     updateUser,
     updateAccount,
@@ -1378,6 +1411,7 @@ export function useAuth() {
     user,
     signUp,
     signIn,
+    signInWithApple,
     signOut,
     updateUser,
     updateAccount,

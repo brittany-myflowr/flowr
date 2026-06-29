@@ -12,7 +12,7 @@ import { TextLink } from '@/components/ui/TextLink';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { useAuth } from '@/providers/AppStore';
-import { signInWithApplePlaceholder, signInWithGooglePlaceholder } from '@/lib/socialAuth';
+import { signInWithGooglePlaceholder } from '@/lib/socialAuth';
 import { isValidEmail } from '@/lib/validation';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -22,11 +22,12 @@ export default function LogInScreen() {
     passwordUpdated?: string;
     email?: string;
   }>();
-  const { signIn, isLoggedIn } = useAuth();
+  const { signIn, signInWithApple, isLoggedIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [awaitingEntry, setAwaitingEntry] = useState(false);
+  const [isAppleSigningIn, setIsAppleSigningIn] = useState(false);
   const showPasswordUpdatedBanner = passwordUpdated === '1';
 
   useEffect(() => {
@@ -47,6 +48,22 @@ export default function LogInScreen() {
     }
 
     const message = await signIn({ email, password });
+    if (message) {
+      setError(message);
+      return;
+    }
+
+    setAwaitingEntry(true);
+  };
+
+  const handleAppleSignIn = async () => {
+    setIsAppleSigningIn(true);
+    setError(null);
+
+    const message = await signInWithApple();
+    setIsAppleSigningIn(false);
+
+    if (message === undefined) return;
     if (message) {
       setError(message);
       return;
@@ -105,7 +122,13 @@ export default function LogInScreen() {
       <FullWidthButton label="Log In" onPress={handleSubmit} disabled={!canSubmit} />
 
       <Divider label="or" />
-      <AppleSignInButton onPress={signInWithApplePlaceholder} />
+      <AppleSignInButton
+        onPress={() => {
+          void handleAppleSignIn();
+        }}
+        loading={isAppleSigningIn}
+        disabled={isAppleSigningIn}
+      />
       <GoogleSignInButton onPress={signInWithGooglePlaceholder} />
 
       <Pressable onPress={() => router.push('/(auth)/sign-up')} style={styles.footerLink}>
