@@ -37,12 +37,13 @@ import {
   scheduleAccountDeletion,
   signInWithSupabase,
   signInWithAppleFromCredential,
+  signInWithGoogleFromCredential,
   signOutFromSupabase,
   signUpWithSupabase,
   updateAccountEmail,
   updatePassword as updatePasswordInSupabase,
 } from '@/lib/supabase/auth';
-import { getAppleCredential } from '@/lib/socialAuth';
+import { getAppleCredential, getGoogleCredential } from '@/lib/socialAuth';
 import { checkOnline } from '@/lib/supabase/network';
 import { profileRowToUser } from '@/lib/supabase/mappers';
 import {
@@ -133,6 +134,7 @@ type AppStoreValue = {
   signUp: (input: SignUpInput) => Promise<string | null>;
   signIn: (input: SignInInput) => Promise<string | null>;
   signInWithApple: () => Promise<string | null | undefined>;
+  signInWithGoogle: () => Promise<string | null | undefined>;
   signOut: () => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
   updateAccount: (input: UpdateAccountInput) => Promise<string | null>;
@@ -713,6 +715,22 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, [hydrateSignedInUser]);
 
+  const signInWithGoogle = useCallback(async (): Promise<string | null | undefined> => {
+    try {
+      const googleCredential = await getGoogleCredential();
+      if (googleCredential === 'cancelled') return undefined;
+
+      const result = await signInWithGoogleFromCredential(googleCredential);
+      if (result.error) return result.error;
+
+      await hydrateSignedInUser(result);
+      return null;
+    } catch (error) {
+      console.log('[signInWithGoogle] failed', error);
+      return error instanceof Error ? error.message : 'Could not sign in with Google.';
+    }
+  }, [hydrateSignedInUser]);
+
   const signOut = useCallback(async () => {
     await signOutFromSupabase();
     isLoggedInRef.current = false;
@@ -1286,6 +1304,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       signUp,
       signIn,
       signInWithApple,
+      signInWithGoogle,
       signOut,
       updateUser,
       updateAccount,
@@ -1344,6 +1363,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       signUp,
       signIn,
       signInWithApple,
+      signInWithGoogle,
       signOut,
       updateUser,
       updateAccount,
@@ -1398,6 +1418,7 @@ export function useAuth() {
     signUp,
     signIn,
     signInWithApple,
+    signInWithGoogle,
     signOut,
     updateUser,
     updateAccount,
@@ -1412,6 +1433,7 @@ export function useAuth() {
     signUp,
     signIn,
     signInWithApple,
+    signInWithGoogle,
     signOut,
     updateUser,
     updateAccount,

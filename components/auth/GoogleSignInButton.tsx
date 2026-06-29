@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { colors } from '@/constants/colors';
@@ -8,6 +8,8 @@ import { s, vs, fs } from '@/lib/scale';
 
 type GoogleSignInButtonProps = {
   onPress?: () => void;
+  disabled?: boolean;
+  loading?: boolean;
 };
 
 function GoogleLogo() {
@@ -33,15 +35,26 @@ function GoogleLogo() {
   );
 }
 
-/** UI placeholder — wire to `GoogleSignin.signIn()` from @react-native-google-signin/google-signin when OAuth is configured. */
-export function GoogleSignInButton({ onPress }: GoogleSignInButtonProps) {
+export function GoogleSignInButton({
+  onPress,
+  disabled = false,
+  loading = false,
+}: GoogleSignInButtonProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+      disabled={disabled || loading}
+      style={({ pressed }) => [
+        styles.button,
+        (pressed || disabled || loading) && styles.pressed,
+      ]}
     >
-      <GoogleLogo />
-      <Text style={styles.label}>Continue with Google</Text>
+      {loading ? (
+        <ActivityIndicator color={colors.navy} size="small" />
+      ) : (
+        <GoogleLogo />
+      )}
+      <Text style={styles.label}>{loading ? 'Signing in…' : 'Continue with Google'}</Text>
     </Pressable>
   );
 }

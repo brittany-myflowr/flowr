@@ -12,7 +12,6 @@ import { TextLink } from '@/components/ui/TextLink';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { useAuth } from '@/providers/AppStore';
-import { signInWithGooglePlaceholder } from '@/lib/socialAuth';
 import { isValidEmail } from '@/lib/validation';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -22,12 +21,13 @@ export default function LogInScreen() {
     passwordUpdated?: string;
     email?: string;
   }>();
-  const { signIn, signInWithApple, isLoggedIn } = useAuth();
+  const { signIn, signInWithApple, signInWithGoogle, isLoggedIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [awaitingEntry, setAwaitingEntry] = useState(false);
   const [isAppleSigningIn, setIsAppleSigningIn] = useState(false);
+  const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
   const showPasswordUpdatedBanner = passwordUpdated === '1';
 
   useEffect(() => {
@@ -62,6 +62,22 @@ export default function LogInScreen() {
 
     const message = await signInWithApple();
     setIsAppleSigningIn(false);
+
+    if (message === undefined) return;
+    if (message) {
+      setError(message);
+      return;
+    }
+
+    setAwaitingEntry(true);
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsGoogleSigningIn(true);
+    setError(null);
+
+    const message = await signInWithGoogle();
+    setIsGoogleSigningIn(false);
 
     if (message === undefined) return;
     if (message) {
@@ -127,9 +143,15 @@ export default function LogInScreen() {
           void handleAppleSignIn();
         }}
         loading={isAppleSigningIn}
-        disabled={isAppleSigningIn}
+        disabled={isAppleSigningIn || isGoogleSigningIn}
       />
-      <GoogleSignInButton onPress={signInWithGooglePlaceholder} />
+      <GoogleSignInButton
+        onPress={() => {
+          void handleGoogleSignIn();
+        }}
+        loading={isGoogleSigningIn}
+        disabled={isAppleSigningIn || isGoogleSigningIn}
+      />
 
       <Pressable onPress={() => router.push('/(auth)/sign-up')} style={styles.footerLink}>
         <Text style={styles.footerText}>

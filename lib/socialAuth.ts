@@ -1,5 +1,12 @@
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { Alert, Platform } from 'react-native';
+import { Platform } from 'react-native';
+
+import { GOOGLE_IOS_CLIENT_ID } from '@/constants/googleAuth';
 
 export type AppleAuthCredential = {
   identityToken: string;
@@ -53,9 +60,57 @@ export async function getAppleCredential(): Promise<AppleAuthCredential | 'cance
   }
 }
 
-export function signInWithGooglePlaceholder() {
-  Alert.alert(
-    'Coming soon',
-    'Google Sign In will be connected when OAuth credentials are configured.',
-  );
+export type GoogleAuthCredential = {
+  identityToken: string;
+  email?: string | null;
+  firstName?: string;
+  lastName?: string;
+};
+
+let googleSignInConfigured = false;
+
+function ensureGoogleSignInConfigured() {
+  if (googleSignInConfigured) return;
+
+  GoogleSignin.configure({
+    iosClientId: GOOGLE_IOS_CLIENT_ID,
+  });
+  googleSignInConfigured = true;
+}
+
+export async function getGoogleCredential(): Promise<GoogleAuthCredential | 'cancelled'> {
+  ensureGoogleSignInConfigured();
+
+  if (Platform.OS === 'android') {
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+  }
+
+  try {
+    const response = await GoogleSignin.signIn();
+    if (response.type === 'cancelled') {
+      return 'cancelled';
+    }
+
+    let identityToken = response.data.idToken;
+    if (!identityToken) {
+      const tokens = await GoogleSignin.getTokens();
+      identityToken = tokens.idToken;
+    }
+
+    if (!identityToken) {
+      throw new Error('Google Sign In did not return a valid token.');
+    }
+
+    return {
+      identityToken,
+      email: response.data.user.email,
+      firstName: response.data.user.givenName?.trim() || undefined,
+      lastName: response.data.user.familyName?.trim() || undefined,
+    };
+  } catch (error) {
+    if (isErrorWithCode(error) && error.code === statusCodes.SIGN_IN_CANCELLED) {
+      return 'cancelled';
+    }
+    throw error;
+  }
 }
