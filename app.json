@@ -21,7 +21,16 @@
       "bundleIdentifier": "com.brittanytheodore.flowr",
       "usesAppleSignIn": true,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "flowr",
+              "com.brittanytheodore.flowr",
+              "com.googleusercontent.apps.414750833272-8vctbeuvhlrtej005t1n2vgu50kj8nre"
+            ]
+          }
+        ]
       }
     },
     "android": {
