@@ -19,6 +19,7 @@ import type { PremiumPlanId } from '@/constants/appInfo';
 import {
   getRevenueCatApiKey,
   isRevenueCatConfigured,
+  isUsingRevenueCatTestStore,
   REVENUECAT_ENTITLEMENT_PREMIUM,
   REVENUECAT_PRODUCT_IDS,
 } from '@/constants/revenueCat';
@@ -119,6 +120,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       try {
         if (__DEV__) {
           Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+        }
+        if (__DEV__ && isUsingRevenueCatTestStore()) {
+          console.log('[RevenueCat] Using Test Store API key for development purchases.');
         }
         Purchases.configure({ apiKey });
         configuredRef.current = true;
