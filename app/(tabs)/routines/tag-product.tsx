@@ -1,21 +1,36 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
-import { ProductPickRow } from '@/components/products/ProductCard';
+import { ProductCard } from '@/components/products/ProductCard';
+import { ProductSearchBar } from '@/components/products/ProductSearchBar';
 import { FullWidthButton } from '@/components/ui/Button';
+import { Chip } from '@/components/ui/Chip';
 import { Divider } from '@/components/ui/Divider';
 import { colors } from '@/constants/colors';
-import { plannerCornerRadius } from '@/constants/plannerCardStyles';
+import { plannerCardBorder } from '@/constants/plannerCardStyles';
 import { tabPageStyles, tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
-import { useProducts, useRoutine, useRoutines } from '@/providers/AppStore';
-import { useToast } from '@/providers/ToastProvider';
+import {
+  filterProducts,
+  getProductCategoryFilters,
+  groupProductsByCategory,
+  hasActiveProductFilters,
+  isProductCategoryFilter,
+  type ProductCategoryFilter,
+} from '@/lib/filterProducts';
+import { getProductTagLinks } from '@/lib/productLinks';
 import { suggestProductsForStep } from '@/lib/suggestProductsForStep';
-import { s, vs, fs } from '@/lib/scale';
+import { useAppStore, useProducts, useRoutine, useRoutines } from '@/providers/AppStore';
+import { useToast } from '@/providers/ToastProvider';
+import type { Product } from '@/types';
+import { s, fs } from '@/lib/scale';
+
+const categoryFilters = getProductCategoryFilters();
+const scrollableCategoryFilters = categoryFilters.filter((category) => category !== 'All');
 
 export default function TagProductScreen() {
   const router = useRouter();
@@ -41,8 +56,13 @@ export default function TagProductScreen() {
   const isDraft = draft === '1';
   const routine = routineId ? useRoutine(routineId) : undefined;
   const { products } = useProducts();
-  const { tagStepProduct, setPendingGuidedStepProductResult, setPendingAddStepProduct, consumePendingTagProductSelection } =
-    useRoutines();
+  const { routines } = useAppStore();
+  const {
+    tagStepProduct,
+    setPendingGuidedStepProductResult,
+    setPendingAddStepProduct,
+    consumePendingTagProductSelection,
+  } = useRoutines();
   const { showToast } = useToast();
 
   const step = routine?.steps.find((item) => item.id === stepId);
@@ -51,6 +71,8 @@ export default function TagProductScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(
     selectedProductId ?? step?.productId ?? null,
   );
+  const [query, setQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<ProductCategoryFilter>('All');
 
   useEffect(() => {
     if (selectedProductId) {
@@ -67,13 +89,38 @@ export default function TagProductScreen() {
     }, [consumePendingTagProductSelection]),
   );
 
+  const filteredProducts = useMemo(
+    () => filterProducts(products, query, categoryFilter),
+    [products, query, categoryFilter],
+  );
+
+  const hasActiveFilters = hasActiveProductFilters({ query, categoryFilter });
+
   const { suggested, rest } = useMemo(() => {
-    if (!resolvedStepName) {
-      return { suggested: [], rest: products };
+    if (!resolvedStepName || hasActiveFilters) {
+      return { suggested: [] as Product[], rest: filteredProducts };
     }
 
-    return suggestProductsForStep(resolvedStepName, products);
-  }, [products, resolvedStepName]);
+    return suggestProductsForStep(resolvedStepName, filteredProducts);
+  }, [filteredProducts, hasActiveFilters, resolvedStepName]);
+
+  const groupedRest = useMemo(() => {
+    if (hasActiveFilters || suggested.length > 0) return null;
+    return groupProductsByCategory(rest);
+  }, [hasActiveFilters, rest, suggested.length]);
+
+  const headerSubtitle = useMemo(() => {
+    const parts: string[] = [];
+    if (resolvedStepName) parts.push(resolvedStepName);
+    if (products.length > 0) {
+      parts.push(
+        hasActiveFilters
+          ? `${filteredProducts.length} of ${products.length} products`
+          : `${products.length} product${products.length === 1 ? '' : 's'}`,
+      );
+    }
+    return parts.join(' · ');
+  }, [filteredProducts.length, hasActiveFilters, products.length, resolvedStepName]);
 
   const handleBack = () => {
     router.back();
@@ -105,6 +152,68 @@ export default function TagProductScreen() {
     router.push('/(tabs)/routines/add-product');
   };
 
+  const toggleProduct = (productId: string) => {
+    setSelectedId((current) => (current === productId ? null : productId));
+  };
+
+  const clearFilters = () => {
+    setQuery('');
+    setCategoryFilter('All');
+  };
+
+  const renderProductCard = (product: Product) => (
+    <ProductCard
+      key={product.id}
+      product={product}
+      tagLinks={getProductTagLinks(routines, product.id)}
+      selected={selectedId === product.id}
+      onPress={() => toggleProduct(product.id)}
+    />
+  );
+
+  const renderProductList = () => {
+    if (filteredProducts.length === 0) {
+      return (
+        <InlineEmptyCard
+          title="No matches found"
+          body="Try a different search term or filter."
+        >
+          {hasActiveFilters ? (
+            <View style={styles.emptyButton}>
+              <FullWidthButton label="Clear filters" onPress={clearFilters} />
+            </View>
+          ) : null}
+        </InlineEmptyCard>
+      );
+    }
+
+    if (suggested.length > 0) {
+      return (
+        <>
+          <Text style={styles.sectionLabel}>Suggested</Text>
+          {suggested.map(renderProductCard)}
+          {rest.length > 0 ? (
+            <>
+              <Divider label="All Products" large outlined />
+              {rest.map(renderProductCard)}
+            </>
+          ) : null}
+        </>
+      );
+    }
+
+    if (groupedRest) {
+      return groupedRest.map((group) => (
+        <View key={group.category}>
+          <Divider label={group.category} large outlined />
+          {group.products.map(renderProductCard)}
+        </View>
+      ));
+    }
+
+    return filteredProducts.map(renderProductCard);
+  };
+
   if (!isGuided && !isDraft && (!routine || !step)) {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
@@ -120,73 +229,77 @@ export default function TagProductScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <SubPageHeader title="Tag a Product" onBack={handleBack} />
+      <SubPageHeader
+        title="Tag a Product"
+        subtitle={headerSubtitle || undefined}
+        onBack={handleBack}
+        actionLabel="+ Add"
+        onActionPress={openAddProduct}
+      />
+
+      {products.length > 0 ? (
+        <>
+          <ProductSearchBar value={query} onChangeText={setQuery} />
+          <View style={styles.filtersRow}>
+            <Chip
+              label="All"
+              selected={categoryFilter === 'All'}
+              form
+              onPress={() => setCategoryFilter('All')}
+            />
+            <ScrollView
+              horizontal
+              nestedScrollEnabled
+              showsHorizontalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              style={styles.categoryScroll}
+              contentContainerStyle={styles.categoryScrollContent}
+            >
+              {scrollableCategoryFilters.map((category) => (
+                <Chip
+                  key={category}
+                  label={category}
+                  selected={categoryFilter === category}
+                  form
+                  onPress={() => {
+                    if (isProductCategoryFilter(category)) setCategoryFilter(category);
+                  }}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        </>
+      ) : null}
+
       <ScrollView
         style={tabPageStyles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          tabPageStyles.content,
+          { paddingBottom: s(12) + insets.bottom + s(72) },
+        ]}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        {resolvedStepName ? (
-          <Text style={styles.stepLabel}>
-            For step: <Text style={styles.stepName}>{resolvedStepName}</Text>
-          </Text>
-        ) : null}
-
         {products.length === 0 ? (
           <InlineEmptyCard
-            compact
             title="No products saved yet"
             body="Add a product to your shelf first, then tag it to this step."
-          />
+          >
+            <View style={styles.emptyButton}>
+              <FullWidthButton label="+ Add a Product" onPress={openAddProduct} />
+            </View>
+          </InlineEmptyCard>
         ) : (
-          <>
-            {suggested.length > 0 ? (
-              <>
-                <Text style={styles.sectionLabel}>Suggested</Text>
-                {suggested.map((product) => (
-                  <ProductPickRow
-                    key={product.id}
-                    product={product}
-                    selected={selectedId === product.id}
-                    onPress={() =>
-                      setSelectedId((current) =>
-                        current === product.id ? null : product.id,
-                      )
-                    }
-                  />
-                ))}
-              </>
-            ) : null}
-
-            {rest.length > 0 ? (
-              <>
-                <Divider label="All Products" large outlined />
-                {rest.map((product) => (
-                  <ProductPickRow
-                    key={product.id}
-                    product={product}
-                    selected={selectedId === product.id}
-                    onPress={() =>
-                      setSelectedId((current) =>
-                        current === product.id ? null : product.id,
-                      )
-                    }
-                  />
-                ))}
-              </>
-            ) : null}
-          </>
+          renderProductList()
         )}
+      </ScrollView>
 
-        <Pressable onPress={openAddProduct} style={styles.addLink}>
-          <Text style={styles.addLinkText}>+ Add a new product</Text>
-        </Pressable>
-
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, s(12)) }]}>
         <FullWidthButton
           label={selectedId ? 'Confirm Tag' : 'Save without product'}
           onPress={handleConfirm}
         />
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -199,21 +312,21 @@ const styles = StyleSheet.create({
   centered: {
     paddingHorizontal: s(14),
   },
-  content: {
-    paddingHorizontal: s(12),
-    paddingTop: s(10),
-    paddingBottom: s(24),
+  filtersRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: s(10),
+    paddingBottom: s(6),
+    gap: s(6),
   },
-  stepLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(10),
-    color: colors.blue,
-    marginBottom: s(10),
+  categoryScroll: {
+    flex: 1,
   },
-  stepName: {
-    color: colors.navy,
-    fontFamily: fonts.dmSansSemiBold,
-    fontWeight: '600',
+  categoryScrollContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: s(6),
+    paddingRight: s(10),
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
@@ -223,19 +336,18 @@ const styles = StyleSheet.create({
     color: colors.muted,
     marginBottom: s(8),
   },
-  addLink: {
-    marginTop: s(4),
-    marginBottom: s(10),
-    paddingVertical: vs(9),
-    borderRadius: plannerCornerRadius,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#c8d9e6',
-    alignItems: 'center',
+  emptyButton: {
+    marginTop: s(14),
   },
-  addLinkText: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(10),
-    color: colors.blue,
+  footer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: s(12),
+    paddingTop: s(10),
+    borderTopWidth: 1,
+    borderTopColor: plannerCardBorder,
+    backgroundColor: colors.bg,
   },
 });

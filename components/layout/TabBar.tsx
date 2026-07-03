@@ -1,5 +1,5 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { CommonActions } from '@react-navigation/native';
+import { type Href, router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -20,12 +20,20 @@ const TAB_CONFIG = {
   calendar: { label: 'Calendar', Icon: CalendarIcon },
 } as const;
 
+type TabRouteName = keyof typeof TAB_CONFIG;
+
 const HIDDEN_TAB_ROUTES = new Set(['profile']);
+
+/** Tabs with nested stack navigators — tab press should return to the list root. */
+const NESTED_STACK_TABS = new Set(['routines', 'products']);
+
+const TAB_ROOTS: Partial<Record<TabRouteName, Href>> = {
+  routines: '/(tabs)/routines',
+  products: '/(tabs)/products',
+};
 
 /** Scroll content padding so lists clear the floating tab bar. */
 export const TAB_BAR_SCROLL_INSET = vs(76);
-
-type TabRouteName = keyof typeof TAB_CONFIG;
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -54,25 +62,22 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             canPreventDefault: true,
           });
 
-          if (isFocused) {
-            if (!event.defaultPrevented) {
-              const nestedState = route.state;
-              if (nestedState && (nestedState.index ?? 0) > 0) {
-                navigation.dispatch({
-                  ...CommonActions.navigate({
-                    name: route.name,
-                    merge: true,
-                    params: {
-                      screen: nestedState.routes[0]?.name,
-                    },
-                  }),
-                });
-              }
+          if (event.defaultPrevented) return;
+
+          const nestedIndex = route.state?.index ?? 0;
+          const isAtStackRoot = nestedIndex === 0;
+
+          if (NESTED_STACK_TABS.has(route.name)) {
+            if (isFocused && isAtStackRoot) return;
+
+            const href = TAB_ROOTS[route.name as TabRouteName];
+            if (href) {
+              router.navigate(href);
             }
             return;
           }
 
-          if (!event.defaultPrevented) {
+          if (!isFocused) {
             navigation.navigate(route.name, route.params);
           }
         };

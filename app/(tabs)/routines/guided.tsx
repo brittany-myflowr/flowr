@@ -37,6 +37,7 @@ import {
   tabPageStyles,
 } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
+import { formatTaggedProductLabel } from '@/lib/formatTaggedProductLabel';
 import { useProducts, useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
 import type { Schedule } from '@/types';
@@ -209,7 +210,7 @@ export default function GuidedSetupScreen() {
     return {
       name: entry.name.trim(),
       note: entry.note.trim() || undefined,
-      productName: product?.name,
+      productName: product ? formatTaggedProductLabel(product) : undefined,
       scheduleLabel: entry.schedule
         ? formatSchedulePreview(entry.schedule)
         : undefined,
@@ -300,7 +301,7 @@ export default function GuidedSetupScreen() {
                   total={steps.length}
                   draft={entry}
                   scheduleLabel={scheduleLabel}
-                  productName={product?.name}
+                  productName={product ? formatTaggedProductLabel(product) : undefined}
                   onChangeName={(value) => updateStepDraft(index, { name: value })}
                   onChangeNote={(value) => updateStepDraft(index, { note: value })}
                   onCustomizeSchedule={() => openScheduleCustomizer(index)}

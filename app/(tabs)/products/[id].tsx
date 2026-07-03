@@ -95,15 +95,15 @@ export default function EditProductScreen() {
         showsVerticalScrollIndicator={false}
       >
         <FormField
-          label="Product Name"
-          value={name}
-          onChangeText={setName}
-          autoCapitalize="words"
-        />
-        <FormField
           label="Brand"
           value={brand}
           onChangeText={setBrand}
+          autoCapitalize="words"
+        />
+        <FormField
+          label="Product Name"
+          value={name}
+          onChangeText={setName}
           autoCapitalize="words"
         />
         <FormField

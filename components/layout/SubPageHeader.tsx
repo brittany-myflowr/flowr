@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
-import { plannerCardBorder } from '@/constants/plannerCardStyles';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import { s } from '@/lib/scale';
@@ -11,6 +11,8 @@ type SubPageHeaderProps = {
   subtitle?: string;
   backLabel?: string;
   onBack?: () => void;
+  actionLabel?: string;
+  onActionPress?: () => void;
 };
 
 export function SubPageHeader({
@@ -18,6 +20,8 @@ export function SubPageHeader({
   subtitle,
   backLabel = '← Back',
   onBack,
+  actionLabel,
+  onActionPress,
 }: SubPageHeaderProps) {
   return (
     <View style={styles.container}>
@@ -29,8 +33,22 @@ export function SubPageHeader({
       >
         <Text style={[styles.back, !onBack && styles.backDisabled]}>{backLabel}</Text>
       </Pressable>
-      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
-      <Text style={styles.title}>{title}</Text>
+      <View style={styles.titleRow}>
+        <View style={styles.titleBlock}>
+          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+          <Text style={styles.title}>{title}</Text>
+        </View>
+        {actionLabel && onActionPress ? (
+          <Pressable
+            onPress={onActionPress}
+            style={styles.actionButton}
+            accessibilityRole="button"
+            accessibilityLabel={actionLabel}
+          >
+            <Text style={styles.actionLabel}>{actionLabel}</Text>
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -53,6 +71,15 @@ const styles = StyleSheet.create({
   backDisabled: {
     opacity: 0.5,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: s(10),
+  },
+  titleBlock: {
+    flex: 1,
+  },
   subtitle: {
     fontFamily: fonts.dmSans,
     fontSize: tabPageTypography.subPageSubtitle,
@@ -66,5 +93,18 @@ const styles = StyleSheet.create({
     fontSize: tabPageTypography.subPageTitle,
     color: colors.navy,
     lineHeight: tabPageTypography.subPageTitle * 1.25,
+  },
+  actionButton: {
+    marginTop: s(2),
+    paddingHorizontal: s(10),
+    paddingVertical: s(6),
+    borderRadius: plannerCornerRadius,
+    backgroundColor: colors.navy,
+  },
+  actionLabel: {
+    fontFamily: fonts.dmSansSemiBold,
+    fontSize: tabPageTypography.subPageBack,
+    color: colors.white,
+    fontWeight: '600',
   },
 });

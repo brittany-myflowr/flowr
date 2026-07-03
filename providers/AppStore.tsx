@@ -13,6 +13,7 @@ import { supabase } from '@/constants/supabase';
 
 
 import { createId } from '@/lib/createId';
+import { formatTaggedProductLabel } from '@/lib/formatTaggedProductLabel';
 import { buildDuplicateRoutineName } from '@/lib/routineNames';
 import { defaultScheduleForTimeOfDay, normalizeSchedule, cloneSchedule } from '@/constants/schedules';
 import {
@@ -845,7 +846,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
               done: false,
               schedule: stepInput.schedule,
               productId: product?.id,
-              productName: product?.name,
+              productName: product ? formatTaggedProductLabel(product) : undefined,
             };
           });
 
@@ -1039,7 +1040,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
               done: false,
               schedule: input.schedule,
               productId: product?.id,
-              productName: product?.name,
+              productName: product ? formatTaggedProductLabel(product) : undefined,
             };
 
             return { ...routine, steps: [...routine.steps, created] };
@@ -1180,23 +1181,29 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
   const updateProduct = useCallback((id: string, updates: Partial<Omit<Product, 'id'>>) => {
     runPremiumMutationVoid(() => {
+      const existing = products.find((product) => product.id === id);
+      if (!existing) return;
+
+      const merged = { ...existing, ...updates };
+      const labelChanged = updates.name !== undefined || updates.brand !== undefined;
+      const nextLabel = labelChanged ? formatTaggedProductLabel(merged) : null;
+
       setProducts((current) =>
-        current.map((product) => (product.id === id ? { ...product, ...updates } : product)),
+        current.map((product) => (product.id === id ? merged : product)),
       );
 
-      if (updates.name !== undefined) {
-        const nextName = updates.name.trim();
+      if (nextLabel) {
         setRoutines((current) =>
           current.map((routine) => ({
             ...routine,
             steps: routine.steps.map((step) =>
-              step.productId === id ? { ...step, productName: nextName } : step,
+              step.productId === id ? { ...step, productName: nextLabel } : step,
             ),
           })),
         );
       }
     });
-  }, []);
+  }, [products]);
 
   const removeProduct = useCallback((id: string) => {
     runPremiumMutationVoid(() => {
@@ -1242,7 +1249,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
                 return {
                   ...step,
                   productId: product.id,
-                  productName: product.name,
+                  productName: formatTaggedProductLabel(product),
                 };
               }),
             };

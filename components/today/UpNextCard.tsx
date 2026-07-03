@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PhaseChip } from '@/components/cycle/PhaseChip';
 import { getTimeOfDayIcon } from '@/components/icons/TimeOfDayIcons';
+import { StepProductLabel } from '@/components/steps/StepProductChip';
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { todayGlassCard, todayCornerRadius } from '@/constants/todayCardStyles';
@@ -26,6 +27,11 @@ export function UpNextCard({ upNext, onComplete }: UpNextCardProps) {
 
       <Text style={styles.routineName}>{upNext.routineName}</Text>
       <Text style={styles.stepName}>{upNext.step.name}</Text>
+
+      {upNext.step.note ? <Text style={styles.note}>{upNext.step.note}</Text> : null}
+      {upNext.step.productName ? (
+        <StepProductLabel label={upNext.step.productName} style={styles.productLabel} />
+      ) : null}
 
       <Text style={styles.meta}>
         Step {upNext.stepNumber} of {upNext.totalSteps}
@@ -83,6 +89,17 @@ const styles = StyleSheet.create({
     color: colors.navy,
     marginBottom: s(4),
   },
+  note: {
+    fontFamily: fonts.dmSans,
+    fontSize: fs(11),
+    color: colors.muted,
+    marginBottom: s(4),
+  },
+  productLabel: {
+    marginTop: 0,
+    marginBottom: s(6),
+    fontSize: fs(9),
+  },
   meta: {
     fontFamily: fonts.dmSans,
     fontSize: fs(9),
@@ -113,7 +130,7 @@ const styles = StyleSheet.create({
 /** Keeps Today section bar aligned when Up Next is hidden. */
 export const upNextReservedSpaceStyle = StyleSheet.create({
   placeholder: {
-    minHeight: vs(126),
+    minHeight: vs(150),
     marginBottom: s(10),
   },
 });

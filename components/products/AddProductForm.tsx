@@ -73,17 +73,17 @@ export function AddProductForm({ insetTop, onBack, onSubmit, onSaved }: AddProdu
         showsVerticalScrollIndicator={false}
       >
         <FormField
-          label="Product Name"
-          placeholder="Product name"
-          value={name}
-          onChangeText={setName}
-          autoCapitalize="words"
-        />
-        <FormField
           label="Brand"
           placeholder="Brand name"
           value={brand}
           onChangeText={setBrand}
+          autoCapitalize="words"
+        />
+        <FormField
+          label="Product Name"
+          placeholder="Product name"
+          value={name}
+          onChangeText={setName}
           autoCapitalize="words"
         />
         <FormField

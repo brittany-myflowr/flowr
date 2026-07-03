@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { CycleSyncCard } from '@/components/cycle/CycleSyncCard';
@@ -7,19 +7,29 @@ import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { FirstRoutineCard } from '@/components/onboarding/FirstRoutineCard';
 import { TabPageHeader } from '@/components/layout/TabPageHeader';
+import { ProductSearchBar } from '@/components/products/ProductSearchBar';
 import { RoutineCard } from '@/components/routines/RoutineCard';
 import { RoutineOptionsSheet } from '@/components/routines/RoutineOptionsSheet';
 import { Divider } from '@/components/ui/Divider';
 import { FullWidthButton } from '@/components/ui/Button';
+import { Chip } from '@/components/ui/Chip';
 import { tabPageStyles } from '@/constants/tabPageTypography';
-import { formatTimeOfDay, useRoutines } from '@/providers/RoutinesProvider';
+import {
+  filterRoutines,
+  getRoutineCategoryFilters,
+  groupRoutinesByTimeOfDay,
+  hasActiveRoutineFilters,
+  isRoutineCategoryFilter,
+  type RoutineCategoryFilter,
+} from '@/lib/filterRoutines';
+import { useRoutines } from '@/providers/RoutinesProvider';
 import { useCycleSettings } from '@/providers/AppStore';
 import { useToast } from '@/providers/ToastProvider';
 import type { Routine } from '@/types';
-import type { TimeOfDay } from '@/types';
 import { s } from '@/lib/scale';
 
-const TIME_OF_DAY_ORDER: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
+const categoryFilters = getRoutineCategoryFilters();
+const scrollableCategoryFilters = categoryFilters.filter((category) => category !== 'All');
 
 export default function RoutinesScreen() {
   const router = useRouter();
@@ -29,10 +39,35 @@ export default function RoutinesScreen() {
 
   const [selectedRoutine, setSelectedRoutine] = useState<Routine | null>(null);
   const [deleteRoutineId, setDeleteRoutineId] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<RoutineCategoryFilter>('All');
 
   const activeCount = routines.filter((routine) => routine.active).length;
   const openGuided = () => router.push('/(tabs)/routines/guided');
   const openCycleSettings = () => router.push('/(tabs)/routines/cycle-settings');
+
+  const filteredRoutines = useMemo(
+    () => filterRoutines(routines, query, categoryFilter),
+    [routines, query, categoryFilter],
+  );
+
+  const hasActiveFilters = hasActiveRoutineFilters({ query, categoryFilter });
+  const shouldGroupByTimeOfDay = !hasActiveFilters;
+
+  const groupedRoutines = useMemo(() => {
+    if (!shouldGroupByTimeOfDay) return null;
+    return groupRoutinesByTimeOfDay(filteredRoutines);
+  }, [filteredRoutines, shouldGroupByTimeOfDay]);
+
+  const subtitle = useMemo(() => {
+    if (routines.length === 0) return '0 active of 0 total';
+
+    if (hasActiveFilters) {
+      return `${filteredRoutines.length} of ${routines.length} routine${routines.length === 1 ? '' : 's'}`;
+    }
+
+    return `${activeCount} active of ${routines.length} total`;
+  }, [activeCount, filteredRoutines.length, hasActiveFilters, routines.length]);
 
   const handleCycleToggle = (enabled: boolean) => {
     setCycleEnabled(enabled);
@@ -40,11 +75,6 @@ export default function RoutinesScreen() {
       openCycleSettings();
     }
   };
-
-  const subtitle =
-    routines.length === 0
-      ? '0 active of 0 total'
-      : `${activeCount} active of ${routines.length} total`;
 
   const cycleSection = (
     <>
@@ -58,6 +88,11 @@ export default function RoutinesScreen() {
   );
 
   const closeOptions = () => setSelectedRoutine(null);
+
+  const clearFilters = () => {
+    setQuery('');
+    setCategoryFilter('All');
+  };
 
   const handleDuplicate = (routineId: string) => {
     const duplicated = duplicateRoutine(routineId);
@@ -83,9 +118,77 @@ export default function RoutinesScreen() {
     setDeleteRoutineId(null);
   };
 
+  const renderRoutineCard = (routine: Routine) => (
+    <RoutineCard
+      key={routine.id}
+      routine={routine}
+      onPress={() => router.push(`/(tabs)/routines/${routine.id}`)}
+      onLongPress={() => setSelectedRoutine(routine)}
+      onToggleActive={() => toggleRoutineActive(routine.id)}
+    />
+  );
+
+  const renderRoutineList = () => {
+    if (shouldGroupByTimeOfDay && groupedRoutines) {
+      return groupedRoutines.map((group) => (
+        <View key={group.timeOfDay}>
+          <Divider label={group.label} large outlined />
+          {group.routines.map((routine) => renderRoutineCard(routine))}
+        </View>
+      ));
+    }
+
+    return filteredRoutines.map((routine) => renderRoutineCard(routine));
+  };
+
+  const filteredActiveCount = filteredRoutines.filter((routine) => routine.active).length;
+
   return (
     <View style={tabPageStyles.screen}>
-      <TabPageHeader title="My Routines" subtitle={subtitle} />
+      <TabPageHeader
+        title="My Routines"
+        subtitle={subtitle}
+        actionLabel="+ Add"
+        onActionPress={routines.length > 0 ? openGuided : undefined}
+      />
+
+      {routines.length > 0 ? (
+        <>
+          <ProductSearchBar
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search routines"
+          />
+          <View style={styles.filtersRow}>
+            <Chip
+              label="All"
+              selected={categoryFilter === 'All'}
+              form
+              onPress={() => setCategoryFilter('All')}
+            />
+            <ScrollView
+              horizontal
+              nestedScrollEnabled
+              showsHorizontalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              style={styles.categoryScroll}
+              contentContainerStyle={styles.categoryScrollContent}
+            >
+              {scrollableCategoryFilters.map((category) => (
+                <Chip
+                  key={category}
+                  label={category}
+                  selected={categoryFilter === category}
+                  form
+                  onPress={() => {
+                    if (isRoutineCategoryFilter(category)) setCategoryFilter(category);
+                  }}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        </>
+      ) : null}
 
       <ScrollView
         style={tabPageStyles.scroll}
@@ -94,42 +197,36 @@ export default function RoutinesScreen() {
           routines.length === 0 && styles.emptyContent,
         ]}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         <View style={styles.cycleSection}>{cycleSection}</View>
 
         {routines.length === 0 ? (
           <FirstRoutineCard onGetStarted={openGuided} />
+        ) : filteredRoutines.length === 0 ? (
+          <InlineEmptyCard
+            title="No matches found"
+            body="Try a different search term or filter."
+          >
+            {hasActiveFilters ? (
+              <View style={styles.emptyButton}>
+                <FullWidthButton label="Clear filters" onPress={clearFilters} />
+              </View>
+            ) : null}
+          </InlineEmptyCard>
         ) : (
           <>
-            {activeCount === 0 ? (
+            {filteredActiveCount === 0 ? (
               <InlineEmptyCard
                 title="No active routines"
                 body="Turn a routine on to see it on Today and your calendar."
               />
             ) : null}
 
-            {TIME_OF_DAY_ORDER.map((timeOfDay) => {
-              const grouped = routines.filter((routine) => routine.timeOfDay === timeOfDay);
-              if (grouped.length === 0) return null;
-
-              return (
-                <View key={timeOfDay}>
-                  <Divider label={formatTimeOfDay(timeOfDay)} large outlined />
-                  {grouped.map((routine) => (
-                    <RoutineCard
-                      key={routine.id}
-                      routine={routine}
-                      onPress={() => router.push(`/(tabs)/routines/${routine.id}`)}
-                      onLongPress={() => setSelectedRoutine(routine)}
-                      onToggleActive={() => toggleRoutineActive(routine.id)}
-                    />
-                  ))}
-                </View>
-              );
-            })}
+            {renderRoutineList()}
 
             <View style={styles.createButton}>
-              <FullWidthButton label="+ Create New Routine" onPress={openGuided} />
+              <FullWidthButton label="+ Add a Routine" onPress={openGuided} />
             </View>
           </>
         )}
@@ -173,6 +270,25 @@ export default function RoutinesScreen() {
 const styles = StyleSheet.create({
   emptyContent: {
     paddingTop: s(8),
+  },
+  filtersRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: s(10),
+    paddingBottom: s(6),
+    gap: s(6),
+  },
+  categoryScroll: {
+    flex: 1,
+  },
+  categoryScrollContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: s(6),
+    paddingRight: s(10),
+  },
+  emptyButton: {
+    marginTop: s(14),
   },
   createButton: {
     marginTop: s(4),

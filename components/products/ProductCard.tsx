@@ -23,6 +23,7 @@ export const verdictColors: Record<Verdict, string> = {
 type ProductCardProps = {
   product: Product;
   tagLinks?: ProductTagLink[];
+  selected?: boolean;
   onPress?: () => void;
   onTagPress?: (link: ProductTagLink) => void;
 };
@@ -30,18 +31,26 @@ type ProductCardProps = {
 export function ProductCard({
   product,
   tagLinks = [],
+  selected = false,
   onPress,
   onTagPress,
 }: ProductCardProps) {
   const category = resolveProductCategory(product);
   const categoryColor = categoryColors[category];
-  const accessibilityLabel = `${product.name}, ${product.brand}, ${category}, ${product.verdict}`;
+  const accessibilityLabel = `${product.name}, ${product.brand}, ${category}, ${product.verdict}${
+    selected ? ', selected' : ''
+  }`;
 
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.card, plannerCard(categoryColor)]}
+      style={[
+        styles.card,
+        plannerCard(categoryColor),
+        selected && styles.cardSelected,
+      ]}
       accessibilityRole="button"
+      accessibilityState={{ selected }}
       accessibilityLabel={accessibilityLabel}
     >
       <View style={styles.headerRow}>
@@ -49,34 +58,49 @@ export function ProductCard({
           <Text style={styles.name}>{product.name}</Text>
           <Text style={styles.brand}>{product.brand}</Text>
         </View>
-        <View
-          style={styles.verdictIconWrap}
-          accessibilityLabel={product.verdict}
-          importantForAccessibility="yes"
-        >
-          <VerdictHeartIcon
-            verdict={product.verdict}
-            size={s(18)}
-            color={getVerdictHeartColor(product.verdict)}
-          />
+        <View style={styles.headerActions}>
+          {selected ? <CheckIcon size={s(14)} color={colors.blue} /> : null}
+          <View
+            style={styles.verdictIconWrap}
+            accessibilityLabel={product.verdict}
+            importantForAccessibility="yes"
+          >
+            <VerdictHeartIcon
+              verdict={product.verdict}
+              size={s(18)}
+              color={getVerdictHeartColor(product.verdict)}
+            />
+          </View>
         </View>
       </View>
 
       {tagLinks.length > 0 ? (
         <View style={styles.tagRow}>
-          {tagLinks.map((link) => (
-            <Pressable
-              key={`${link.routineId}-${link.stepId}`}
-              onPress={() => onTagPress?.(link)}
-              style={styles.tagChip}
-              accessibilityRole="button"
-              accessibilityLabel={`Open ${link.stepName} in ${link.routineName}`}
-            >
-              <Text style={styles.tagRoutine}>{link.routineName}</Text>
-              <Text style={styles.tagSeparator}> · </Text>
-              <Text style={styles.tagStep}>{link.stepName}</Text>
-            </Pressable>
-          ))}
+          {tagLinks.map((link) =>
+            onTagPress ? (
+              <Pressable
+                key={`${link.routineId}-${link.stepId}`}
+                onPress={() => onTagPress(link)}
+                style={styles.tagChip}
+                accessibilityRole="button"
+                accessibilityLabel={`Open ${link.stepName} in ${link.routineName}`}
+              >
+                <Text style={styles.tagRoutine}>{link.routineName}</Text>
+                <Text style={styles.tagSeparator}> · </Text>
+                <Text style={styles.tagStep}>{link.stepName}</Text>
+              </Pressable>
+            ) : (
+              <View
+                key={`${link.routineId}-${link.stepId}`}
+                style={styles.tagChip}
+                accessibilityLabel={`Tagged to ${link.stepName} in ${link.routineName}`}
+              >
+                <Text style={styles.tagRoutine}>{link.routineName}</Text>
+                <Text style={styles.tagSeparator}> · </Text>
+                <Text style={styles.tagStep}>{link.stepName}</Text>
+              </View>
+            ),
+          )}
         </View>
       ) : (
         <Text style={styles.untaggedHint}>Not tagged to a routine step yet</Text>
@@ -126,6 +150,16 @@ const styles = StyleSheet.create({
   titleBlock: {
     flex: 1,
     minWidth: 0,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: s(6),
+    flexShrink: 0,
+  },
+  cardSelected: {
+    backgroundColor: colors.light,
+    borderColor: '#c8d9e6',
   },
   verdictIconWrap: {
     flexShrink: 0,

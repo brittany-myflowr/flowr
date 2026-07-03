@@ -1,5 +1,7 @@
 import type { Product, Routine } from '@/types';
 
+import { formatTaggedProductLabel } from '@/lib/formatTaggedProductLabel';
+
 export function reconcileStepProducts(routines: Routine[], products: Product[]): Routine[] {
   const productById = new Map(products.map((product) => [product.id, product]));
 
@@ -13,9 +15,10 @@ export function reconcileStepProducts(routines: Routine[], products: Product[]):
         return { ...step, productId: undefined, productName: undefined };
       }
 
-      if (step.productName === product.name) return step;
+      const productName = formatTaggedProductLabel(product);
+      if (step.productName === productName) return step;
 
-      return { ...step, productName: product.name };
+      return { ...step, productName };
     }),
   }));
 }

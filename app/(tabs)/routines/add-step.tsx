@@ -20,6 +20,7 @@ import {
 import { FullWidthButton } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { formatSchedulePreview } from '@/constants/schedules';
+import { formatTaggedProductLabel } from '@/lib/formatTaggedProductLabel';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { useProducts } from '@/providers/AppStore';
@@ -192,7 +193,7 @@ export default function AddStepScreen() {
           <Text style={styles.sectionLabel}>Product</Text>
           {selectedProduct ? (
             <StepProductChipButton
-              label={selectedProduct.name}
+              label={formatTaggedProductLabel(selectedProduct)}
               onPress={openTagProduct}
               actionLabel="Edit"
             />
