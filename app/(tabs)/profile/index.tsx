@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Alert, ScrollView, View } from 'react-native';
+import { Alert, View } from 'react-native';
 
 import { Daisy } from '@/components/brand';
 import {
@@ -10,6 +10,7 @@ import {
   WarningOutlineIcon,
 } from '@/components/icons/ProfileIcons';
 import { TrialBanner } from '@/components/subscription/TrialBanner';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { TabPageHeader } from '@/components/layout/TabPageHeader';
 import { ProfileMenuRow, ProfileUserCard } from '@/components/profile/ProfileMenuRow';
 import { Divider } from '@/components/ui/Divider';
@@ -72,7 +73,7 @@ export default function ProfileScreen() {
         }}
       />
 
-      <ScrollView
+      <FocusScrollView
         style={tabPageStyles.scroll}
         contentContainerStyle={tabPageStyles.content}
         showsVerticalScrollIndicator={false}
@@ -135,7 +136,7 @@ export default function ProfileScreen() {
           trailing="Dev only"
           onPress={handleReset}
         />
-      </ScrollView>
+      </FocusScrollView>
     </View>
   );
 }

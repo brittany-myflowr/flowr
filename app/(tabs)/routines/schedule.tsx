@@ -1,9 +1,10 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { ScheduleEditorForm } from '@/components/schedule/ScheduleEditorForm';
 import { FullWidthButton } from '@/components/ui/Button';
@@ -200,7 +201,7 @@ function RoutineScheduleEditor({
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <SubPageHeader subtitle="Schedule" title={title} onBack={onBack} />
-      <ScrollView
+      <FocusScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -210,7 +211,7 @@ function RoutineScheduleEditor({
           onScheduleChange={handleScheduleChange}
           onSave={() => onSave(normalizeSchedule(schedule))}
         />
-      </ScrollView>
+      </FocusScrollView>
     </KeyboardAvoidingView>
   );
 }

@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
@@ -11,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { VerdictPicker } from '@/components/products/VerdictPicker';
 import { FullWidthButton } from '@/components/ui/Button';
@@ -89,7 +89,7 @@ export default function EditProductScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <SubPageHeader title="Edit Product" onBack={() => router.back()} />
-      <ScrollView
+      <FocusScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -130,7 +130,7 @@ export default function EditProductScreen() {
             onPress={() => setShowDelete(true)}
           />
         </View>
-      </ScrollView>
+      </FocusScrollView>
 
       <DeleteConfirmSheet
         visible={showDelete}

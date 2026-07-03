@@ -6,6 +6,7 @@ import { CycleSyncCard } from '@/components/cycle/CycleSyncCard';
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { FirstRoutineCard } from '@/components/onboarding/FirstRoutineCard';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { TabPageHeader } from '@/components/layout/TabPageHeader';
 import { ProductSearchBar } from '@/components/products/ProductSearchBar';
 import { RoutineCard } from '@/components/routines/RoutineCard';
@@ -190,7 +191,7 @@ export default function RoutinesScreen() {
         </>
       ) : null}
 
-      <ScrollView
+      <FocusScrollView
         style={tabPageStyles.scroll}
         contentContainerStyle={[
           tabPageStyles.content,
@@ -230,7 +231,7 @@ export default function RoutinesScreen() {
             </View>
           </>
         )}
-      </ScrollView>
+      </FocusScrollView>
 
       <RoutineOptionsSheet
         visible={selectedRoutine !== null}

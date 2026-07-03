@@ -1,6 +1,7 @@
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 
 import { AuthHeader } from '@/components/auth/AuthHeader';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { colors } from '@/constants/colors';
 import { s } from '@/lib/scale';
 
@@ -22,14 +23,14 @@ export function AuthFormLayout({
     >
       <View style={styles.frame}>
         <AuthHeader subtitle={headerSubtitle} compact={headerCompact} />
-        <ScrollView
+        <FocusScrollView
           style={styles.formScroll}
           contentContainerStyle={styles.formContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           {children}
-        </ScrollView>
+        </FocusScrollView>
       </View>
     </KeyboardAvoidingView>
   );

@@ -3,11 +3,11 @@ import { useCallback, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
 } from 'react-native';
 
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { VerdictPicker } from '@/components/products/VerdictPicker';
 import { FullWidthButton } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
@@ -67,7 +67,7 @@ export function AddProductForm({ insetTop, onBack, onSubmit, onSaved }: AddProdu
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <SubPageHeader title="Add a Product" onBack={onBack} />
-      <ScrollView
+      <FocusScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -108,7 +108,7 @@ export function AddProductForm({ insetTop, onBack, onSubmit, onSaved }: AddProdu
           onPress={handleSave}
           disabled={!name.trim() || !brand.trim()}
         />
-      </ScrollView>
+      </FocusScrollView>
     </KeyboardAvoidingView>
   );
 }

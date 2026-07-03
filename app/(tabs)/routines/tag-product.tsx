@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { ProductCard } from '@/components/products/ProductCard';
 import { ProductSearchBar } from '@/components/products/ProductSearchBar';
@@ -271,7 +272,7 @@ export default function TagProductScreen() {
         </>
       ) : null}
 
-      <ScrollView
+      <FocusScrollView
         style={tabPageStyles.scroll}
         contentContainerStyle={[
           tabPageStyles.content,
@@ -292,7 +293,7 @@ export default function TagProductScreen() {
         ) : (
           renderProductList()
         )}
-      </ScrollView>
+      </FocusScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, s(12)) }]}>
         <FullWidthButton

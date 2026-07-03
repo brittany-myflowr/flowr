@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { colors } from '@/constants/colors';
 import { plannerCard } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
@@ -26,12 +27,12 @@ export function ProfileScreenShell({ title, subtitle, children }: ProfileScreenS
         backLabel="← Profile"
         onBack={() => router.back()}
       />
-      <ScrollView
+      <FocusScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         {children}
-      </ScrollView>
+      </FocusScrollView>
     </View>
   );
 }

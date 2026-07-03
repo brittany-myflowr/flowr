@@ -4,7 +4,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -13,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { ScheduleDefaultRow } from '@/components/routines/ScheduleDefaultRow';
 import {
@@ -111,7 +111,7 @@ export default function StepDetailScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <SubPageHeader title="Edit Step" onBack={() => router.back()} />
-      <ScrollView
+      <FocusScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -158,7 +158,7 @@ export default function StepDetailScreen() {
           variant="danger"
           onPress={() => setShowDelete(true)}
         />
-      </ScrollView>
+      </FocusScrollView>
 
       <DeleteConfirmSheet
         visible={showDelete}

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
 import { CalendarMonthGrid } from '@/components/calendar/CalendarMonthGrid';
@@ -10,6 +10,7 @@ import { PlannerDayEmpty } from '@/components/calendar/PlannerDayEmpty';
 import { PlannerDayOutOfMonthHint } from '@/components/calendar/PlannerDayOutOfMonthHint';
 import { PlannerDaySection } from '@/components/calendar/PlannerDaySection';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { TabPageHeader } from '@/components/layout/TabPageHeader';
 import { plannerCard } from '@/constants/plannerCardStyles';
 import { tabPageStyles } from '@/constants/tabPageTypography';
@@ -99,7 +100,7 @@ export default function CalendarScreen() {
     <View style={tabPageStyles.screen}>
       <TabPageHeader title="My Calendar" />
 
-      <ScrollView
+      <FocusScrollView
         style={tabPageStyles.scroll}
         contentContainerStyle={tabPageStyles.content}
         showsVerticalScrollIndicator={false}
@@ -166,7 +167,7 @@ export default function CalendarScreen() {
             monthLabel={monthShortLabel}
           />
         ) : null}
-      </ScrollView>
+      </FocusScrollView>
     </View>
   );
 }

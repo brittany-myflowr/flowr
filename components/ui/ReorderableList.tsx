@@ -1,3 +1,4 @@
+import { useFocusEffect, useScrollToTop } from '@react-navigation/native';
 import {
   ReactNode,
   useCallback,
@@ -108,6 +109,16 @@ export function ReorderableList<T>({
   const activeKeyRef = useRef(activeKey);
   const onItemPressRef = useRef(onItemPress);
   const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
+
+  useFocusEffect(
+    useCallback(() => {
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({ y: 0, animated: false });
+      });
+    }, []),
+  );
+
   const contentRef = useRef<View>(null);
   const rowRefs = useRef<Record<string, View | null>>({});
   const pendingDragRef = useRef<{

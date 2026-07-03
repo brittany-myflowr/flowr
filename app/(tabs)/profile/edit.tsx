@@ -4,7 +4,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -13,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Daisy } from '@/components/brand';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { FlowerColorPicker } from '@/components/profile/FlowerColorPicker';
 import { FullWidthButton } from '@/components/ui/Button';
@@ -106,7 +106,7 @@ export default function EditProfileScreen() {
         </View>
       </View>
 
-      <ScrollView
+      <FocusScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -141,7 +141,7 @@ export default function EditProfileScreen() {
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <FullWidthButton label="Save Settings" onPress={handleSave} disabled={!canSave} />
-      </ScrollView>
+      </FocusScrollView>
     </KeyboardAvoidingView>
   );
 }

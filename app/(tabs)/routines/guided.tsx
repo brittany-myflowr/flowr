@@ -5,7 +5,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -19,6 +18,7 @@ import {
   type GuidedStepDraft,
 } from '@/components/routines/guided/GuidedStepCard';
 import { RoutineReviewCard } from '@/components/routines/RoutineCard';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { ScheduleEditorForm } from '@/components/schedule/ScheduleEditorForm';
 import { Chip } from '@/components/ui/Chip';
 import { FullWidthButton } from '@/components/ui/Button';
@@ -233,7 +233,7 @@ export default function GuidedSetupScreen() {
         <GuidedProgressHeader step={step} onBack={goBack} onCancel={handleExit} />
       </View>
 
-      <ScrollView
+      <FocusScrollView
         style={tabPageStyles.scroll}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -332,7 +332,7 @@ export default function GuidedSetupScreen() {
             disabled={!canContinue}
           />
         </View>
-      </ScrollView>
+      </FocusScrollView>
     </KeyboardAvoidingView>
   );
 }

@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ConfettiBurst } from '@/components/feedback/ConfettiBurst';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { TAB_BAR_SCROLL_INSET } from '@/components/layout/TabBar';
 import { FirstRoutineCard } from '@/components/onboarding/FirstRoutineCard';
 import { TodayAllDoneMessage } from '@/components/today/TodayAllDoneMessage';
@@ -271,14 +272,14 @@ export default function TodayScreen() {
             </View>
           </View>
 
-          <ScrollView
+          <FocusScrollView
             style={styles.scroll}
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
             scrollEnabled={!scrollLocked}
           >
             <View style={styles.body}>{renderScheduledScrollContent()}</View>
-          </ScrollView>
+          </FocusScrollView>
         </>
       ) : (
         <>
@@ -296,14 +297,14 @@ export default function TodayScreen() {
             </View>
           </View>
 
-          <ScrollView
+          <FocusScrollView
             style={styles.scroll}
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
             scrollEnabled={!scrollLocked}
           >
             <View style={styles.body}>{renderEmptyDayScrollContent()}</View>
-          </ScrollView>
+          </FocusScrollView>
         </>
       )}
     </TodayGradientCanvas>

@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { TabPageHeader } from '@/components/layout/TabPageHeader';
 import { ProductCard } from '@/components/products/ProductCard';
 import { ProductSearchBar } from '@/components/products/ProductSearchBar';
@@ -153,7 +154,7 @@ export default function ProductsScreen() {
         </>
       ) : null}
 
-      <ScrollView
+      <FocusScrollView
         style={tabPageStyles.scroll}
         contentContainerStyle={tabPageStyles.content}
         showsVerticalScrollIndicator={false}
@@ -187,7 +188,7 @@ export default function ProductsScreen() {
             </View>
           </>
         )}
-      </ScrollView>
+      </FocusScrollView>
     </View>
   );
 }

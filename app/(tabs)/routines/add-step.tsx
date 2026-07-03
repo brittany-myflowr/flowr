@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -11,6 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { ScheduleDefaultRow } from '@/components/routines/ScheduleDefaultRow';
 import {
@@ -155,7 +155,7 @@ export default function AddStepScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <SubPageHeader title="Add a Step" onBack={() => router.back()} />
-      <ScrollView
+      <FocusScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -207,7 +207,7 @@ export default function AddStepScreen() {
           onPress={handleSubmit}
           disabled={!stepName.trim()}
         />
-      </ScrollView>
+      </FocusScrollView>
     </KeyboardAvoidingView>
   );
 }

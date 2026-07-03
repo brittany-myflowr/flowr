@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PhaseFlower } from '@/components/brand';
 import { PhaseGuideList } from '@/components/cycle/PhaseGuideList';
 import { CounterRow, SyncMethodPicker } from '@/components/cycle/SyncMethodPicker';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Toggle } from '@/components/ui/Toggle';
@@ -40,7 +41,7 @@ export default function CycleSettingsScreen() {
         onBack={() => router.back()}
       />
 
-      <ScrollView
+      <FocusScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
@@ -154,7 +155,7 @@ export default function CycleSettingsScreen() {
         <PhaseGuideList activePhase={phaseInfo?.phase} />
 
         <FullWidthButton label="Save Settings" onPress={handleSave} />
-      </ScrollView>
+      </FocusScrollView>
     </View>
   );
 }
