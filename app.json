@@ -4,7 +4,7 @@
     "slug": "flowr",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/app-store-icon.png",
     "userInterfaceStyle": "light",
     "scheme": ["flowr", "com.brittanytheodore.flowr"],
     "newArchEnabled": true,
