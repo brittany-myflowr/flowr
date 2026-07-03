@@ -17,6 +17,7 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "icon": "./assets/app-store-icon.png",
       "supportsTablet": true,
       "bundleIdentifier": "com.brittanytheodore.flowr",
       "usesAppleSignIn": true,
