@@ -2,17 +2,6 @@ import { Alert, Linking } from 'react-native';
 
 import { APP_VERSION, FEEDBACK_EMAIL, FEEDBACK_SUBJECT } from '@/constants/appInfo';
 
-export async function openNotificationSettings(): Promise<void> {
-  try {
-    await Linking.openSettings();
-  } catch {
-    Alert.alert(
-      'Unable to open settings',
-      'Open your device Settings app and find flowr under Notifications.',
-    );
-  }
-}
-
 export async function openExternalUrl(url: string): Promise<void> {
   try {
     const canOpen = await Linking.canOpenURL(url);

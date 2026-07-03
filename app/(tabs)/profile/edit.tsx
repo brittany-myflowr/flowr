@@ -4,7 +4,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -12,6 +11,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Daisy } from '@/components/brand';
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
+import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { FlowerColorPicker } from '@/components/profile/FlowerColorPicker';
 import { FullWidthButton } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
@@ -19,8 +21,10 @@ import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { defaultFlowerColor } from '@/constants/flowerColors';
 import { getFlowerColorByName } from '@/lib/flowerColor';
+import { isValidEmail } from '@/lib/validation';
 import { useAuth } from '@/providers/AppStore';
 import { useToast } from '@/providers/ToastProvider';
+import { s, vs, fs } from '@/lib/scale';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -42,8 +46,13 @@ export default function EditProfileScreen() {
     setSelectedColor(getFlowerColorByName(user.flowerColorName));
   }, [user]);
 
-  const handleSave = () => {
-    const message = updateAccount({
+  const handleSave = async () => {
+    if (!isValidEmail(email)) {
+      setError('Enter a valid email address.');
+      return;
+    }
+
+    const message = await updateAccount({
       firstName,
       lastName,
       email,
@@ -59,9 +68,19 @@ export default function EditProfileScreen() {
     router.back();
   };
 
+  const canSave =
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    isValidEmail(email);
+
   if (!user) {
     return (
-      <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
+        <SubPageHeader title="Edit Profile" onBack={() => router.back()} />
+        <InlineEmptyCard
+          title="Not signed in"
+          body="Log in to edit your profile settings."
+        />
         <FullWidthButton label="← Back" onPress={() => router.back()} />
       </View>
     );
@@ -77,16 +96,8 @@ export default function EditProfileScreen() {
           <Text style={styles.back}>← Back</Text>
         </Pressable>
         <View style={styles.profilePreview}>
-          <View
-            style={[
-              styles.avatar,
-              {
-                backgroundColor: selectedColor.bg,
-                borderColor: `${selectedColor.stroke}66`,
-              },
-            ]}
-          >
-            <Daisy color={selectedColor.stroke} size={24} />
+          <View style={styles.flowerWrap}>
+            <Daisy color={selectedColor.stroke} size={s(24)} />
           </View>
           <View>
             <Text style={styles.previewName}>{firstName.trim() || user.firstName}</Text>
@@ -95,7 +106,7 @@ export default function EditProfileScreen() {
         </View>
       </View>
 
-      <ScrollView
+      <FocusScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -129,8 +140,8 @@ export default function EditProfileScreen() {
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <FullWidthButton label="Save Settings" onPress={handleSave} />
-      </ScrollView>
+        <FullWidthButton label="Save Settings" onPress={handleSave} disabled={!canSave} />
+      </FocusScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -140,68 +151,68 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg,
   },
+  centered: {
+    paddingHorizontal: s(14),
+  },
   header: {
-    paddingHorizontal: 14,
-    paddingBottom: 12,
+    paddingHorizontal: s(14),
+    paddingBottom: s(12),
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   back: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
-    marginBottom: 8,
+    marginBottom: s(8),
   },
   profilePreview: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: s(12),
   },
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    borderWidth: 2,
+  flowerWrap: {
+    flexShrink: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
   previewName: {
     fontFamily: fonts.lora,
-    fontSize: 16,
+    fontSize: fs(16),
     color: colors.navy,
   },
   previewEmail: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.muted,
   },
   content: {
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingHorizontal: s(14),
+    paddingTop: s(12),
+    paddingBottom: s(24),
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 10,
+    marginBottom: s(10),
   },
   colorSectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 8,
-    marginTop: 4,
+    marginBottom: s(8),
+    marginTop: s(4),
   },
   error: {
-    marginBottom: 10,
+    marginBottom: s(10),
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.danger,
   },
 });

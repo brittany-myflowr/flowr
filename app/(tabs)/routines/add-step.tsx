@@ -1,9 +1,8 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -11,15 +10,24 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { ScheduleDefaultRow } from '@/components/routines/ScheduleDefaultRow';
+import {
+  StepProductChipButton,
+  TagProductButton,
+} from '@/components/steps/StepProductChip';
 import { FullWidthButton } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { formatSchedulePreview } from '@/constants/schedules';
+import { formatTaggedProductLabel } from '@/lib/formatTaggedProductLabel';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { useProducts } from '@/providers/AppStore';
 import { useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
 import type { Schedule } from '@/types';
+import { fs, s } from '@/lib/scale';
 
 export default function AddStepScreen() {
   const router = useRouter();
@@ -30,7 +38,10 @@ export default function AddStepScreen() {
     addStep,
     consumePendingAddStepSchedule,
     setPendingAddStepSchedule,
+    consumePendingAddStepProduct,
+    setPendingAddStepProduct,
   } = useRoutines();
+  const { products } = useProducts();
   const { showToast } = useToast();
 
   const initialIndex = useMemo(() => {
@@ -43,16 +54,25 @@ export default function AddStepScreen() {
   const [stepName, setStepName] = useState('');
   const [note, setNote] = useState('');
   const [customSchedule, setCustomSchedule] = useState<Schedule | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
   const selectedRoutine = routines[selectedRoutineIndex];
+  const selectedProduct = selectedProductId
+    ? products.find((product) => product.id === selectedProductId)
+    : undefined;
 
   useFocusEffect(
     useCallback(() => {
-      const pending = consumePendingAddStepSchedule();
-      if (pending) {
-        setCustomSchedule(pending);
+      const pendingSchedule = consumePendingAddStepSchedule();
+      if (pendingSchedule) {
+        setCustomSchedule(pendingSchedule);
       }
-    }, [consumePendingAddStepSchedule]),
+
+      const pendingProductId = consumePendingAddStepProduct();
+      if (pendingProductId !== null) {
+        setSelectedProductId(pendingProductId);
+      }
+    }, [consumePendingAddStepSchedule, consumePendingAddStepProduct]),
   );
 
   const scheduleLabel = selectedRoutine
@@ -69,15 +89,44 @@ export default function AddStepScreen() {
     });
   };
 
+  const openTagProduct = () => {
+    if (!selectedRoutine) return;
+    router.push({
+      pathname: '/(tabs)/routines/tag-product',
+      params: {
+        draft: '1',
+        routineId: selectedRoutine.id,
+        stepName: stepName.trim(),
+        selectedProductId: selectedProductId ?? '',
+      },
+    });
+  };
+
+  useEffect(() => {
+    if (routines.length === 0) return;
+    setSelectedRoutineIndex((current) => Math.min(current, routines.length - 1));
+  }, [routines.length]);
+
+  useEffect(() => {
+    if (selectedProductId && !products.some((product) => product.id === selectedProductId)) {
+      setSelectedProductId(null);
+    }
+  }, [products, selectedProductId]);
+
   const handleSubmit = () => {
     if (!selectedRoutine || !stepName.trim()) return;
 
-    addStep(selectedRoutine.id, {
+    const step = addStep(selectedRoutine.id, {
       name: stepName,
       note: note.trim() || undefined,
       schedule: customSchedule ?? undefined,
+      productId: selectedProductId ?? undefined,
     });
+
+    if (!step) return;
+
     setPendingAddStepSchedule(null);
+    setPendingAddStepProduct(null);
     showToast('Step added');
     router.back();
   };
@@ -86,7 +135,15 @@ export default function AddStepScreen() {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
         <SubPageHeader title="Add a Step" onBack={() => router.back()} />
-        <Text style={styles.emptyText}>Create a routine first, then add steps to it.</Text>
+        <InlineEmptyCard
+          title="No routines yet"
+          body="Create a routine first, then come back to add steps."
+        />
+        <FullWidthButton
+          label="Create a Routine"
+          onPress={() => router.replace('/(tabs)/routines/guided')}
+        />
+        <View style={styles.emptySpacer} />
         <FullWidthButton label="← Back" onPress={() => router.back()} />
       </View>
     );
@@ -98,7 +155,7 @@ export default function AddStepScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <SubPageHeader title="Add a Step" onBack={() => router.back()} />
-      <ScrollView
+      <FocusScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -110,6 +167,7 @@ export default function AddStepScreen() {
           onChipPress={(index) => {
             setSelectedRoutineIndex(index);
             setCustomSchedule(null);
+            setSelectedProductId(null);
           }}
         />
 
@@ -131,12 +189,25 @@ export default function AddStepScreen() {
 
         <ScheduleDefaultRow label={scheduleLabel} onCustomize={openScheduleCustomizer} />
 
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Product</Text>
+          {selectedProduct ? (
+            <StepProductChipButton
+              label={formatTaggedProductLabel(selectedProduct)}
+              onPress={openTagProduct}
+              actionLabel="Edit"
+            />
+          ) : (
+            <TagProductButton onPress={openTagProduct} />
+          )}
+        </View>
+
         <FullWidthButton
           label="Add Step"
           onPress={handleSubmit}
           disabled={!stepName.trim()}
         />
-      </ScrollView>
+      </FocusScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -147,19 +218,25 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   centered: {
-    paddingHorizontal: 14,
+    paddingHorizontal: s(14),
   },
   content: {
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingHorizontal: s(14),
+    paddingTop: s(12),
+    paddingBottom: s(24),
   },
-  emptyText: {
+  section: {
+    marginBottom: s(16),
+  },
+  sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 12,
-    color: colors.gray,
-    lineHeight: 19,
-    marginBottom: 16,
-    paddingHorizontal: 14,
+    fontSize: fs(8),
+    letterSpacing: s(2),
+    textTransform: 'uppercase',
+    color: colors.muted,
+    marginBottom: s(6),
+  },
+  emptySpacer: {
+    height: s(8),
   },
 });

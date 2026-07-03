@@ -1,164 +1,123 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Daisy, Logo } from '@/components/brand';
-import { GradientBackground } from '@/components/ui/GradientBackground';
-import { ProgressRing } from '@/components/ui/ProgressRing';
+import { ProfileHeaderButton } from '@/components/profile/ProfileHeaderButton';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
-import { useTimeOfDay } from '@/hooks/useTimeOfDay';
-import type { TimeOfDay } from '@/types';
+import { useCurrentPhaseInfo } from '@/hooks/useCurrentPhaseInfo';
+import type { CyclePhaseInfo } from '@/lib/cycle';
+import { s, fs } from '@/lib/scale';
 
-const TIME_OF_DAY_LABELS: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
-
-type TimeOfDayHeaderProps = {
-  percent?: number;
-  stepsLabel?: string;
-  greeting?: string;
-  brandPlacement?: 'corner' | 'center' | 'hidden';
-  selectedTimeOfDay?: TimeOfDay;
-  onTimeOfDayChange?: (timeOfDay: TimeOfDay) => void;
-};
-
-function capitalize(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-export function TimeOfDayHeader({
-  percent = 0,
-  stepsLabel,
-  greeting,
-  brandPlacement = 'corner',
-  selectedTimeOfDay,
-  onTimeOfDayChange,
-}: TimeOfDayHeaderProps) {
+export function TimeOfDayHeader() {
   const insets = useSafeAreaInsets();
-  const actualTimeOfDay = useTimeOfDay();
-  const [internalTab, setInternalTab] = useState<TimeOfDay>(actualTimeOfDay);
-  const activeTab = selectedTimeOfDay ?? internalTab;
-
-  const setActiveTab = (timeOfDay: TimeOfDay) => {
-    if (onTimeOfDayChange) {
-      onTimeOfDayChange(timeOfDay);
-    } else {
-      setInternalTab(timeOfDay);
-    }
-  };
+  const phaseInfo = useCurrentPhaseInfo();
+  const { day, weekday, month, year } = getTodayHeaderDateParts();
 
   return (
-    <GradientBackground variant={actualTimeOfDay} style={[styles.header, { paddingTop: 18 + insets.top }]}>
-      {brandPlacement === 'corner' ? (
-        <View style={[styles.brandCorner, { top: insets.top + 18 }]}>
-          <Daisy color="rgba(255,255,255,0.75)" size={13} />
-          <Logo size={13} color="rgba(255,255,255,0.75)" />
+    <View style={[styles.header, { paddingTop: insets.top + s(32) }]}>
+      <View style={styles.headerRow}>
+        <View style={styles.dateBlock}>
+          <View style={styles.dateRow}>
+            <Text style={styles.dayNumber}>{day}</Text>
+            <View style={styles.dateMeta}>
+              <Text style={styles.weekday}>{weekday}</Text>
+              <Text style={styles.month}>{month}</Text>
+              <Text style={styles.year}>{year}</Text>
+            </View>
+          </View>
+
+          {phaseInfo ? (
+            <Text style={styles.cyclePhase}>{buildCycleDividerLabel(phaseInfo)}</Text>
+          ) : null}
         </View>
-      ) : null}
 
-      <ProgressRing percent={percent} />
-
-      {brandPlacement === 'center' ? (
-        <View style={styles.brandCenter}>
-          <Daisy color="rgba(255,255,255,0.95)" size={12} />
-          <Logo size={12} color="rgba(255,255,255,0.7)" />
-        </View>
-      ) : null}
-
-      {greeting ? <Text style={styles.greeting}>{greeting}</Text> : null}
-      {stepsLabel ? <Text style={styles.stepsLabel}>{stepsLabel}</Text> : null}
-
-      <View style={styles.tabs}>
-        {TIME_OF_DAY_LABELS.map((timeOfDay) => {
-          const isActive = activeTab === timeOfDay;
-          return (
-            <Pressable
-              key={timeOfDay}
-              onPress={() => setActiveTab(timeOfDay)}
-              style={[styles.tab, isActive && styles.tabActive]}
-            >
-              <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
-                {capitalize(timeOfDay)}
-              </Text>
-            </Pressable>
-          );
-        })}
+        <ProfileHeaderButton />
       </View>
-    </GradientBackground>
+    </View>
   );
 }
 
-export function getTimeOfDayGreeting(timeOfDay: TimeOfDay, firstName?: string) {
-  const period =
-    timeOfDay === 'morning'
-      ? 'morning'
-      : timeOfDay === 'afternoon'
-        ? 'afternoon'
-        : 'evening';
+export function buildCycleDividerLabel(phaseInfo: CyclePhaseInfo) {
+  return `${phaseInfo.label} · day ${phaseInfo.dayInCycle}`;
+}
 
-  if (firstName?.trim()) {
-    return `Good ${period}, ${firstName.trim()}.`;
-  }
-
-  return `Good ${period}.`;
+export function getTodayHeaderDateParts(date = new Date()) {
+  return {
+    day: date.getDate().toString(),
+    weekday: date.toLocaleDateString(undefined, { weekday: 'long' }),
+    month: date.toLocaleDateString(undefined, { month: 'long' }),
+    year: date.getFullYear().toString(),
+  };
 }
 
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: 14,
-    paddingBottom: 14,
-    alignItems: 'center',
-  },
-  brandCorner: {
-    position: 'absolute',
-    left: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  brandCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 6,
-    marginBottom: 6,
-  },
-  greeting: {
-    fontFamily: fonts.lora,
-    fontSize: 14,
-    color: colors.white,
-    textAlign: 'center',
-    marginBottom: 2,
-  },
-  stepsLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: 9,
-    color: 'rgba(255,255,255,0.7)',
-  },
-  tabs: {
-    flexDirection: 'row',
     width: '100%',
-    marginTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: s(14),
+    paddingBottom: s(18),
   },
-  tab: {
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: s(10),
+  },
+  dateBlock: {
     flex: 1,
-    paddingVertical: 6,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    minWidth: 0,
   },
-  tabActive: {
-    borderBottomColor: colors.white,
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: s(12),
   },
-  tabLabel: {
+  dayNumber: {
+    fontFamily: fonts.loraBold,
+    fontSize: fs(52),
+    lineHeight: fs(56),
+    color: colors.navy,
+    includeFontPadding: false,
+    transform: [{ translateY: s(4) }],
+  },
+  dateMeta: {
+    flex: 1,
+    gap: s(1),
+    paddingBottom: s(1),
+  },
+  weekday: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 1,
+    fontSize: fs(11),
+    letterSpacing: s(1.4),
     textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.5)',
-    textAlign: 'center',
+    color: colors.muted,
+    includeFontPadding: false,
   },
-  tabLabelActive: {
-    color: colors.white,
+  month: {
+    fontFamily: fonts.lora,
+    fontSize: fs(13),
+    lineHeight: fs(16),
+    letterSpacing: s(0.8),
+    textTransform: 'uppercase',
+    color: colors.navy,
+    includeFontPadding: false,
+  },
+  year: {
+    fontFamily: fonts.dmSansSemiBold,
+    fontSize: fs(11),
+    lineHeight: fs(14),
+    fontWeight: '600',
+    color: colors.navy,
+    includeFontPadding: false,
+  },
+  cyclePhase: {
+    fontFamily: fonts.dmSansMedium,
+    fontSize: fs(7.6),
+    fontWeight: '500',
+    letterSpacing: s(2.4),
+    textTransform: 'uppercase',
+    color: colors.navy,
+    includeFontPadding: false,
+    alignSelf: 'flex-start',
+    marginTop: s(8),
   },
 });

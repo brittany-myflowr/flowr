@@ -1,342 +1,180 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useCallback, useMemo, useState } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
-import { TodayProgressCard } from '@/components/calendar/TodayProgressCard';
-import { Divider } from '@/components/ui/Divider';
-import { colors } from '@/constants/colors';
-import { fonts } from '@/constants/typography';
+import { CalendarMonthGrid } from '@/components/calendar/CalendarMonthGrid';
+import { CalendarStatsFooter } from '@/components/calendar/CalendarStatsFooter';
+import { PlannerDateHeader } from '@/components/calendar/PlannerDateHeader';
+import { PlannerDayCompleteMessage } from '@/components/calendar/PlannerDayCompleteMessage';
+import { PlannerDayEmpty } from '@/components/calendar/PlannerDayEmpty';
+import { PlannerDayOutOfMonthHint } from '@/components/calendar/PlannerDayOutOfMonthHint';
+import { PlannerDaySection } from '@/components/calendar/PlannerDaySection';
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
+import { TabPageHeader } from '@/components/layout/TabPageHeader';
+import { plannerCard } from '@/constants/plannerCardStyles';
+import { tabPageStyles } from '@/constants/tabPageTypography';
+import { hasTrackableRoutines } from '@/lib/applicableSteps';
+import { addMonths, formatDateKey, isSameMonth, startOfMonth } from '@/lib/dateKey';
 import { useCalendarStats } from '@/hooks/useCalendarStats';
-import { useTodayProgressByTimeOfDay } from '@/hooks/useTodayProgressByTimeOfDay';
+import { usePlannerDay } from '@/hooks/usePlannerDay';
 import { useRoutines } from '@/providers/AppStore';
+import { s } from '@/lib/scale';
 
-const MONTH_WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+function hapticDateSelect() {
+  if (Platform.OS !== 'ios' && Platform.OS !== 'android') return;
+  void Haptics.selectionAsync();
+}
 
 export default function CalendarScreen() {
-  const insets = useSafeAreaInsets();
   const { routines } = useRoutines();
-  const todayPeriods = useTodayProgressByTimeOfDay();
+  const hasScheduledSteps = hasTrackableRoutines(routines);
+  const [viewMonth, setViewMonth] = useState(() => startOfMonth(new Date()));
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [expandedByRoutineId, setExpandedByRoutineId] = useState<Record<string, boolean>>({});
+  const selectedDateKey = formatDateKey(selectedDate);
+  const today = new Date();
+  const isSelectedInViewMonth = isSameMonth(selectedDate, viewMonth);
+
   const {
     streak,
     daysThisMonth,
     monthProgress,
-    weekDays,
     monthGrid,
-    hasAnyHistory,
-  } = useCalendarStats();
+  } = useCalendarStats(viewMonth, selectedDateKey);
 
-  const showCalendarContent = hasAnyHistory || routines.length > 0;
+  const plannerDay = usePlannerDay(selectedDate);
+  const activeSections = useMemo(
+    () => plannerDay.sections.filter((section) => section.total > 0),
+    [plannerDay.sections],
+  );
+  const isDayComplete =
+    plannerDay.hasScheduledSteps && plannerDay.dayDone === plannerDay.dayTotal;
+
+  const showTodayButton =
+    !isSameMonth(viewMonth, today) || selectedDateKey !== formatDateKey(today);
+
+  const selectedMonthLabel = selectedDate.toLocaleDateString(undefined, {
+    month: 'long',
+    year: 'numeric',
+  });
+  const monthShortLabel = viewMonth.toLocaleDateString(undefined, { month: 'short' });
+
+  const handleSelectDate = useCallback((date: Date) => {
+    hapticDateSelect();
+    setSelectedDate(date);
+    setExpandedByRoutineId({});
+  }, []);
+
+  const handlePreviousMonth = useCallback(() => {
+    hapticDateSelect();
+    setViewMonth((current) => addMonths(current, -1));
+  }, []);
+
+  const handleNextMonth = useCallback(() => {
+    hapticDateSelect();
+    setViewMonth((current) => addMonths(current, 1));
+  }, []);
+
+  const handleToday = useCallback(() => {
+    hapticDateSelect();
+    const now = new Date();
+    setViewMonth(startOfMonth(now));
+    setSelectedDate(now);
+    setExpandedByRoutineId({});
+  }, []);
+
+  const handleJumpToSelectedMonth = useCallback(() => {
+    hapticDateSelect();
+    setViewMonth(startOfMonth(selectedDate));
+  }, [selectedDate]);
+
+  const handleToggleRoutineExpanded = useCallback((routineId: string) => {
+    setExpandedByRoutineId((current) => ({
+      ...current,
+      [routineId]: !current[routineId],
+    }));
+  }, []);
 
   return (
-    <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: 18 + insets.top }]}>
-        <Text style={styles.title}>My Calendar</Text>
-        <Text style={styles.subtitle}>Your consistency</Text>
-      </View>
+    <View style={tabPageStyles.screen}>
+      <TabPageHeader title="My Calendar" />
 
-      <ScrollView
-        contentContainerStyle={styles.content}
+      <FocusScrollView
+        style={tabPageStyles.scroll}
+        contentContainerStyle={tabPageStyles.content}
         showsVerticalScrollIndicator={false}
       >
-        {!showCalendarContent ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>No history yet</Text>
-            <Text style={styles.emptyBody}>
-              Create a routine and complete steps on the Today tab to start tracking your
-              consistency.
-            </Text>
-          </View>
-        ) : (
-          <>
-            <View style={styles.statsRow}>
-              <StatCard value={String(streak)} label="Streak" />
-              <StatCard value={String(daysThisMonth)} label="This Month" />
-              <StatCard value={`${monthProgress}%`} label="Done" />
-            </View>
+        {!hasScheduledSteps ? (
+          <InlineEmptyCard
+            compact
+            title="No routines to track yet"
+            body="Create a routine with steps on the Routines tab. Your schedule will show up here."
+          />
+        ) : null}
 
-            <Divider label="This Week" />
-            <View style={styles.weekRow}>
-              {weekDays.map((day) => (
-                <View key={day.key} style={styles.weekCell}>
-                  <Text style={styles.weekLabel}>{day.label}</Text>
-                  <View
-                    style={[
-                      styles.dayCircle,
-                      day.isToday && styles.dayCircleToday,
-                      day.isComplete && !day.isToday && styles.dayCircleComplete,
-                      day.hasProgress && !day.isComplete && !day.isToday && styles.dayCircleProgress,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.dayNumber,
-                        day.isToday && styles.dayNumberToday,
-                        day.isComplete && !day.isToday && styles.dayNumberComplete,
-                      ]}
-                    >
-                      {day.date.getDate()}
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.weekDot,
-                      day.isComplete ? styles.weekDotComplete : styles.weekDotEmpty,
-                    ]}
-                  />
-                </View>
-              ))}
-            </View>
+        {!isSelectedInViewMonth ? (
+          <PlannerDayOutOfMonthHint
+            selectedMonthLabel={selectedMonthLabel}
+            onJumpToMonth={handleJumpToSelectedMonth}
+          />
+        ) : null}
 
-            <Divider label="Today" />
-            {todayPeriods.length === 0 ? (
-              <View style={styles.todayEmpty}>
-                <Text style={styles.todayEmptyText}>No steps scheduled for today.</Text>
-              </View>
-            ) : (
-              todayPeriods.map((period) => (
-                <TodayProgressCard key={period.timeOfDay} period={period} />
+        <CalendarMonthGrid
+          viewDate={viewMonth}
+          cells={monthGrid}
+          showTodayButton={showTodayButton}
+          onSelectDate={handleSelectDate}
+          onPreviousMonth={handlePreviousMonth}
+          onNextMonth={handleNextMonth}
+          onToday={handleToday}
+        />
+
+        {hasScheduledSteps ? (
+          <View style={[styles.dayDetailCard, plannerCard()]}>
+            <PlannerDateHeader
+              date={selectedDate}
+              dayDone={plannerDay.dayDone}
+              dayTotal={plannerDay.dayTotal}
+              isToday={plannerDay.isToday}
+            />
+
+            {isDayComplete ? <PlannerDayCompleteMessage isToday={plannerDay.isToday} /> : null}
+
+            {plannerDay.hasScheduledSteps ? (
+              activeSections.map((section) => (
+                <PlannerDaySection
+                  key={section.timeOfDay}
+                  section={section}
+                  expandedByRoutineId={expandedByRoutineId}
+                  onToggleRoutineExpanded={handleToggleRoutineExpanded}
+                />
               ))
+            ) : (
+              <PlannerDayEmpty
+                isToday={plannerDay.isToday}
+                isFuture={plannerDay.isFuture}
+              />
             )}
+          </View>
+        ) : null}
 
-            <Divider label="This Month" />
-            <View style={styles.monthCard}>
-              <View style={styles.monthWeekdayRow}>
-                {MONTH_WEEKDAY_LABELS.map((label, index) => (
-                  <Text key={`${label}-${index}`} style={styles.monthWeekdayLabel}>
-                    {label}
-                  </Text>
-                ))}
-              </View>
-              <View style={styles.monthGrid}>
-                {monthGrid.map((cell, index) => (
-                  <View key={`${cell.key ?? 'empty'}-${index}`} style={styles.monthCell}>
-                    {cell.day ? (
-                      <View
-                        style={[
-                          styles.monthDay,
-                          cell.isToday && styles.dayCircleToday,
-                          cell.isComplete && !cell.isToday && styles.dayCircleComplete,
-                          cell.hasProgress &&
-                            !cell.isComplete &&
-                            !cell.isToday &&
-                            styles.dayCircleProgress,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.monthDayText,
-                            cell.isToday && styles.dayNumberToday,
-                            cell.isComplete && !cell.isToday && styles.dayNumberComplete,
-                          ]}
-                        >
-                          {cell.day}
-                        </Text>
-                      </View>
-                    ) : null}
-                  </View>
-                ))}
-              </View>
-            </View>
-          </>
-        )}
-      </ScrollView>
-    </View>
-  );
-}
-
-function StatCard({ value, label }: { value: string; label: string }) {
-  return (
-    <View style={styles.statCard}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+        {hasScheduledSteps ? (
+          <CalendarStatsFooter
+            streak={streak}
+            daysThisMonth={daysThisMonth}
+            monthProgress={monthProgress}
+            monthLabel={monthShortLabel}
+          />
+        ) : null}
+      </FocusScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  header: {
-    paddingHorizontal: 14,
-    paddingBottom: 8,
-  },
-  title: {
-    fontFamily: fonts.lora,
-    fontSize: 20,
-    color: colors.navy,
-  },
-  subtitle: {
-    marginTop: 1,
-    fontFamily: fonts.dmSans,
-    fontSize: 10,
-    color: colors.blue,
-  },
-  content: {
-    paddingHorizontal: 10,
-    paddingBottom: 24,
-  },
-  emptyCard: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 16,
-    marginHorizontal: 4,
-  },
-  emptyTitle: {
-    fontFamily: fonts.lora,
-    fontSize: 16,
-    color: colors.navy,
-    marginBottom: 6,
-  },
-  emptyBody: {
-    fontFamily: fonts.dmSans,
-    fontSize: 11,
-    color: colors.gray,
-    lineHeight: 18,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 5,
-    marginBottom: 8,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontFamily: fonts.lora,
-    fontSize: 16,
-    color: colors.navy,
-  },
-  statLabel: {
-    marginTop: 1,
-    fontFamily: fonts.dmSans,
-    fontSize: 7,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.muted,
-  },
-  weekRow: {
-    flexDirection: 'row',
-    gap: 3,
-    marginBottom: 8,
-  },
-  weekCell: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 2,
-  },
-  weekLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: 6,
-    color: colors.muted,
-  },
-  dayCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dayCircleToday: {
-    backgroundColor: colors.navy,
-    borderColor: colors.navy,
-  },
-  dayCircleComplete: {
-    backgroundColor: colors.light,
-    borderColor: '#c8d9e6',
-  },
-  dayCircleProgress: {
-    backgroundColor: colors.white,
-    borderColor: '#c8d9e6',
-  },
-  dayNumber: {
-    fontFamily: fonts.dmSans,
-    fontSize: 9,
-    color: colors.gray,
-  },
-  dayNumberToday: {
-    color: colors.white,
-  },
-  dayNumberComplete: {
-    color: colors.blue,
-  },
-  weekDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-  },
-  weekDotComplete: {
-    backgroundColor: colors.blue,
-  },
-  weekDotEmpty: {
-    backgroundColor: colors.border,
-  },
-  todayEmpty: {
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 6,
-  },
-  todayEmptyText: {
-    fontFamily: fonts.dmSans,
-    fontSize: 11,
-    color: colors.gray,
-  },
-  monthCard: {
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 10,
-  },
-  monthWeekdayRow: {
-    flexDirection: 'row',
-    marginBottom: 3,
-  },
-  monthWeekdayLabel: {
-    flex: 1,
-    textAlign: 'center',
-    fontFamily: fonts.dmSans,
-    fontSize: 6,
-    color: colors.muted,
-  },
-  monthGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  monthCell: {
-    width: `${100 / 7}%`,
-    aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 2,
-  },
-  monthDay: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  monthDayText: {
-    fontFamily: fonts.dmSans,
-    fontSize: 9,
-    color: colors.gray,
+  dayDetailCard: {
+    padding: s(12),
+    marginBottom: s(4),
   },
 });

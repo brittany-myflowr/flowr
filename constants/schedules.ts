@@ -87,3 +87,10 @@ export function cloneSchedule(schedule: Schedule): Schedule {
     phases: schedule.phases ? [...schedule.phases] : undefined,
   };
 }
+
+export function normalizeSchedule(schedule: Schedule): Schedule {
+  return {
+    ...cloneSchedule(schedule),
+    startDate: schedule.startDate ?? todayIsoDate(),
+  };
+}

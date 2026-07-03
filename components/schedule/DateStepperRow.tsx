@@ -1,9 +1,11 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { formatDisplayDate, shiftIsoDate } from '@/lib/cycle';
 import { formatDateKey } from '@/lib/dateKey';
+import { s, vs, fs } from '@/lib/scale';
 
 type DateStepperRowProps = {
   label?: string;
@@ -40,48 +42,45 @@ export function DateStepperRow({ label, value, onChange }: DateStepperRowProps) 
 
 const styles = StyleSheet.create({
   block: {
-    marginBottom: 12,
+    marginBottom: s(12),
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 6,
+    marginBottom: s(6),
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    ...plannerCard(),
+    paddingHorizontal: s(10),
+    paddingVertical: vs(8),
   },
   button: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: s(28),
+    height: vs(28),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.bg,
   },
   buttonText: {
     fontFamily: fonts.dmSans,
-    fontSize: 16,
+    fontSize: fs(16),
     color: colors.navy,
-    lineHeight: 18,
+    lineHeight: fs(18),
   },
   value: {
     flex: 1,
     textAlign: 'center',
-    fontFamily: fonts.lora,
-    fontSize: 13,
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(13),
     color: colors.navy,
   },
 });

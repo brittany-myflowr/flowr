@@ -1,13 +1,14 @@
 import Svg, { Circle, Line, Path } from 'react-native-svg';
 
 import { colors } from '@/constants/colors';
+import { s } from '@/lib/scale';
 
 type IconProps = {
   size?: number;
   color?: string;
 };
 
-export function MorningIcon({ size = 14, color = 'currentColor' }: IconProps) {
+export function MorningIcon({ size = s(14), color = 'currentColor' }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx={12} cy={12} r={4} stroke={color} strokeWidth={1.5} />
@@ -23,7 +24,7 @@ export function MorningIcon({ size = 14, color = 'currentColor' }: IconProps) {
   );
 }
 
-export function AfternoonIcon({ size = 14, color = 'currentColor' }: IconProps) {
+export function AfternoonIcon({ size = s(14), color = 'currentColor' }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path d="M5 12 A7 7 0 0 1 19 12" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
@@ -38,7 +39,7 @@ export function AfternoonIcon({ size = 14, color = 'currentColor' }: IconProps) 
   );
 }
 
-export function EveningIcon({ size = 14, color = 'currentColor' }: IconProps) {
+export function EveningIcon({ size = s(14), color = 'currentColor' }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path

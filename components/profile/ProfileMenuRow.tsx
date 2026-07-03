@@ -3,7 +3,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Daisy } from '@/components/brand';
 import { ChevronRightIcon } from '@/components/icons/ProfileIcons';
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type ProfileMenuRowProps = {
   label: string;
@@ -26,7 +28,9 @@ export function ProfileMenuRow({
     <Pressable
       onPress={onPress}
       disabled={!onPress}
-      style={[styles.row, danger && styles.rowDanger]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={[styles.row, plannerCard(), danger && styles.rowDanger]}
     >
       <View style={styles.iconWrap}>{icon}</View>
       <Text style={[styles.label, danger && styles.labelDanger]}>{label}</Text>
@@ -39,28 +43,31 @@ export function ProfileMenuRow({
 type ProfileUserCardProps = {
   firstName: string;
   email: string;
-  flowerStroke: string;
-  flowerBg: string;
+  flowerColor: string;
   onEdit?: () => void;
 };
 
 export function ProfileUserCard({
   firstName,
   email,
-  flowerStroke,
-  flowerBg,
+  flowerColor,
   onEdit,
 }: ProfileUserCardProps) {
   return (
     <View style={styles.card}>
-      <View style={[styles.avatar, { backgroundColor: flowerBg, borderColor: `${flowerStroke}66` }]}>
-        <Daisy color={flowerStroke} size={22} />
+      <View style={styles.flowerWrap}>
+        <Daisy color={flowerColor} size={s(24)} />
       </View>
       <View style={styles.copy}>
         <Text style={styles.name}>{firstName}</Text>
         <Text style={styles.email}>{email}</Text>
       </View>
-      <Pressable onPress={onEdit} style={styles.editButton}>
+      <Pressable
+        onPress={onEdit}
+        style={styles.editButton}
+        accessibilityRole="button"
+        accessibilityLabel="Edit profile"
+      >
         <Text style={styles.editLabel}>Edit</Text>
       </Pressable>
     </View>
@@ -71,14 +78,10 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 5,
-    borderWidth: 1,
-    borderColor: colors.border,
+    gap: s(10),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(10),
+    marginBottom: s(5),
   },
   rowDanger: {
     borderColor: colors.dangerLight,
@@ -89,7 +92,7 @@ const styles = StyleSheet.create({
   label: {
     flex: 1,
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.navy,
   },
   labelDanger: {
@@ -97,25 +100,18 @@ const styles = StyleSheet.create({
   },
   trailing: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.dangerLight,
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: 10,
+    gap: s(12),
+    padding: s(14),
+    marginBottom: s(10),
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 2,
+  flowerWrap: {
+    flexShrink: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -123,27 +119,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontFamily: fonts.lora,
-    fontSize: 15,
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(15),
     color: colors.navy,
   },
   email: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.blue,
   },
   editButton: {
     backgroundColor: colors.light,
     borderWidth: 1,
     borderColor: '#c8d9e6',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    borderRadius: plannerCornerRadius,
+    paddingHorizontal: s(10),
+    paddingVertical: vs(5),
   },
   editLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.blue,
   },
 });

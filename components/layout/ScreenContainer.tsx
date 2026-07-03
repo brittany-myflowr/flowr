@@ -1,5 +1,7 @@
-import { ScrollView, StyleSheet, type StyleProp, View, type ViewStyle } from 'react-native';
+import { StyleSheet, type StyleProp, View, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 
 import { colors } from '@/constants/colors';
 
@@ -21,12 +23,12 @@ export function ScreenContainer({
   if (scroll) {
     return (
       <SafeAreaView edges={edges} style={[styles.container, style]}>
-        <ScrollView
+        <FocusScrollView
           contentContainerStyle={[styles.scrollContent, contentStyle]}
           showsVerticalScrollIndicator={false}
         >
           {children}
-        </ScrollView>
+        </FocusScrollView>
       </SafeAreaView>
     );
   }

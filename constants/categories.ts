@@ -1,14 +1,15 @@
+/** Pastel category accents — aligned with Today mesh (cream, blush, peach, periwinkle, lavender, sage). */
 export const categoryColors = {
-  Skincare: '#fda4af',
-  'Body Care': '#fbcfe8',
-  'Hair Care': '#c4b5fd',
-  'Nail Care': '#f5d0fe',
-  'Oral Care': '#a7f3d0',
-  Supplements: '#7dd3fc',
-  Medications: '#bfdbfe',
-  Exercise: '#fca5a5',
-  Wellness: '#6ee7b7',
-  Other: '#fde68a',
+  Skincare: '#e8a0b0',
+  'Body Care': '#f0c0d0',
+  'Hair Care': '#c0b0d8',
+  'Nail Care': '#c4a8b8',
+  'Oral Care': '#c4d4b8',
+  Supplements: '#9eb0d4',
+  Medications: '#b0c8e0',
+  Exercise: '#ecb090',
+  Wellness: '#9cb088',
+  Other: '#e8d4a8',
 } as const;
 
 export type Category = keyof typeof categoryColors;

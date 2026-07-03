@@ -5,11 +5,11 @@ export const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 export const FEEDBACK_EMAIL = 'hello@myflowr.co';
 export const FEEDBACK_SUBJECT = 'flowr feedback';
 
-export const TERMS_URL = 'https://flowr.app/terms';
-export const PRIVACY_POLICY_URL = 'https://flowr.app/privacy';
+export const TERMS_URL = 'https://myflowr.co/terms';
+export const PRIVACY_POLICY_URL = 'https://myflowr.co/privacy';
 
 export const APP_DESCRIPTION =
-  'flowr helps you build and track self-care routines — from skincare and wellness to daily habits — with optional cycle syncing and gentle reminders.';
+  'flowr is your personal self-care companion. Build routines around the things that make you feel your best — skincare, wellness, supplements, and more. Track your consistency, log your favorite products, and optionally sync your routines to your cycle. Because taking care of yourself should feel effortless.';
 
 export type PremiumPlan = {
   id: PremiumPlanId;
@@ -31,7 +31,7 @@ export const PREMIUM_PLANS: PremiumPlan[] = [
     label: 'Yearly',
     price: '$34.99',
     interval: 'per year',
-    badge: 'Best value',
+    badge: 'Save 42%',
   },
 ];
 

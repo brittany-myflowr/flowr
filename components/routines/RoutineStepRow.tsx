@@ -1,125 +1,56 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type GestureResponderHandlers } from 'react-native';
 
-import { BellIcon, CheckIcon, CloseIcon, DragHandleIcon } from '@/components/icons/ActionIcons';
+import { CloseIcon } from '@/components/icons/ActionIcons';
+import { StepNumberBadge } from '@/components/steps/StepNumberBadge';
+import { StepProductLabel } from '@/components/steps/StepProductChip';
+import type { ReorderableDragTouchHandlers } from '@/components/ui/ReorderableList';
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCardBorder } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import type { Step } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 type RoutineStepRowProps = {
   step: Step;
   index: number;
-  total: number;
-  isEditing?: boolean;
-  reorderMode?: boolean;
-  onPress?: () => void;
-  onLongPressDrag?: () => void;
-  onMoveUp?: () => void;
-  onMoveDown?: () => void;
-  onChangeName?: (name: string) => void;
-  onBlurName?: () => void;
+  isDragging?: boolean;
+  dragHandlers?: GestureResponderHandlers;
+  dragTouchHandlers?: ReorderableDragTouchHandlers;
   onDelete?: () => void;
-  onTagProduct?: () => void;
-  onCustomSchedule?: () => void;
-  onReminder?: () => void;
-  reminderEnabled?: boolean;
 };
 
 export function RoutineStepRow({
   step,
   index,
-  total,
-  isEditing = false,
-  reorderMode = false,
-  onPress,
-  onLongPressDrag,
-  onMoveUp,
-  onMoveDown,
-  onChangeName,
-  onBlurName,
+  isDragging = false,
+  dragHandlers,
+  dragTouchHandlers,
   onDelete,
-  onTagProduct,
-  onCustomSchedule,
-  onReminder,
-  reminderEnabled = false,
 }: RoutineStepRowProps) {
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, plannerCard(), isDragging && styles.cardDragging]}>
       <View style={styles.mainRow}>
-        <Pressable onLongPress={onLongPressDrag} delayLongPress={200} hitSlop={8}>
-          <DragHandleIcon />
-        </Pressable>
+        <View style={styles.dragArea} {...dragTouchHandlers} {...dragHandlers}>
+          <StepNumberBadge number={index + 1} style={styles.stepBadge} />
 
-        {reorderMode ? (
-          <View style={styles.reorderActions}>
-            <Pressable
-              onPress={onMoveUp}
-              disabled={index === 0}
-              style={[styles.reorderButton, index === 0 && styles.reorderButtonDisabled]}
-            >
-              <Text style={styles.reorderLabel}>↑</Text>
-            </Pressable>
-            <Pressable
-              onPress={onMoveDown}
-              disabled={index === total - 1}
-              style={[
-                styles.reorderButton,
-                index === total - 1 && styles.reorderButtonDisabled,
-              ]}
-            >
-              <Text style={styles.reorderLabel}>↓</Text>
-            </Pressable>
+          <View style={styles.copy}>
+            <Text style={styles.stepName}>{step.name}</Text>
+            {step.note ? <Text style={styles.noteText}>{step.note}</Text> : null}
+            {step.productName ? <StepProductLabel label={step.productName} /> : null}
+            <Text style={styles.editHint}>tap for details · hold to drag</Text>
           </View>
-        ) : null}
-
-        <View style={styles.stepNumber}>
-          <Text style={styles.stepNumberText}>{index + 1}</Text>
         </View>
 
-        <Pressable style={styles.copy} onPress={onPress}>
-          {isEditing ? (
-            <TextInput
-              value={step.name}
-              onChangeText={onChangeName}
-              onBlur={onBlurName}
-              autoFocus
-              style={styles.stepInput}
-              placeholder="Step name"
-              placeholderTextColor={colors.muted}
-            />
-          ) : (
-            <>
-              <Text style={styles.stepName}>{step.name}</Text>
-              <Text style={styles.editHint}>tap to edit</Text>
-            </>
-          )}
-        </Pressable>
-
-        <View style={[styles.actions, reminderEnabled && styles.actionsActive]}>
-          <Pressable onPress={onReminder} hitSlop={8} disabled={!onReminder}>
-            <BellIcon color={reminderEnabled ? colors.blue : '#c8d9e6'} />
-          </Pressable>
-          <Pressable onPress={onDelete} hitSlop={8}>
-            <CloseIcon color="#c8d9e6" />
+        <View style={styles.actions}>
+          <Pressable
+            onPress={onDelete}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`Remove ${step.name}`}
+          >
+            <CloseIcon color={plannerCardBorder} />
           </Pressable>
         </View>
-      </View>
-
-      <View style={styles.chips}>
-        <Pressable onPress={onCustomSchedule} style={styles.scheduleChip}>
-          <Text style={styles.chipText}>
-            {step.schedule ? 'Custom schedule · Edit' : '+ Custom schedule'}
-          </Text>
-        </Pressable>
-        {step.productName ? (
-          <View style={styles.productChip}>
-            <CheckIcon size={10} color={colors.blue} />
-            <Text style={styles.chipText}>{step.productName}</Text>
-          </View>
-        ) : (
-          <Pressable onPress={onTagProduct} style={styles.tagProductChip}>
-            <Text style={styles.tagProductText}>+ Tag a product</Text>
-          </Pressable>
-        )}
       </View>
     </View>
   );
@@ -127,127 +58,57 @@ export function RoutineStepRow({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: 7,
+    marginBottom: s(7),
     overflow: 'hidden',
+  },
+  cardDragging: {
+    opacity: 0.92,
+    shadowColor: colors.navy,
+    shadowOffset: { width: 0, height: vs(2) },
+    shadowOpacity: 0.12,
+    shadowRadius: s(6),
+    elevation: 4,
   },
   mainRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    gap: s(8),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(10),
   },
-  reorderActions: {
+  dragArea: {
+    flex: 1,
     flexDirection: 'row',
-    gap: 2,
+    alignItems: 'flex-start',
+    gap: s(8),
   },
-  reorderButton: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
-  },
-  reorderButtonDisabled: {
-    opacity: 0.35,
-  },
-  reorderLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: 12,
-    color: colors.navy,
-  },
-  stepNumber: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: colors.light,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepNumberText: {
-    fontFamily: fonts.dmSansSemiBold,
-    fontSize: 9,
-    color: colors.blue,
-    fontWeight: '600',
+  stepBadge: {
+    marginTop: s(1),
   },
   copy: {
     flex: 1,
   },
   stepName: {
-    fontFamily: fonts.lora,
-    fontSize: 13,
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(13),
     color: colors.navy,
   },
-  stepInput: {
-    fontFamily: fonts.lora,
-    fontSize: 13,
-    color: colors.navy,
-    padding: 0,
+  noteText: {
+    marginTop: s(2),
+    fontFamily: fonts.dmSans,
+    fontSize: fs(11),
+    color: colors.muted,
   },
   editHint: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    color: '#c8d9e6',
+    fontSize: fs(8),
+    color: colors.muted,
   },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: s(10),
     opacity: 0.5,
-  },
-  actionsActive: {
-    opacity: 1,
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingBottom: 8,
-  },
-  scheduleChip: {
-    backgroundColor: colors.light,
-    borderWidth: 1,
-    borderColor: '#c8d9e6',
-    borderRadius: 7,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  productChip: {
-    backgroundColor: colors.light,
-    borderWidth: 1,
-    borderColor: '#c8d9e6',
-    borderRadius: 7,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-  },
-  tagProductChip: {
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#c8d9e6',
-    borderRadius: 7,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  chipText: {
-    fontFamily: fonts.dmSans,
-    fontSize: 8,
-    color: colors.blue,
-  },
-  tagProductText: {
-    fontFamily: fonts.dmSans,
-    fontSize: 8,
-    color: colors.muted,
   },
 });

@@ -1,96 +1,106 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Daisy } from '@/components/brand';
-import { Badge } from '@/components/ui/Badge';
+import { StepNumberBadge } from '@/components/steps/StepNumberBadge';
+import { StepProductLabel } from '@/components/steps/StepProductChip';
 import { Toggle } from '@/components/ui/Toggle';
 import { categoryColors, type Category } from '@/constants/categories';
 import { colors } from '@/constants/colors';
-import { fonts } from '@/constants/typography';
+import { plannerCard } from '@/constants/plannerCardStyles';
 import {
-  formatFrequency,
-  formatTimeOfDay,
-} from '@/providers/RoutinesProvider';
-import type { Routine, ScheduleFrequency } from '@/types';
+  guidedFlowSizes,
+  guidedFlowTypography,
+} from '@/constants/tabPageTypography';
+import { fonts } from '@/constants/typography';
+import type { Routine } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 type RoutineCardProps = {
   routine: Routine;
   onPress?: () => void;
+  onLongPress?: () => void;
   onToggleActive?: () => void;
 };
 
-export function RoutineCard({ routine, onPress, onToggleActive }: RoutineCardProps) {
+export function RoutineCard({ routine, onPress, onLongPress, onToggleActive }: RoutineCardProps) {
   const categoryColor = categoryColors[routine.category];
 
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.card, !routine.active && styles.cardInactive]}
+      onLongPress={onLongPress}
+      delayLongPress={350}
+      accessibilityRole="button"
+      accessibilityLabel={`${routine.name}, ${routine.steps.length} steps, ${routine.active ? 'active' : 'inactive'}`}
+      style={[
+        styles.card,
+        plannerCard(categoryColor),
+        !routine.active && styles.cardInactive,
+      ]}
     >
       <View style={styles.headerRow}>
-        <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
-          <Daisy color={categoryColor} size={16} />
-        </View>
+        <Daisy color={categoryColor} size={s(16)} />
         <View style={styles.meta}>
-          <Text style={styles.name}>{routine.name}</Text>
+          <Text style={styles.name} numberOfLines={1}>
+            {routine.name}
+          </Text>
           <Text style={styles.subtitle}>
             {routine.steps.length} steps · {routine.category}
           </Text>
         </View>
-        <Toggle value={routine.active} onValueChange={onToggleActive} />
-      </View>
-
-      <View style={styles.scheduleChip}>
-        <Text style={styles.scheduleText}>
-          {formatFrequency(routine.schedule.frequency)} · Edit
-        </Text>
-      </View>
-
-      <View style={styles.badges}>
-        {routine.steps.slice(0, 3).map((step) => (
-          <Badge key={step.id} label={step.name} color={colors.gray} backgroundColor={colors.inputBg} />
-        ))}
+        <Toggle
+          value={routine.active}
+          onValueChange={onToggleActive}
+          accessibilityLabel={`${routine.active ? 'Deactivate' : 'Activate'} ${routine.name}`}
+        />
       </View>
     </Pressable>
   );
 }
 
+export type RoutineReviewStep = {
+  name: string;
+  note?: string;
+  productName?: string;
+  scheduleLabel?: string;
+};
+
 type RoutineReviewCardProps = {
   name: string;
   category: Category;
-  frequency: ScheduleFrequency;
-  timeOfDay: Routine['timeOfDay'];
-  steps: string[];
+  scheduleLabel: string;
+  steps: RoutineReviewStep[];
 };
 
 export function RoutineReviewCard({
   name,
   category,
-  frequency,
-  timeOfDay,
+  scheduleLabel,
   steps,
 }: RoutineReviewCardProps) {
   const categoryColor = categoryColors[category];
 
   return (
-    <View style={styles.reviewCard}>
+    <View style={[styles.reviewCard, plannerCard(categoryColor)]}>
       <View style={styles.headerRow}>
-        <View style={[styles.iconWrap, { backgroundColor: `${categoryColor}28` }]}>
-          <Daisy color={categoryColor} size={16} />
-        </View>
+        <Daisy color={categoryColor} size={guidedFlowSizes.reviewIcon} />
         <View style={styles.meta}>
-          <Text style={styles.name}>{name}</Text>
-          <Text style={styles.subtitle}>
-            {formatFrequency(frequency)} · {formatTimeOfDay(timeOfDay)}
-          </Text>
+          <Text style={styles.reviewName}>{name}</Text>
+          <Text style={styles.reviewSubtitle}>{scheduleLabel}</Text>
         </View>
       </View>
 
       {steps.map((step, index) => (
-        <View key={`${step}-${index}`} style={styles.reviewStep}>
-          <View style={styles.stepNumber}>
-            <Text style={styles.stepNumberText}>{index + 1}</Text>
+        <View key={`${step.name}-${index}`} style={styles.reviewStep}>
+          <StepNumberBadge number={index + 1} />
+          <View style={styles.reviewStepCopy}>
+            <Text style={styles.reviewStepName}>{step.name}</Text>
+            {step.note ? <Text style={styles.reviewStepMeta}>{step.note}</Text> : null}
+            {step.productName ? <StepProductLabel label={step.productName} /> : null}
+            {step.scheduleLabel ? (
+              <Text style={styles.reviewStepMeta}>{step.scheduleLabel}</Text>
+            ) : null}
           </View>
-          <Text style={styles.reviewStepName}>{step}</Text>
         </View>
       ))}
     </View>
@@ -99,95 +109,67 @@ export function RoutineReviewCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 6,
-    borderWidth: 1,
-    borderColor: colors.border,
+    padding: s(10),
+    marginBottom: s(6),
   },
   cardInactive: {
     opacity: 0.55,
   },
   reviewCard: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
+    padding: s(14),
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  iconWrap: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: s(10),
   },
   meta: {
     flex: 1,
+    minWidth: 0,
   },
   name: {
-    fontFamily: fonts.lora,
-    fontSize: 12,
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(12),
     color: colors.navy,
   },
   subtitle: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.muted,
-  },
-  scheduleChip: {
-    alignSelf: 'flex-start',
-    marginTop: 6,
-    backgroundColor: colors.light,
-    borderWidth: 1,
-    borderColor: '#c8d9e6',
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-  },
-  scheduleText: {
-    fontFamily: fonts.dmSans,
-    fontSize: 8,
-    color: colors.blue,
-  },
-  badges: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-    marginTop: 5,
+    textTransform: 'capitalize',
   },
   reviewStep: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    paddingVertical: 5,
+    gap: s(8),
+    paddingVertical: vs(7),
     borderTopWidth: 1,
     borderTopColor: colors.inputBg,
   },
-  stepNumber: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: colors.light,
-    alignItems: 'center',
-    justifyContent: 'center',
+  reviewName: {
+    fontFamily: fonts.cardTitle,
+    fontSize: guidedFlowTypography.reviewName,
+    color: colors.navy,
   },
-  stepNumberText: {
-    fontFamily: fonts.dmSansSemiBold,
-    fontSize: 8,
-    color: colors.blue,
-    fontWeight: '600',
+  reviewSubtitle: {
+    marginTop: s(2),
+    fontFamily: fonts.dmSans,
+    fontSize: guidedFlowTypography.reviewMeta,
+    color: colors.muted,
+  },
+  reviewStepCopy: {
+    flex: 1,
+    gap: s(4),
   },
   reviewStepName: {
-    fontFamily: fonts.lora,
-    fontSize: 11,
+    fontFamily: fonts.cardTitle,
+    fontSize: guidedFlowTypography.reviewStepName,
     color: colors.navy,
+  },
+  reviewStepMeta: {
+    fontFamily: fonts.dmSans,
+    fontSize: guidedFlowTypography.reviewMeta,
+    color: colors.muted,
   },
 });

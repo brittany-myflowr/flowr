@@ -8,12 +8,15 @@ type GradientBackgroundProps = {
   variant?: TimeOfDay | 'full';
   style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
+  /** When false, sizes to content instead of expanding to fill the parent. */
+  fill?: boolean;
 };
 
 export function GradientBackground({
   variant = 'full',
   style,
   children,
+  fill = true,
 }: GradientBackgroundProps) {
   const stops = variant === 'full' ? fullGradient : timeOfDayGradients[variant];
 
@@ -23,7 +26,7 @@ export function GradientBackground({
       locations={stops.locations ? [...stops.locations] : undefined}
       start={gradientDirection.start}
       end={gradientDirection.end}
-      style={[styles.fill, style]}
+      style={[fill && styles.fill, style]}
     >
       {children}
     </LinearGradient>

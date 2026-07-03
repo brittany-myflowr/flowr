@@ -1,32 +1,45 @@
 import { useRouter } from 'expo-router';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Alert, View } from 'react-native';
 
 import { Daisy } from '@/components/brand';
 import {
-  BellOutlineIcon,
   CardOutlineIcon,
   LogOutOutlineIcon,
   MessageOutlineIcon,
   ShieldOutlineIcon,
   WarningOutlineIcon,
 } from '@/components/icons/ProfileIcons';
+import { TrialBanner } from '@/components/subscription/TrialBanner';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
+import { TabPageHeader } from '@/components/layout/TabPageHeader';
 import { ProfileMenuRow, ProfileUserCard } from '@/components/profile/ProfileMenuRow';
+import { Divider } from '@/components/ui/Divider';
 import { colors } from '@/constants/colors';
-import { fonts } from '@/constants/typography';
+import { tabPageStyles } from '@/constants/tabPageTypography';
 import { getFlowerColorByName } from '@/lib/flowerColor';
 import { useAuth } from '@/providers/AppStore';
+import { useSubscription } from '@/providers/SubscriptionProvider';
+import { s } from '@/lib/scale';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { user, signOut, resetAllData } = useAuth();
+  const { trialInfo, accessStatus } = useSubscription();
 
   const flowerColor = getFlowerColorByName(user?.flowerColorName);
 
   const handleSignOut = () => {
-    signOut();
-    router.replace('/(auth)/splash');
+    Alert.alert('Log out?', 'You will need to sign in again to access your account.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Log Out',
+        style: 'destructive',
+        onPress: async () => {
+          await signOut();
+          router.replace('/(auth)/splash');
+        },
+      },
+    ]);
   };
 
   const handleReset = () => {
@@ -48,31 +61,41 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: 18 + insets.top }]}>
-        <Text style={styles.title}>My Profile</Text>
-      </View>
+    <View style={tabPageStyles.screen}>
+      <TabPageHeader
+        title="My Profile"
+        onBackPress={() => {
+          if (router.canGoBack()) {
+            router.back();
+          } else {
+            router.replace('/(tabs)');
+          }
+        }}
+      />
 
-      <ScrollView
-        contentContainerStyle={styles.content}
+      <FocusScrollView
+        style={tabPageStyles.scroll}
+        contentContainerStyle={tabPageStyles.content}
         showsVerticalScrollIndicator={false}
       >
         {user ? (
           <ProfileUserCard
             firstName={user.firstName}
             email={user.email}
-            flowerStroke={flowerColor.stroke}
-            flowerBg={flowerColor.bg}
+            flowerColor={flowerColor.stroke}
             onEdit={() => router.push('/(tabs)/profile/edit')}
           />
         ) : null}
 
-        <Text style={styles.sectionLabel}>Account</Text>
-        <ProfileMenuRow
-          label="Notifications"
-          icon={<BellOutlineIcon />}
-          onPress={() => router.push('/(tabs)/profile/notifications')}
-        />
+        {accessStatus === 'trial' && trialInfo?.isActive ? (
+          <TrialBanner
+            trialInfo={trialInfo}
+            onPress={() => router.push('/(tabs)/profile/subscription')}
+          />
+        ) : null}
+
+        <Divider label="Account" large outlined />
+
         <ProfileMenuRow
           label="Manage Subscription"
           icon={<CardOutlineIcon />}
@@ -84,10 +107,11 @@ export default function ProfileScreen() {
           onPress={() => router.push('/(tabs)/profile/privacy')}
         />
 
-        <Text style={styles.sectionLabel}>App</Text>
+        <Divider label="App" large outlined />
+
         <ProfileMenuRow
           label="About flowr"
-          icon={<Daisy color={colors.muted} size={16} />}
+          icon={<Daisy color={colors.muted} size={s(16)} />}
           onPress={() => router.push('/(tabs)/profile/about')}
         />
         <ProfileMenuRow
@@ -103,7 +127,8 @@ export default function ProfileScreen() {
           onPress={handleSignOut}
         />
 
-        <Text style={styles.devSectionLabel}>Developer</Text>
+        <Divider label="Developer" large outlined />
+
         <ProfileMenuRow
           label="Reset App Data"
           icon={<WarningOutlineIcon />}
@@ -111,45 +136,7 @@ export default function ProfileScreen() {
           trailing="Dev only"
           onPress={handleReset}
         />
-      </ScrollView>
+      </FocusScrollView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  header: {
-    paddingHorizontal: 14,
-    paddingBottom: 8,
-  },
-  title: {
-    fontFamily: fonts.lora,
-    fontSize: 20,
-    color: colors.navy,
-  },
-  content: {
-    paddingHorizontal: 10,
-    paddingBottom: 24,
-  },
-  sectionLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    color: colors.muted,
-    marginBottom: 5,
-    marginTop: 4,
-  },
-  devSectionLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    color: colors.dangerLight,
-    marginBottom: 5,
-    marginTop: 10,
-  },
-});

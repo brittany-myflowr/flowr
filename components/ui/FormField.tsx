@@ -5,6 +5,7 @@ import { Input } from './Input';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import type { TextInputProps } from 'react-native';
+import { s, fs } from '@/lib/scale';
 
 type FormFieldProps = {
   label: string;
@@ -17,6 +18,10 @@ type FormFieldProps = {
   onChangeText?: TextInputProps['onChangeText'];
   keyboardType?: TextInputProps['keyboardType'];
   autoCapitalize?: TextInputProps['autoCapitalize'];
+  textContentType?: TextInputProps['textContentType'];
+  autoComplete?: TextInputProps['autoComplete'];
+  passwordRules?: TextInputProps['passwordRules'];
+  importantForAutofill?: TextInputProps['importantForAutofill'];
 };
 
 export function FormField({
@@ -30,6 +35,10 @@ export function FormField({
   onChangeText,
   keyboardType,
   autoCapitalize,
+  textContentType,
+  autoComplete,
+  passwordRules,
+  importantForAutofill,
 }: FormFieldProps) {
   return (
     <View style={styles.container}>
@@ -41,7 +50,7 @@ export function FormField({
               key={chip}
               label={chip}
               selected={index === selectedChipIndex}
-              small
+              form
               onPress={onChipPress ? () => onChipPress(index) : undefined}
             />
           ))}
@@ -54,6 +63,10 @@ export function FormField({
           onChangeText={onChangeText}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
+          textContentType={textContentType}
+          autoComplete={autoComplete}
+          passwordRules={passwordRules}
+          importantForAutofill={importantForAutofill}
         />
       )}
     </View>
@@ -62,19 +75,19 @@ export function FormField({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 12,
+    marginBottom: s(12),
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 5,
+    marginBottom: s(5),
   },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
+    gap: s(6),
   },
 });

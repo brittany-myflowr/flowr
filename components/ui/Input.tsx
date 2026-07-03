@@ -9,7 +9,9 @@ import {
 import Svg, { Circle, Line, Path } from 'react-native-svg';
 
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type InputProps = TextInputProps & {
   secureTextEntry?: boolean;
@@ -17,7 +19,7 @@ type InputProps = TextInputProps & {
 
 function EyeIcon() {
   return (
-    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+    <Svg width={s(14)} height={s(14)} viewBox="0 0 24 24" fill="none">
       <Path
         d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
         stroke={colors.muted}
@@ -63,22 +65,22 @@ export function Input({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: vs(10),
+    paddingHorizontal: s(12),
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
+    borderColor: plannerCardBorder,
+    borderRadius: plannerCornerRadius,
     backgroundColor: colors.white,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: s(8),
   },
   input: {
     flex: 1,
     fontFamily: fonts.dmSans,
-    fontSize: 12,
+    fontSize: fs(12),
     color: colors.navy,
-    padding: 0,
+    padding: s(0),
   },
 });

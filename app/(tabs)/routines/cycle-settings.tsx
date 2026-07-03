@@ -1,14 +1,16 @@
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PhaseFlower } from '@/components/brand';
 import { PhaseGuideList } from '@/components/cycle/PhaseGuideList';
 import { CounterRow, SyncMethodPicker } from '@/components/cycle/SyncMethodPicker';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Toggle } from '@/components/ui/Toggle';
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import {
   formatDisplayDate,
@@ -17,6 +19,7 @@ import {
 } from '@/lib/cycle';
 import { useCycleSettings } from '@/providers/AppStore';
 import { useToast } from '@/providers/ToastProvider';
+import { s, vs, fs } from '@/lib/scale';
 
 export default function CycleSettingsScreen() {
   const router = useRouter();
@@ -35,15 +38,14 @@ export default function CycleSettingsScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <SubPageHeader
         title="Cycle Syncing"
-        backLabel="← My Routines"
         onBack={() => router.back()}
       />
 
-      <ScrollView
+      <FocusScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.toggleCard}>
+        <View style={[styles.toggleCard, plannerCard()]}>
           <View style={styles.toggleCopy}>
             <Text style={styles.toggleTitle}>Cycle Tracking On</Text>
             <Text style={styles.toggleSubtitle}>Routines synced to your phase</Text>
@@ -58,18 +60,24 @@ export default function CycleSettingsScreen() {
           <View
             style={[
               styles.currentPhaseCard,
+              plannerCard(),
               {
                 backgroundColor: `${phaseInfo.color}22`,
                 borderColor: `${phaseInfo.color}66`,
               },
             ]}
           >
-            <PhaseFlower color={phaseInfo.color} size={24} />
+            <PhaseFlower color={phaseInfo.color} size={s(24)} />
             <View style={styles.currentPhaseCopy}>
               <Text style={styles.currentPhaseLabel}>Currently In</Text>
               <Text style={styles.currentPhaseTitle}>{phaseInfo.label} Phase</Text>
               <Text style={styles.currentPhaseMeta}>
-                Day {phaseInfo.dayInCycle} of {phaseInfo.cycleLength} · {phaseInfo.description}
+                Day {phaseInfo.dayInCycle} of {phaseInfo.cycleLength}
+                {phaseInfo.daysRemaining === 0
+                  ? ' · Last day of cycle'
+                  : ` · ${phaseInfo.daysRemaining} day${phaseInfo.daysRemaining === 1 ? '' : 's'} remaining`}
+                {' · '}
+                {phaseInfo.description}
               </Text>
             </View>
           </View>
@@ -82,7 +90,7 @@ export default function CycleSettingsScreen() {
         />
 
         {cycleSettings.method === 'menstrual' ? (
-          <View style={styles.manualCard}>
+          <View style={[styles.manualCard, plannerCard()]}>
             <Text style={styles.fieldLabel}>Last Cycle Started</Text>
             <View style={styles.dateRow}>
               <Pressable
@@ -132,7 +140,7 @@ export default function CycleSettingsScreen() {
             />
           </View>
         ) : (
-          <View style={styles.lunarNote}>
+          <View style={[styles.lunarNote, plannerCard()]}>
             <Text style={styles.lunarText}>
               Calculated automatically from the lunar cycle. No input needed.{'\n'}
               <Text style={styles.lunarMuted}>
@@ -147,7 +155,7 @@ export default function CycleSettingsScreen() {
         <PhaseGuideList activePhase={phaseInfo?.phase} />
 
         <FullWidthButton label="Save Settings" onPress={handleSave} />
-      </ScrollView>
+      </FocusScrollView>
     </View>
   );
 }
@@ -158,131 +166,120 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   content: {
-    paddingHorizontal: 12,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingHorizontal: s(12),
+    paddingTop: s(12),
+    paddingBottom: s(24),
   },
   toggleCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: 10,
+    gap: s(10),
+    padding: s(12),
+    marginBottom: s(10),
   },
   toggleCopy: {
     flex: 1,
   },
   toggleTitle: {
-    fontFamily: fonts.lora,
-    fontSize: 14,
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(14),
     color: colors.navy,
   },
   toggleSubtitle: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.blue,
   },
   currentPhaseCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderWidth: 1,
-    marginBottom: 10,
+    gap: s(10),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(10),
+    marginBottom: s(10),
   },
   currentPhaseCopy: {
     flex: 1,
   },
   currentPhaseLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 1.5,
+    fontSize: fs(8),
+    letterSpacing: s(1.5),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 1,
+    marginBottom: s(1),
   },
   currentPhaseTitle: {
-    fontFamily: fonts.lora,
-    fontSize: 14,
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(14),
     color: colors.navy,
   },
   currentPhaseMeta: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     color: colors.gray,
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 6,
-    marginTop: 4,
+    marginBottom: s(6),
+    marginTop: s(4),
   },
   manualCard: {
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: 10,
+    padding: s(12),
+    marginBottom: s(10),
   },
   fieldLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 5,
+    marginBottom: s(5),
   },
   dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 10,
+    gap: s(10),
+    marginBottom: s(10),
   },
   dateButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: s(28),
+    height: vs(28),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dateButtonText: {
     fontFamily: fonts.dmSans,
-    fontSize: 14,
+    fontSize: fs(14),
     color: colors.navy,
   },
   dateValue: {
     flex: 1,
     textAlign: 'center',
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.navy,
   },
   lunarNote: {
     backgroundColor: colors.light,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 10,
+    paddingHorizontal: s(12),
+    paddingVertical: vs(10),
+    marginBottom: s(10),
   },
   lunarText: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.gray,
-    lineHeight: 16,
+    lineHeight: fs(16),
   },
   lunarMuted: {
     color: colors.muted,

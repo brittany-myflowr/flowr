@@ -1,61 +1,135 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GuidedProgressHeader } from '@/components/routines/guided/GuidedProgressHeader';
+import {
+  createEmptyGuidedStepDraft,
+  GuidedStepCard,
+  type GuidedStepDraft,
+} from '@/components/routines/guided/GuidedStepCard';
 import { RoutineReviewCard } from '@/components/routines/RoutineCard';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
+import { ScheduleEditorForm } from '@/components/schedule/ScheduleEditorForm';
 import { Chip } from '@/components/ui/Chip';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { SelectableTile } from '@/components/ui/SelectableTile';
 import { categories, type Category } from '@/constants/categories';
 import { colors } from '@/constants/colors';
+import { plannerCornerRadius } from '@/constants/plannerCardStyles';
+import {
+  cloneSchedule,
+  defaultScheduleForTimeOfDay,
+  formatSchedulePreview,
+  normalizeSchedule,
+} from '@/constants/schedules';
+import {
+  guidedFlowTypography,
+  tabPageStyles,
+} from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
-import { useRoutines } from '@/providers/RoutinesProvider';
+import { formatTaggedProductLabel } from '@/lib/formatTaggedProductLabel';
+import { useProducts, useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
-import type { ScheduleFrequency, TimeOfDay } from '@/types';
-
-const FREQUENCIES: { value: ScheduleFrequency; label: string }[] = [
-  { value: 'daily', label: 'Every day' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'custom', label: 'Custom' },
-];
-
-const TIME_OF_DAY_OPTIONS: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
-
-function capitalize(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
+import type { Schedule } from '@/types';
+import { s, vs } from '@/lib/scale';
 
 export default function GuidedSetupScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { addRoutine } = useRoutines();
+  const {
+    addRoutine,
+    consumePendingGuidedStepScheduleResult,
+    consumePendingGuidedStepProductResult,
+    setPendingGuidedStepScheduleInit,
+  } = useRoutines();
+  const { products } = useProducts();
   const { showToast } = useToast();
 
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [category, setCategory] = useState<Category>('Skincare');
-  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('morning');
-  const [frequency, setFrequency] = useState<ScheduleFrequency>('daily');
-  const [steps, setSteps] = useState<string[]>([]);
+  const [routineSchedule, setRoutineSchedule] = useState<Schedule>(() =>
+    normalizeSchedule(defaultScheduleForTimeOfDay('morning')),
+  );
+  const [steps, setSteps] = useState<GuidedStepDraft[]>([]);
+
+  useEffect(() => {
+    if (step === 3 && steps.length === 0) {
+      setSteps([createEmptyGuidedStepDraft()]);
+    }
+  }, [step, steps.length]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const scheduleResult = consumePendingGuidedStepScheduleResult();
+      if (scheduleResult) {
+        setSteps((current) =>
+          current.map((entry, index) =>
+            index === scheduleResult.stepIndex
+              ? { ...entry, schedule: scheduleResult.schedule }
+              : entry,
+          ),
+        );
+      }
+
+      const productResult = consumePendingGuidedStepProductResult();
+      if (productResult) {
+        setSteps((current) =>
+          current.map((entry, index) =>
+            index === productResult.stepIndex
+              ? { ...entry, productId: productResult.productId }
+              : entry,
+          ),
+        );
+      }
+    }, [consumePendingGuidedStepScheduleResult, consumePendingGuidedStepProductResult]),
+  );
+
+  const validSteps = steps.filter((entry) => entry.name.trim().length > 0);
+  const hasProgress =
+    name.trim().length > 0 ||
+    steps.some(
+      (entry) =>
+        entry.name.trim().length > 0 ||
+        entry.note.trim().length > 0 ||
+        entry.schedule ||
+        entry.productId,
+    ) ||
+    step > 1;
+
+  const exitFlow = () => {
+    router.back();
+  };
+
+  const handleExit = () => {
+    if (hasProgress) {
+      Alert.alert('Discard routine?', "Your progress won't be saved.", [
+        { text: 'Keep editing', style: 'cancel' },
+        { text: 'Discard', style: 'destructive', onPress: exitFlow },
+      ]);
+      return;
+    }
+
+    exitFlow();
+  };
 
   const goBack = () => {
     if (step > 1) {
       setStep((current) => current - 1);
       return;
     }
-    router.back();
+
+    handleExit();
   };
 
   const goNext = () => {
@@ -64,31 +138,90 @@ export default function GuidedSetupScreen() {
       return;
     }
 
-    addRoutine({
+    const routine = addRoutine({
       name,
       category,
-      timeOfDay,
-      frequency,
-      stepNames: steps,
+      schedule: routineSchedule,
+      steps: validSteps.map((entry) => ({
+        name: entry.name,
+        note: entry.note.trim() || undefined,
+        schedule: entry.schedule ?? undefined,
+        productId: entry.productId ?? undefined,
+      })),
     });
+
+    if (!routine) return;
+
     showToast('Routine created');
     router.replace('/(tabs)/routines');
   };
 
-  const updateStepName = (index: number, value: string) => {
-    setSteps((current) => current.map((stepName, i) => (i === index ? value : stepName)));
+  const updateStepDraft = (index: number, updates: Partial<GuidedStepDraft>) => {
+    setSteps((current) =>
+      current.map((entry, i) => (i === index ? { ...entry, ...updates } : entry)),
+    );
   };
 
-  const addStep = () => {
-    setSteps((current) => [...current, '']);
+  const appendStep = () => {
+    setSteps((current) => [...current, createEmptyGuidedStepDraft()]);
   };
 
-  const trimmedSteps = steps.map((stepName) => stepName.trim()).filter(Boolean);
+  const removeStep = (index: number) => {
+    setSteps((current) => current.filter((_, i) => i !== index));
+  };
+
+  const openScheduleCustomizer = (index: number) => {
+    const entry = steps[index];
+    if (!entry) return;
+
+    setPendingGuidedStepScheduleInit(
+      cloneSchedule(entry.schedule ?? routineSchedule),
+    );
+    router.push({
+      pathname: '/(tabs)/routines/schedule',
+      params: {
+        guided: '1',
+        stepIndex: String(index),
+        stepName: entry.name.trim() || `Step ${index + 1}`,
+      },
+    });
+  };
+
+  const openTagProduct = (index: number) => {
+    const entry = steps[index];
+    if (!entry) return;
+
+    router.push({
+      pathname: '/(tabs)/routines/tag-product',
+      params: {
+        guided: '1',
+        stepIndex: String(index),
+        stepName: entry.name.trim() || `Step ${index + 1}`,
+        selectedProductId: entry.productId ?? '',
+      },
+    });
+  };
+
+  const reviewSteps = validSteps.map((entry) => {
+    const product = entry.productId
+      ? products.find((item) => item.id === entry.productId)
+      : undefined;
+
+    return {
+      name: entry.name.trim(),
+      note: entry.note.trim() || undefined,
+      productName: product ? formatTaggedProductLabel(product) : undefined,
+      scheduleLabel: entry.schedule
+        ? formatSchedulePreview(entry.schedule)
+        : undefined,
+    };
+  });
+
   const canContinue =
     step === 1
       ? name.trim().length > 0
       : step === 3
-        ? trimmedSteps.length > 0
+        ? validSteps.length > 0
         : true;
 
   return (
@@ -97,10 +230,11 @@ export default function GuidedSetupScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={{ paddingTop: insets.top }}>
-        <GuidedProgressHeader step={step} onBack={goBack} />
+        <GuidedProgressHeader step={step} onBack={goBack} onCancel={handleExit} />
       </View>
 
-      <ScrollView
+      <FocusScrollView
+        style={tabPageStyles.scroll}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -115,6 +249,7 @@ export default function GuidedSetupScreen() {
               onChangeText={setName}
               placeholder="e.g. Morning Skincare"
               autoCapitalize="words"
+              style={styles.nameInput}
             />
             <Text style={styles.fieldLabel}>Category</Text>
             <View style={styles.chips}>
@@ -124,6 +259,7 @@ export default function GuidedSetupScreen() {
                   label={item}
                   selected={category === item}
                   small
+                  large
                   onPress={() => setCategory(item)}
                 />
               ))}
@@ -134,51 +270,47 @@ export default function GuidedSetupScreen() {
         {step === 2 ? (
           <>
             <Text style={styles.helper}>
-              Sets the default schedule for the whole routine.
+              Sets the default schedule for the whole routine. Individual steps can customize
+              their own schedule later.
             </Text>
-            <View style={styles.tileRow}>
-              {TIME_OF_DAY_OPTIONS.map((option) => (
-                <SelectableTile
-                  key={option}
-                  label={capitalize(option)}
-                  selected={timeOfDay === option}
-                  onPress={() => setTimeOfDay(option)}
-                />
-              ))}
-            </View>
-            <Text style={styles.fieldLabel}>How often?</Text>
-            <View style={styles.chips}>
-              {FREQUENCIES.map((item) => (
-                <Chip
-                  key={item.value}
-                  label={item.label}
-                  selected={frequency === item.value}
-                  small
-                  onPress={() => setFrequency(item.value)}
-                />
-              ))}
-            </View>
+            <ScheduleEditorForm
+              schedule={routineSchedule}
+              onScheduleChange={setRoutineSchedule}
+              showSaveButton={false}
+            />
           </>
         ) : null}
 
         {step === 3 ? (
           <>
-            <Text style={styles.helper}>Add each action as a step.</Text>
-            {steps.map((stepName, index) => (
-              <View key={`step-${index}`} style={styles.stepRow}>
-                <View style={styles.stepNumber}>
-                  <Text style={styles.stepNumberText}>{index + 1}</Text>
-                </View>
-                <TextInput
-                  value={stepName}
-                  onChangeText={(value) => updateStepName(index, value)}
-                  placeholder="Step name"
-                  placeholderTextColor={colors.muted}
-                  style={styles.stepInput}
+            <Text style={styles.helper}>
+              Add each action with its name, note, schedule, and product.
+            </Text>
+            {steps.map((entry, index) => {
+              const product = entry.productId
+                ? products.find((item) => item.id === entry.productId)
+                : undefined;
+              const scheduleLabel = entry.schedule
+                ? formatSchedulePreview(entry.schedule)
+                : `${formatSchedulePreview(routineSchedule)} (routine default)`;
+
+              return (
+                <GuidedStepCard
+                  key={`guided-step-${index}`}
+                  index={index}
+                  total={steps.length}
+                  draft={entry}
+                  scheduleLabel={scheduleLabel}
+                  productName={product ? formatTaggedProductLabel(product) : undefined}
+                  onChangeName={(value) => updateStepDraft(index, { name: value })}
+                  onChangeNote={(value) => updateStepDraft(index, { note: value })}
+                  onCustomizeSchedule={() => openScheduleCustomizer(index)}
+                  onTagProduct={() => openTagProduct(index)}
+                  onRemove={() => removeStep(index)}
                 />
-              </View>
-            ))}
-            <Pressable onPress={addStep} style={styles.addStepButton}>
+              );
+            })}
+            <Pressable onPress={appendStep} style={styles.addStepButton}>
               <Text style={styles.addStepLabel}>+ Add a step</Text>
             </Pressable>
           </>
@@ -188,9 +320,8 @@ export default function GuidedSetupScreen() {
           <RoutineReviewCard
             name={name.trim()}
             category={category}
-            frequency={frequency}
-            timeOfDay={timeOfDay}
-            steps={trimmedSteps}
+            scheduleLabel={formatSchedulePreview(routineSchedule)}
+            steps={reviewSteps}
           />
         ) : null}
 
@@ -201,97 +332,59 @@ export default function GuidedSetupScreen() {
             disabled={!canContinue}
           />
         </View>
-      </ScrollView>
+      </FocusScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
+  screen: tabPageStyles.screen,
   content: {
-    paddingHorizontal: 12,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingHorizontal: s(12),
+    paddingTop: s(14),
+    paddingBottom: s(24),
+  },
+  nameInput: {
+    fontSize: guidedFlowTypography.body,
   },
   helper: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: guidedFlowTypography.helper,
     color: colors.gray,
-    lineHeight: 15,
-    marginBottom: 10,
+    lineHeight: guidedFlowTypography.helperLineHeight,
+    marginBottom: s(12),
   },
   fieldLabel: {
-    marginTop: 10,
-    marginBottom: 6,
+    marginTop: s(12),
+    marginBottom: s(8),
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: guidedFlowTypography.fieldLabel,
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
   },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
-    marginBottom: 12,
-  },
-  tileRow: {
-    flexDirection: 'row',
-    gap: 5,
-    marginBottom: 10,
-  },
-  stepRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: colors.white,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    marginBottom: 5,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  stepNumber: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.light,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepNumberText: {
-    fontFamily: fonts.dmSansSemiBold,
-    fontSize: 8,
-    color: colors.blue,
-    fontWeight: '600',
-  },
-  stepInput: {
-    flex: 1,
-    fontFamily: fonts.lora,
-    fontSize: 12,
-    color: colors.navy,
-    padding: 0,
+    gap: s(5),
+    marginBottom: s(14),
   },
   addStepButton: {
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: vs(10),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: '#c8d9e6',
     alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 10,
+    marginTop: s(6),
+    marginBottom: s(12),
   },
   addStepLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: guidedFlowTypography.link,
     color: colors.blue,
   },
   footer: {
-    marginTop: 10,
+    marginTop: s(12),
   },
 });

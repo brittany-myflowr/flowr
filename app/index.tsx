@@ -2,11 +2,13 @@ import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Daisy, Logo } from '@/components/brand';
+import { BrandMark } from '@/components/brand';
 import { LoadingDots } from '@/components/feedback/LoadingDots';
-import { GradientBackground } from '@/components/ui/GradientBackground';
+import { BrandGradientCanvas } from '@/components/ui/BrandGradientCanvas';
+import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { useAppStore } from '@/providers/AppStore';
+import { s, vs, fs } from '@/lib/scale';
 
 const LAUNCH_DURATION_MS = 1500;
 
@@ -25,18 +27,15 @@ export default function LaunchScreen() {
   }, [hydrated, isLoggedIn, router]);
 
   return (
-    <GradientBackground style={styles.container}>
-      <Daisy color="rgba(255,255,255,0.95)" size={64} />
-      <View style={styles.logoWrap}>
-        <Logo size={44} />
-      </View>
+    <BrandGradientCanvas style={styles.container}>
+      <BrandMark flowerSize={s(64)} logoSize={s(44)} color={colors.navy} />
       <Text style={styles.loading}>
         {hydrated ? 'Loading your routines...' : 'Starting flowr...'}
       </Text>
       <View style={styles.dots}>
-        <LoadingDots />
+        <LoadingDots color={`${colors.navy}88`} />
       </View>
-    </GradientBackground>
+    </BrandGradientCanvas>
   );
 }
 
@@ -45,21 +44,18 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 28,
-    paddingVertical: 40,
-  },
-  logoWrap: {
-    marginTop: 16,
+    paddingHorizontal: s(28),
+    paddingVertical: vs(40),
   },
   loading: {
-    marginTop: 4,
+    marginTop: s(8),
     fontFamily: fonts.dmSans,
-    fontSize: 10,
-    letterSpacing: 2,
+    fontSize: fs(10),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.muted,
   },
   dots: {
-    marginTop: 4,
+    marginTop: s(4),
   },
 });

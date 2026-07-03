@@ -2,7 +2,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Toggle } from '@/components/ui/Toggle';
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
+import { s, fs } from '@/lib/scale';
 
 type CycleSyncCardProps = {
   enabled: boolean;
@@ -12,7 +14,7 @@ type CycleSyncCardProps = {
 
 export function CycleSyncCard({ enabled, onToggle, onPress }: CycleSyncCardProps) {
   return (
-    <Pressable onPress={onPress} style={styles.card}>
+    <Pressable onPress={onPress} style={[styles.card, plannerCard()]}>
       <View style={styles.copy}>
         <Text style={styles.title}>Enable Cycle Syncing</Text>
         <Text style={styles.subtitle}>For those who track a hormonal cycle</Text>
@@ -29,27 +31,23 @@ export function CycleSyncCard({ enabled, onToggle, onPress }: CycleSyncCardProps
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
+    padding: s(12),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: s(10),
   },
   copy: {
     flex: 1,
   },
   title: {
-    fontFamily: fonts.lora,
-    fontSize: 14,
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(14),
     color: colors.navy,
   },
   subtitle: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
   },
 });

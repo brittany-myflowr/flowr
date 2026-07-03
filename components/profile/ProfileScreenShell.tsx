@@ -1,10 +1,13 @@
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { colors } from '@/constants/colors';
+import { plannerCard } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type ProfileScreenShellProps = {
   title: string;
@@ -24,72 +27,75 @@ export function ProfileScreenShell({ title, subtitle, children }: ProfileScreenS
         backLabel="← Profile"
         onBack={() => router.back()}
       />
-      <ScrollView
+      <FocusScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         {children}
-      </ScrollView>
+      </FocusScrollView>
     </View>
   );
 }
 
 export const profileBodyStyles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 14,
-    marginBottom: 10,
+    ...plannerCard(),
+    padding: s(14),
+    marginBottom: s(10),
   },
   paragraph: {
     fontFamily: fonts.dmSans,
-    fontSize: 12,
+    fontSize: fs(12),
     color: colors.gray,
-    lineHeight: 19,
-    marginBottom: 10,
+    lineHeight: fs(19),
+    marginBottom: s(10),
   },
   paragraphLast: {
-    marginBottom: 0,
+    marginBottom: s(0),
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 6,
+    marginBottom: s(6),
   },
   value: {
-    fontFamily: fonts.lora,
-    fontSize: 16,
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(16),
     color: colors.navy,
   },
   meta: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.muted,
-    marginTop: 4,
+    marginTop: s(4),
   },
   valueInline: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: 12,
+    fontSize: fs(12),
     color: colors.navy,
     fontWeight: '600',
   },
+  cardTitle: {
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(14),
+    color: colors.navy,
+    marginBottom: s(6),
+  },
   sectionTitle: {
     fontFamily: fonts.lora,
-    fontSize: 14,
+    fontSize: fs(14),
     color: colors.navy,
-    marginTop: 6,
-    marginBottom: 6,
+    marginTop: s(6),
+    marginBottom: s(6),
   },
   footerSpacer: {
-    height: 8,
+    height: vs(8),
   },
   loader: {
-    marginBottom: 12,
+    marginBottom: s(12),
   },
 });
 
@@ -99,8 +105,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   content: {
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingHorizontal: s(14),
+    paddingTop: s(12),
+    paddingBottom: s(24),
   },
 });

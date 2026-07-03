@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { CounterRow } from '@/components/cycle/SyncMethodPicker';
@@ -9,11 +8,12 @@ import { WeekDayPicker } from '@/components/schedule/WeekDayPicker';
 import { Chip } from '@/components/ui/Chip';
 import { FullWidthButton } from '@/components/ui/Button';
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import {
-  cloneSchedule,
   END_OPTIONS,
   formatSchedulePreview,
   FREQUENCY_OPTIONS,
+  normalizeSchedule,
   type EndOption,
 } from '@/constants/schedules';
 import { fonts } from '@/constants/typography';
@@ -21,26 +21,28 @@ import type { PhaseKey } from '@/constants/phases';
 import { defaultEndDate, todayIsoDate } from '@/lib/schedule';
 import { useCycleSettings } from '@/providers/AppStore';
 import type { Schedule, ScheduleFrequency } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 const CYCLE_FREQUENCY_OPTION = { value: 'cycle' as const, label: 'Cycle Phase' };
 
 type ScheduleEditorFormProps = {
-  initialSchedule: Schedule;
-  onSave: (schedule: Schedule) => void;
+  schedule: Schedule;
+  onScheduleChange: (schedule: Schedule) => void;
+  showSaveButton?: boolean;
+  onSave?: () => void;
 };
 
-function withStartDate(schedule: Schedule): Schedule {
-  return {
-    ...schedule,
-    startDate: schedule.startDate ?? todayIsoDate(),
-  };
-}
-
-export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFormProps) {
+export function ScheduleEditorForm({
+  schedule,
+  onScheduleChange,
+  showSaveButton = true,
+  onSave,
+}: ScheduleEditorFormProps) {
   const { cycleSettings } = useCycleSettings();
-  const [schedule, setSchedule] = useState<Schedule>(() =>
-    withStartDate(cloneSchedule(initialSchedule)),
-  );
+
+  const updateSchedule = (updater: (current: Schedule) => Schedule) => {
+    onScheduleChange(normalizeSchedule(updater(schedule)));
+  };
 
   const frequencyOptions = cycleSettings.enabled
     ? [...FREQUENCY_OPTIONS, CYCLE_FREQUENCY_OPTION]
@@ -53,7 +55,7 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
   const ends = schedule.ends ?? 'never';
 
   const setFrequency = (frequency: ScheduleFrequency) => {
-    setSchedule((current) => {
+    updateSchedule((current) => {
       const startDate = current.startDate ?? todayIsoDate();
 
       return {
@@ -79,7 +81,7 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
   };
 
   const togglePhase = (phase: PhaseKey) => {
-    setSchedule((current) => {
+    updateSchedule((current) => {
       const phases = current.phases ?? [];
       const next = phases.includes(phase)
         ? phases.filter((item) => item !== phase)
@@ -90,7 +92,7 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
   };
 
   const setEnds = (nextEnds: EndOption) => {
-    setSchedule((current) => {
+    updateSchedule((current) => {
       const startDate = current.startDate ?? todayIsoDate();
       const next: Schedule = { ...current, ends: nextEnds, startDate };
 
@@ -104,10 +106,6 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
 
       return next;
     });
-  };
-
-  const handleSave = () => {
-    onSave(withStartDate(schedule));
   };
 
   return (
@@ -124,7 +122,7 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
             key={option.value}
             label={option.label}
             selected={schedule.frequency === option.value}
-            small
+            form
             onPress={() => setFrequency(option.value)}
           />
         ))}
@@ -138,7 +136,7 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
           max={90}
           unit="days"
           onChange={(customIntervalDays) =>
-            setSchedule((current) => ({ ...current, customIntervalDays }))
+            updateSchedule((current) => ({ ...current, customIntervalDays }))
           }
         />
       ) : null}
@@ -148,7 +146,9 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
           <Text style={styles.sectionLabel}>On These Days</Text>
           <WeekDayPicker
             selectedDays={schedule.daysOfWeek ?? []}
-            onChange={(daysOfWeek) => setSchedule((current) => ({ ...current, daysOfWeek }))}
+            onChange={(daysOfWeek) =>
+              updateSchedule((current) => ({ ...current, daysOfWeek }))
+            }
           />
         </>
       ) : null}
@@ -166,13 +166,13 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
       <Text style={styles.sectionLabel}>Time of Day</Text>
       <TimeOfDayPicker
         value={schedule.timeOfDay}
-        onChange={(timeOfDay) => setSchedule((current) => ({ ...current, timeOfDay }))}
+        onChange={(timeOfDay) => updateSchedule((current) => ({ ...current, timeOfDay }))}
       />
 
       <DateStepperRow
         label="Start Date"
         value={schedule.startDate ?? todayIsoDate()}
-        onChange={(startDate) => setSchedule((current) => ({ ...current, startDate }))}
+        onChange={(startDate) => updateSchedule((current) => ({ ...current, startDate }))}
       />
 
       <Text style={styles.sectionLabel}>Ends</Text>
@@ -204,7 +204,7 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
         <DateStepperRow
           label="End Date"
           value={schedule.endDate ?? defaultEndDate(schedule.startDate ?? todayIsoDate())}
-          onChange={(endDate) => setSchedule((current) => ({ ...current, endDate }))}
+          onChange={(endDate) => updateSchedule((current) => ({ ...current, endDate }))}
         />
       ) : null}
 
@@ -216,14 +216,16 @@ export function ScheduleEditorForm({ initialSchedule, onSave }: ScheduleEditorFo
           max={365}
           unit="times"
           onChange={(endAfterCount) =>
-            setSchedule((current) => ({ ...current, endAfterCount }))
+            updateSchedule((current) => ({ ...current, endAfterCount }))
           }
         />
       ) : null}
 
-      <View style={styles.footer}>
-        <FullWidthButton label="Save Schedule" onPress={handleSave} />
-      </View>
+      {showSaveButton && onSave ? (
+        <View style={styles.footer}>
+          <FullWidthButton label="Save Schedule" onPress={onSave} />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -233,53 +235,53 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light,
     borderWidth: 1,
     borderColor: '#c8d9e6',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 12,
+    borderRadius: plannerCornerRadius,
+    paddingHorizontal: s(12),
+    paddingVertical: vs(10),
+    marginBottom: s(12),
   },
   previewLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 2,
+    marginBottom: s(2),
   },
   previewValue: {
-    fontFamily: fonts.lora,
-    fontSize: 14,
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(14),
     color: colors.navy,
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 6,
+    marginBottom: s(6),
   },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
-    marginBottom: 12,
+    gap: s(6),
+    marginBottom: s(12),
   },
   endsRow: {
     flexDirection: 'row',
-    gap: 6,
-    marginBottom: 12,
+    gap: s(6),
+    marginBottom: s(12),
   },
   endsButton: {
     flex: 1,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: vs(8),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
     alignItems: 'center',
   },
   endsDefault: {
     backgroundColor: colors.white,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
   },
   endsSelected: {
     backgroundColor: colors.navy,
@@ -287,7 +289,7 @@ const styles = StyleSheet.create({
   },
   endsLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
   },
   endsLabelDefault: {
     color: colors.gray,
@@ -296,6 +298,6 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   footer: {
-    marginTop: 4,
+    marginTop: s(4),
   },
 });

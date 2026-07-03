@@ -2,176 +2,152 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PhaseChip } from '@/components/cycle/PhaseChip';
 import { CheckIcon } from '@/components/icons/ActionIcons';
+import { StepNumberBadge } from '@/components/steps/StepNumberBadge';
+import { StepProductLabel } from '@/components/steps/StepProductChip';
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import type { PhaseKey } from '@/constants/phases';
 import type { Step } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 type TodayStepRowProps = {
   step: Step;
-  routineName: string;
+  index: number;
+  embedded?: boolean;
   phaseKeys?: PhaseKey[];
-  reorderMode?: boolean;
-  index?: number;
-  total?: number;
   onToggle?: () => void;
-  onLongPress?: () => void;
-  onMoveUp?: () => void;
-  onMoveDown?: () => void;
 };
 
 export function TodayStepRow({
   step,
-  routineName,
+  index,
+  embedded = false,
   phaseKeys,
-  reorderMode = false,
-  index = 0,
-  total = 1,
   onToggle,
-  onLongPress,
-  onMoveUp,
-  onMoveDown,
 }: TodayStepRowProps) {
-  const content = (
-    <>
-      {reorderMode ? (
-        <View style={styles.reorderActions}>
-          <Pressable
-            onPress={onMoveUp}
-            disabled={index === 0}
-            style={[styles.reorderButton, index === 0 && styles.reorderButtonDisabled]}
-          >
-            <Text style={styles.reorderLabel}>↑</Text>
-          </Pressable>
-          <Pressable
-            onPress={onMoveDown}
-            disabled={index === total - 1}
-            style={[
-              styles.reorderButton,
-              index === total - 1 && styles.reorderButtonDisabled,
-            ]}
-          >
-            <Text style={styles.reorderLabel}>↓</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <View style={[styles.checkbox, step.done && styles.checkboxDone]}>
-          {step.done ? <CheckIcon size={12} color={colors.white} /> : null}
-        </View>
-      )}
+  const hasPhaseChips = Boolean(phaseKeys?.length);
 
-      <View style={styles.copy}>
-        <Text style={[styles.stepName, step.done && styles.stepNameDone]}>{step.name}</Text>
-        <View style={styles.meta}>
-          <Text style={styles.routineName}>{routineName}</Text>
+  return (
+    <View style={embedded ? undefined : styles.card}>
+      <View style={[styles.mainRow, embedded && styles.mainRowEmbedded]}>
+        <View style={styles.leading}>
+          <StepNumberBadge number={index + 1} />
+
+          <View style={styles.copy}>
+            <Text style={[styles.stepName, step.done && styles.stepNameDone]}>{step.name}</Text>
+            {step.note ? (
+              <Text style={[styles.noteText, step.done && styles.noteTextDone]}>{step.note}</Text>
+            ) : null}
+            {step.productName ? (
+              <StepProductLabel label={step.productName} done={step.done} />
+            ) : null}
+          </View>
+        </View>
+
+        <View style={styles.actions}>
+          {onToggle ? (
+            <Pressable
+              onPress={onToggle}
+              hitSlop={s(8)}
+              style={[styles.checkbox, step.done && styles.checkboxDone]}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: step.done }}
+              accessibilityLabel={`Mark ${step.name} complete`}
+            >
+              {step.done ? <CheckIcon size={s(10)} color={colors.white} /> : null}
+            </Pressable>
+          ) : null}
+        </View>
+      </View>
+
+      {hasPhaseChips ? (
+        <View style={[styles.chips, embedded && styles.chipsEmbedded]}>
           {phaseKeys?.map((phaseKey) => (
             <PhaseChip key={phaseKey} phaseKey={phaseKey} />
           ))}
         </View>
-        {step.productName ? (
-          <Text style={styles.productName}>{step.productName}</Text>
-        ) : null}
-      </View>
-    </>
-  );
-
-  if (reorderMode) {
-    return <View style={[styles.card, step.done && styles.cardDone]}>{content}</View>;
-  }
-
-  return (
-    <Pressable
-      onPress={onToggle}
-      onLongPress={onLongPress}
-      delayLongPress={250}
-      style={[styles.card, step.done && styles.cardDone]}
-    >
-      {content}
-    </Pressable>
+      ) : null}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
     backgroundColor: colors.white,
-    borderRadius: 10,
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 12,
-    paddingVertical: 11,
-    marginBottom: 7,
+    borderColor: plannerCardBorder,
+    marginBottom: s(7),
+    overflow: 'hidden',
   },
-  cardDone: {
-    opacity: 0.72,
-  },
-  reorderActions: {
+  mainRow: {
     flexDirection: 'row',
-    gap: 2,
-    marginTop: 1,
-  },
-  reorderButton: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: colors.border,
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
+    gap: s(8),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(10),
   },
-  reorderButtonDisabled: {
-    opacity: 0.35,
+  mainRowEmbedded: {
+    paddingHorizontal: s(0),
+    paddingVertical: vs(4),
   },
-  reorderLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: 12,
-    color: colors.navy,
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1.5,
-    borderColor: '#c8d9e6',
+  leading: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 1,
-  },
-  checkboxDone: {
-    backgroundColor: colors.blue,
-    borderColor: colors.blue,
+    gap: s(8),
   },
   copy: {
     flex: 1,
   },
   stepName: {
-    fontFamily: fonts.lora,
-    fontSize: 14,
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(13),
     color: colors.navy,
   },
   stepNameDone: {
     textDecorationLine: 'line-through',
     color: colors.muted,
   },
-  routineName: {
+  noteText: {
+    marginTop: s(2),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
-    color: colors.blue,
+    fontSize: fs(11),
+    color: colors.muted,
   },
-  meta: {
+  noteTextDone: {
+    textDecorationLine: 'line-through',
+  },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: s(10),
+  },
+  checkbox: {
+    width: s(20),
+    height: vs(20),
+    borderRadius: plannerCornerRadius,
+    borderWidth: 1,
+    borderColor: plannerCardBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+  },
+  checkboxDone: {
+    backgroundColor: colors.navy,
+    borderColor: colors.navy,
+  },
+  chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 3,
-    marginTop: 2,
+    gap: s(5),
+    paddingHorizontal: s(12),
+    paddingBottom: s(8),
   },
-  productName: {
-    marginTop: 2,
-    fontFamily: fonts.dmSans,
-    fontSize: 9,
-    color: colors.muted,
+  chipsEmbedded: {
+    paddingHorizontal: s(0),
+    paddingBottom: s(0),
+    marginTop: s(4),
   },
 });

@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, fs } from '@/lib/scale';
 
 type TextLinkProps = {
   children: string;
@@ -26,7 +27,7 @@ export function TextLink({
 const styles = StyleSheet.create({
   link: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     textDecorationLine: 'underline',
   },
 });

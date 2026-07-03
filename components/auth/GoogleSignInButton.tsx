@@ -1,16 +1,20 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type GoogleSignInButtonProps = {
   onPress?: () => void;
+  disabled?: boolean;
+  loading?: boolean;
 };
 
 function GoogleLogo() {
   return (
-    <Svg width={16} height={16} viewBox="0 0 24 24">
+    <Svg width={s(16)} height={s(16)} viewBox="0 0 24 24">
       <Path
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
         fill="#4285F4"
@@ -31,39 +35,50 @@ function GoogleLogo() {
   );
 }
 
-/** UI placeholder — wire to `GoogleSignin.signIn()` from @react-native-google-signin/google-signin when OAuth is configured. */
-export function GoogleSignInButton({ onPress }: GoogleSignInButtonProps) {
+export function GoogleSignInButton({
+  onPress,
+  disabled = false,
+  loading = false,
+}: GoogleSignInButtonProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+      disabled={disabled || loading}
+      style={({ pressed }) => [
+        styles.button,
+        (pressed || disabled || loading) && styles.pressed,
+      ]}
     >
-      <GoogleLogo />
-      <Text style={styles.label}>Continue with Google</Text>
+      {loading ? (
+        <ActivityIndicator color={colors.navy} size="small" />
+      ) : (
+        <GoogleLogo />
+      )}
+      <Text style={styles.label}>{loading ? 'Signing in…' : 'Continue with Google'}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: 11,
-    paddingHorizontal: 14,
-    borderRadius: 10,
+    paddingVertical: vs(11),
+    paddingHorizontal: s(14),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     backgroundColor: colors.white,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    marginBottom: 12,
+    gap: s(8),
+    marginBottom: s(12),
   },
   pressed: {
     opacity: 0.85,
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 11,
+    fontSize: fs(11),
     color: colors.navy,
   },
 });

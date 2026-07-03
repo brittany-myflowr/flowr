@@ -1,34 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { plannerCard, plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
-import {
-  getNotificationPermissionLabel,
-  type NotificationPermissionStatus,
-} from '@/hooks/useNotificationPermission';
-
-type PermissionStatusRowProps = {
-  status: NotificationPermissionStatus;
-};
-
-const STATUS_COLORS: Record<NotificationPermissionStatus, string> = {
-  allowed: colors.blue,
-  denied: colors.danger,
-  not_determined: colors.muted,
-};
-
-export function PermissionStatusRow({ status }: PermissionStatusRowProps) {
-  return (
-    <View style={styles.row}>
-      <Text style={styles.label}>Permission Status</Text>
-      <View style={[styles.badge, { backgroundColor: `${STATUS_COLORS[status]}22` }]}>
-        <Text style={[styles.badgeText, { color: STATUS_COLORS[status] }]}>
-          {getNotificationPermissionLabel(status)}
-        </Text>
-      </View>
-    </View>
-  );
-}
+import { s, vs, fs } from '@/lib/scale';
 
 type PlanOptionCardProps = {
   label: string;
@@ -50,7 +25,7 @@ export function PlanOptionCard({
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.planCard, selected && styles.planCardSelected]}
+      style={[styles.planCard, plannerCard(), selected && styles.planCardSelected]}
     >
       <View style={styles.planCopy}>
         <View style={styles.planHeader}>
@@ -88,40 +63,13 @@ export function PolicyLinkRow({ label, onPress, first = false }: PolicyLinkRowPr
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  label: {
-    fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    color: colors.muted,
-  },
-  badge: {
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  badgeText: {
-    fontFamily: fonts.dmSansSemiBold,
-    fontSize: 10,
-    fontWeight: '600',
-  },
   planCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 8,
+    gap: s(12),
+    paddingHorizontal: s(14),
+    paddingVertical: vs(12),
+    marginBottom: s(8),
   },
   planCardSelected: {
     borderColor: colors.blue,
@@ -133,42 +81,42 @@ const styles = StyleSheet.create({
   planHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 2,
+    gap: s(6),
+    marginBottom: s(2),
   },
   planLabel: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: 12,
+    fontSize: fs(12),
     color: colors.navy,
     fontWeight: '600',
   },
   planBadge: {
     backgroundColor: `${colors.blue}22`,
-    borderRadius: 999,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    borderRadius: plannerCornerRadius,
+    paddingHorizontal: s(6),
+    paddingVertical: vs(2),
   },
   planBadgeText: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
+    fontSize: fs(8),
     color: colors.blue,
   },
   planPrice: {
-    fontFamily: fonts.lora,
-    fontSize: 18,
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(18),
     color: colors.navy,
   },
   planInterval: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.gray,
   },
   radio: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: s(18),
+    height: vs(18),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -176,30 +124,30 @@ const styles = StyleSheet.create({
     borderColor: colors.blue,
   },
   radioDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: s(8),
+    height: vs(8),
+    borderRadius: plannerCornerRadius,
     backgroundColor: colors.blue,
   },
   policyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: vs(10),
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: plannerCardBorder,
   },
   policyRowFirst: {
     borderTopWidth: 0,
   },
   policyLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: 12,
+    fontSize: fs(12),
     color: colors.navy,
   },
   policyAction: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.blue,
     textDecorationLine: 'underline',
   },

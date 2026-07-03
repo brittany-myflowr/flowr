@@ -5,26 +5,67 @@ export type GradientStops = {
   locations?: readonly [number, number, ...number[]];
 };
 
-/** Full brand gradient — launch, splash, auth headers */
-export const fullGradient: GradientStops = {
-  colors: ['#f5c842', '#e8854a', '#c95c4a', '#a87898', '#3d2d5c'],
-  locations: [0, 0.3, 0.55, 0.78, 1],
-};
-
-export const timeOfDayGradients: Record<TimeOfDay, GradientStops> = {
+/**
+ * Soft planner palettes — cream, peach, periwinkle, and lavender.
+ * Today's TOD skies are the global brand gradient story.
+ */
+export const todaySkyGradients: Record<TimeOfDay, GradientStops> = {
   morning: {
-    colors: ['#f5c842', '#e8854a', '#c95c4a'],
-    locations: [0, 0.45, 1],
+    colors: [
+      '#fffdf9',
+      '#fff8f0',
+      '#fceee0',
+      '#f8e4d4',
+      '#f5eef5',
+      '#faf7f2',
+    ],
+    locations: [0, 0.18, 0.38, 0.58, 0.78, 1],
   },
   afternoon: {
-    colors: ['#e8854a', '#c95c4a', '#a87898'],
-    locations: [0, 0.4, 1],
+    colors: [
+      '#fffcf8',
+      '#faf6f0',
+      '#f6ece4',
+      '#f0e4dc',
+      '#eee8f2',
+      '#e8eef8',
+    ],
+    locations: [0, 0.16, 0.36, 0.54, 0.74, 1],
   },
   evening: {
-    colors: ['#a87898', '#7a5c8a', '#3d2d5c'],
-    locations: [0, 0.45, 1],
+    colors: [
+      '#f6f0f8',
+      '#faf4f2',
+      '#f5eae8',
+      '#ede4f0',
+      '#e8ecf6',
+      '#f2f0f8',
+    ],
+    locations: [0, 0.18, 0.4, 0.6, 0.8, 1],
   },
 };
+
+/** Auth headers and boot loading — soft morning brand sky. */
+export const fullGradient: GradientStops = todaySkyGradients.morning;
+
+/** Splash and launch — full-screen soft brand arc (morning → afternoon). */
+export const expandedBrandGradient: GradientStops = {
+  colors: [
+    '#fffdf9',
+    '#fff8f0',
+    '#fceee0',
+    '#f8e4d4',
+    '#f6ece4',
+    '#f0e4dc',
+    '#f5eef5',
+    '#eee8f2',
+    '#e8eef8',
+  ],
+  locations: [0, 0.1, 0.22, 0.36, 0.48, 0.6, 0.72, 0.86, 1],
+};
+
+/** @deprecated Prefer todaySkyGradients — kept for GradientBackground TOD variant. */
+export const timeOfDayGradients: Record<TimeOfDay, GradientStops> = todaySkyGradients;
 
 /** Approximates the design doc's 160deg CSS gradient in RN LinearGradient */
 export const gradientDirection = {

@@ -1,13 +1,14 @@
 import Svg, { Line, Path, Polyline, Rect } from 'react-native-svg';
 
 import { colors } from '@/constants/colors';
+import { s } from '@/lib/scale';
 
 type IconProps = {
   size?: number;
   color?: string;
 };
 
-export function ChevronRightIcon({ size = 14, color = colors.muted }: IconProps) {
+export function ChevronRightIcon({ size = s(14), color = colors.muted }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Polyline
@@ -21,7 +22,7 @@ export function ChevronRightIcon({ size = 14, color = colors.muted }: IconProps)
   );
 }
 
-export function BellOutlineIcon({ size = 16, color = colors.muted }: IconProps) {
+export function BellOutlineIcon({ size = s(16), color = colors.muted }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -42,7 +43,7 @@ export function BellOutlineIcon({ size = 16, color = colors.muted }: IconProps) 
   );
 }
 
-export function CardOutlineIcon({ size = 16, color = colors.muted }: IconProps) {
+export function CardOutlineIcon({ size = s(16), color = colors.muted }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Rect x={2} y={5} width={20} height={14} rx={2} stroke={color} strokeWidth={1.8} />
@@ -51,7 +52,7 @@ export function CardOutlineIcon({ size = 16, color = colors.muted }: IconProps) 
   );
 }
 
-export function ShieldOutlineIcon({ size = 16, color = colors.muted }: IconProps) {
+export function ShieldOutlineIcon({ size = s(16), color = colors.muted }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -65,7 +66,7 @@ export function ShieldOutlineIcon({ size = 16, color = colors.muted }: IconProps
   );
 }
 
-export function MessageOutlineIcon({ size = 16, color = colors.muted }: IconProps) {
+export function MessageOutlineIcon({ size = s(16), color = colors.muted }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -79,7 +80,7 @@ export function MessageOutlineIcon({ size = 16, color = colors.muted }: IconProp
   );
 }
 
-export function LogOutOutlineIcon({ size = 16, color = colors.muted }: IconProps) {
+export function LogOutOutlineIcon({ size = s(16), color = colors.muted }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -110,7 +111,7 @@ export function LogOutOutlineIcon({ size = 16, color = colors.muted }: IconProps
   );
 }
 
-export function WarningOutlineIcon({ size = 16, color = colors.dangerLight }: IconProps) {
+export function WarningOutlineIcon({ size = s(16), color = colors.dangerLight }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -126,7 +127,7 @@ export function WarningOutlineIcon({ size = 16, color = colors.dangerLight }: Ic
   );
 }
 
-export function RadioSelectedIcon({ size = 18, color = colors.blue }: IconProps) {
+export function RadioSelectedIcon({ size = s(18), color = colors.blue }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path

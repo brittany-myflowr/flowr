@@ -1,8 +1,14 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import {
+  getVerdictHeartColor,
+  VerdictHeartIcon,
+} from '@/components/icons/VerdictHeartIcon';
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import type { Verdict } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 const VERDICTS: Verdict[] = ['Love It', 'Like It', 'Not For Me'];
 
@@ -18,15 +24,23 @@ export function VerdictPicker({ value, onChange }: VerdictPickerProps) {
       <View style={styles.row}>
         {VERDICTS.map((verdict) => {
           const selected = value === verdict;
+
           return (
             <Pressable
               key={verdict}
               onPress={() => onChange(verdict)}
               style={[styles.option, selected && styles.optionSelected]}
             >
-              <Text style={[styles.optionText, selected && styles.optionTextSelected]}>
-                {verdict}
-              </Text>
+              <View style={styles.optionContent}>
+                <VerdictHeartIcon
+                  verdict={verdict}
+                  size={s(14)}
+                  color={selected ? colors.white : getVerdictHeartColor(verdict)}
+                />
+                <Text style={[styles.optionText, selected && styles.optionTextSelected]}>
+                  {verdict}
+                </Text>
+              </View>
             </Pressable>
           );
         })}
@@ -37,27 +51,27 @@ export function VerdictPicker({ value, onChange }: VerdictPickerProps) {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: s(16),
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 2,
+    fontSize: fs(8),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: 7,
+    marginBottom: s(7),
   },
   row: {
     flexDirection: 'row',
-    gap: 6,
+    gap: s(6),
   },
   option: {
     flex: 1,
-    paddingVertical: 9,
-    paddingHorizontal: 4,
-    borderRadius: 14,
+    paddingVertical: vs(9),
+    paddingHorizontal: s(6),
+    borderRadius: plannerCornerRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: plannerCardBorder,
     backgroundColor: colors.white,
     alignItems: 'center',
   },
@@ -65,9 +79,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.navy,
     borderColor: colors.navy,
   },
+  optionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: s(4),
+  },
   optionText: {
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: fs(10),
     color: colors.gray,
     textAlign: 'center',
   },

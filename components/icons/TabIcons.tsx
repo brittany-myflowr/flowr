@@ -2,13 +2,14 @@ import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
 
 import { Daisy } from '@/components/brand/Daisy';
 import { colors } from '@/constants/colors';
+import { s } from '@/lib/scale';
 
 type IconProps = {
   size?: number;
   color?: string;
 };
 
-export function SunIcon({ size = 18, color = 'currentColor' }: IconProps) {
+export function SunIcon({ size = s(22), color = 'currentColor' }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx={12} cy={12} r={4} stroke={color} strokeWidth={1.5} />
@@ -24,7 +25,7 @@ export function SunIcon({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
-export function StarIcon({ size = 18, color = 'currentColor' }: IconProps) {
+export function StarIcon({ size = s(22), color = 'currentColor' }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -37,7 +38,7 @@ export function StarIcon({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
-export function CalendarIcon({ size = 18, color = 'currentColor' }: IconProps) {
+export function CalendarIcon({ size = s(22), color = 'currentColor' }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Rect x={3} y={4} width={18} height={18} rx={2} stroke={color} strokeWidth={1.5} />
@@ -48,7 +49,7 @@ export function CalendarIcon({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
-export function FaceIcon({ size = 18, color = 'currentColor' }: IconProps) {
+export function FaceIcon({ size = s(22), color = 'currentColor' }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx={12} cy={12} r={9} stroke={color} strokeWidth={1.5} />
@@ -65,6 +66,6 @@ export function FaceIcon({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
-export function DaisyTabIcon({ size = 18, color = colors.muted }: IconProps) {
+export function DaisyTabIcon({ size = s(22), color = colors.muted }: IconProps) {
   return <Daisy color={color} size={size} />;
 }

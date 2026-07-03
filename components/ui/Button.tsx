@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import { s, vs, fs } from '@/lib/scale';
 
 type ButtonProps = {
   label: string;
@@ -62,9 +63,9 @@ const styles = StyleSheet.create({
   },
   base: {
     width: '100%',
-    paddingVertical: 11,
-    paddingHorizontal: 14,
-    borderRadius: 10,
+    paddingVertical: vs(11),
+    paddingHorizontal: s(14),
+    borderRadius: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -85,11 +86,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.12)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
-    paddingVertical: 14,
+    paddingVertical: vs(14),
   },
   surface: {
     backgroundColor: 'rgba(255,255,255,0.95)',
-    paddingVertical: 14,
+    paddingVertical: vs(14),
   },
   pressed: {
     opacity: 0.85,
@@ -99,8 +100,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: 9,
-    letterSpacing: 2,
+    fontSize: fs(9),
+    letterSpacing: s(2),
     textTransform: 'uppercase',
   },
   primaryLabel: {
@@ -111,18 +112,18 @@ const styles = StyleSheet.create({
   },
   ghostLabel: {
     color: colors.gray,
-    fontSize: 11,
-    letterSpacing: 0,
+    fontSize: fs(11),
+    letterSpacing: s(0),
     textTransform: 'none',
   },
   ghostLightLabel: {
     color: 'rgba(255,255,255,0.85)',
-    letterSpacing: 2.5,
+    letterSpacing: s(2.5),
   },
   surfaceLabel: {
     color: colors.navy,
     fontFamily: fonts.dmSansSemiBold,
     fontWeight: '600',
-    letterSpacing: 2.5,
+    letterSpacing: s(2.5),
   },
 });

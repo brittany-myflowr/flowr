@@ -6,10 +6,11 @@ import { shouldHideTabBar } from '@/lib/tabBarVisibility';
 import { useAppStore } from '@/providers/AppStore';
 
 export default function TabsLayout() {
-  const { hydrated, isLoggedIn } = useAppStore();
+  const { hydrated, isLoggedIn, checkAuthenticated } = useAppStore();
   const segments = useSegments();
+  const authenticated = isLoggedIn || checkAuthenticated();
 
-  if (hydrated && !isLoggedIn) {
+  if (hydrated && !authenticated) {
     return <Redirect href="/(auth)/splash" />;
   }
 
@@ -27,7 +28,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="routines" options={{ title: 'Routines' }} />
       <Tabs.Screen name="products" options={{ title: 'Products' }} />
       <Tabs.Screen name="calendar" options={{ title: 'Calendar' }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
+      <Tabs.Screen name="profile" options={{ href: null, title: 'Profile' }} />
     </Tabs>
   );
 }

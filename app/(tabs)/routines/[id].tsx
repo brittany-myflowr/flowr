@@ -1,58 +1,80 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
+import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { RoutineDetailHeader } from '@/components/routines/RoutineDetailHeader';
+import { RoutineRenameSheet } from '@/components/routines/RoutineRenameSheet';
 import { RoutineStepRow } from '@/components/routines/RoutineStepRow';
-import { StepReminderSheet } from '@/components/routines/StepReminderSheet';
 import { FullWidthButton } from '@/components/ui/Button';
+import { ReorderableList } from '@/components/ui/ReorderableList';
 import { colors } from '@/constants/colors';
-import { fonts } from '@/constants/typography';
+import type { Category } from '@/constants/categories';
 import { useRoutine, useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
-import type { Step, StepReminder } from '@/types';
+import type { Step } from '@/types';
+import { s, vs } from '@/lib/scale';
 
 type DeleteTarget =
   | { type: 'step'; stepId: string; stepName: string }
   | { type: 'routine' }
   | null;
 
-type ReminderTarget = {
-  stepId: string;
-  stepName: string;
-} | null;
-
-function moveStep(steps: Step[], from: number, to: number) {
-  if (to < 0 || to >= steps.length || from === to) return steps;
-  const next = [...steps];
-  const [item] = next.splice(from, 1);
-  next.splice(to, 0, item);
-  return next;
-}
-
 export default function RoutineDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, promptRename } = useLocalSearchParams<{ id: string; promptRename?: string }>();
   const routine = useRoutine(id);
-  const { reorderSteps, removeStep, removeRoutine, updateStep, updateStepReminder } =
+  const { reorderSteps, removeStep, removeRoutine, updateRoutine, duplicateRoutine } =
     useRoutines();
   const { showToast } = useToast();
 
-  const [editingStepId, setEditingStepId] = useState<string | null>(null);
-  const [reorderMode, setReorderMode] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
-  const [reminderTarget, setReminderTarget] = useState<ReminderTarget>(null);
+  const [showRename, setShowRename] = useState(false);
+
+  useEffect(() => {
+    if (promptRename === '1') {
+      setShowRename(true);
+    }
+  }, [promptRename, id]);
 
   if (!routine) {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
-        <FullWidthButton label="← Back to Routines" onPress={() => router.back()} />
+        <SubPageHeader title="Routine" onBack={() => router.back()} />
+        <InlineEmptyCard
+          title="Routine not found"
+          body="It may have been removed or this link is out of date."
+        />
+        <View style={styles.footerSpacer} />
+        <FullWidthButton label="← Back to Routines" onPress={() => router.replace('/(tabs)/routines')} />
       </View>
     );
   }
+
+  const clearRenamePrompt = () => {
+    setShowRename(false);
+    router.setParams({ promptRename: undefined });
+  };
+
+  const handleDuplicate = () => {
+    const duplicated = duplicateRoutine(routine.id);
+    if (!duplicated) return;
+
+    showToast('Routine duplicated');
+    router.replace({
+      pathname: '/(tabs)/routines/[id]',
+      params: { id: duplicated.id, promptRename: '1' },
+    });
+  };
+
+  const handleRenameSave = (name: string) => {
+    updateRoutine(routine.id, { name });
+    clearRenamePrompt();
+  };
 
   const confirmDelete = () => {
     if (!deleteTarget) return;
@@ -83,13 +105,6 @@ export default function RoutineDetailScreen() {
     });
   };
 
-  const openStepSchedule = (stepId: string) => {
-    router.push({
-      pathname: '/(tabs)/routines/schedule',
-      params: { routineId: routine.id, stepId },
-    });
-  };
-
   const openAddStep = () => {
     router.push({
       pathname: '/(tabs)/routines/add-step',
@@ -97,29 +112,15 @@ export default function RoutineDetailScreen() {
     });
   };
 
-  const openTagProduct = (stepId: string) => {
+  const openStepDetail = (stepId: string) => {
     router.push({
-      pathname: '/(tabs)/routines/tag-product',
-      params: { routineId: routine.id, stepId },
+      pathname: '/(tabs)/routines/step/[id]',
+      params: { id: stepId, routineId: routine.id },
     });
   };
 
-  const reminderStep = reminderTarget
-    ? routine.steps.find((step) => step.id === reminderTarget.stepId)
-    : undefined;
-
-  const handleSaveReminder = async (reminder: StepReminder) => {
-    if (!reminderTarget) return;
-
-    const synced = await updateStepReminder(routine.id, reminderTarget.stepId, reminder);
-
-    if (reminder.enabled && !synced) {
-      showToast('Enable notifications in Settings');
-    } else {
-      showToast(reminder.enabled ? 'Reminder saved' : 'Reminder off');
-    }
-
-    setReminderTarget(null);
+  const handleDragEnd = (data: Step[]) => {
+    reorderSteps(routine.id, data);
   };
 
   return (
@@ -128,58 +129,52 @@ export default function RoutineDetailScreen() {
         routine={routine}
         onBack={() => router.back()}
         onEditSchedule={openRoutineSchedule}
+        onCategoryChange={(category: Category) => {
+          updateRoutine(routine.id, { category });
+          showToast('Category updated');
+        }}
+        onNameChange={(name) => updateRoutine(routine.id, { name })}
       />
 
-      {reorderMode ? (
-        <View style={styles.reorderBanner}>
-          <Text style={styles.reorderBannerText}>Reorder mode — use ↑ ↓ or tap handle again to done</Text>
-          <Text onPress={() => setReorderMode(false)} style={styles.reorderDone}>
-            Done
-          </Text>
-        </View>
-      ) : null}
-
-      <ScrollView
+      <ReorderableList
+        data={routine.steps}
+        keyExtractor={(item) => item.id}
+        onDragEnd={handleDragEnd}
+        onItemPress={(item) => openStepDetail(item.id)}
         contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {routine.steps.map((step, index) => (
+        ListFooterComponent={
+          <View style={styles.footer}>
+            {routine.steps.length === 0 ? (
+              <InlineEmptyCard
+                compact
+                title="No steps yet"
+                body="Add your first step to start building this routine."
+              />
+            ) : null}
+            <FullWidthButton label="+ Add Step" onPress={openAddStep} />
+            <View style={styles.footerSpacer} />
+            <FullWidthButton
+              label="Remove Routine"
+              variant="danger"
+              onPress={() => setDeleteTarget({ type: 'routine' })}
+            />
+            <View style={styles.footerSpacer} />
+            <FullWidthButton label="Duplicate Routine" onPress={handleDuplicate} />
+          </View>
+        }
+        renderItem={({ item, index, isActive, dragHandlers, dragTouchHandlers }) => (
           <RoutineStepRow
-            key={step.id}
-            step={step}
+            step={item}
             index={index}
-            total={routine.steps.length}
-            reorderMode={reorderMode}
-            isEditing={editingStepId === step.id}
-            onLongPressDrag={() => setReorderMode(true)}
-            onMoveUp={() => reorderSteps(routine.id, moveStep(routine.steps, index, index - 1))}
-            onMoveDown={() => reorderSteps(routine.id, moveStep(routine.steps, index, index + 1))}
-            onPress={() => setEditingStepId(step.id)}
-            onChangeName={(name) => updateStep(routine.id, step.id, { name })}
-            onBlurName={() => setEditingStepId(null)}
+            isDragging={isActive}
+            dragHandlers={dragHandlers}
+            dragTouchHandlers={dragTouchHandlers}
             onDelete={() =>
-              setDeleteTarget({ type: 'step', stepId: step.id, stepName: step.name })
+              setDeleteTarget({ type: 'step', stepId: item.id, stepName: item.name })
             }
-            onCustomSchedule={() => openStepSchedule(step.id)}
-            onTagProduct={() => openTagProduct(step.id)}
-            onReminder={() =>
-              setReminderTarget({ stepId: step.id, stepName: step.name })
-            }
-            reminderEnabled={step.reminder?.enabled ?? false}
           />
-        ))}
-
-        <View style={styles.footer}>
-          <FullWidthButton label="+ Add Step" onPress={openAddStep} />
-          <View style={styles.footerSpacer} />
-          <FullWidthButton
-            label="Remove Routine"
-            variant="danger"
-            onPress={() => setDeleteTarget({ type: 'routine' })}
-          />
-        </View>
-      </ScrollView>
+        )}
+      />
 
       <DeleteConfirmSheet
         visible={deleteTarget !== null}
@@ -189,14 +184,11 @@ export default function RoutineDetailScreen() {
         onCancel={() => setDeleteTarget(null)}
       />
 
-      <StepReminderSheet
-        visible={reminderTarget !== null}
-        stepName={reminderTarget?.stepName ?? ''}
-        routineName={routine.name}
-        reminder={reminderStep?.reminder}
-        timeOfDay={reminderStep?.schedule?.timeOfDay ?? routine.schedule.timeOfDay}
-        onSave={handleSaveReminder}
-        onCancel={() => setReminderTarget(null)}
+      <RoutineRenameSheet
+        visible={showRename}
+        initialName={routine.name}
+        onSave={handleRenameSave}
+        onCancel={clearRenamePrompt}
       />
     </View>
   );
@@ -209,39 +201,17 @@ const styles = StyleSheet.create({
   },
   centered: {
     justifyContent: 'center',
-    paddingHorizontal: 14,
-  },
-  reorderBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: colors.light,
-    borderBottomWidth: 1,
-    borderBottomColor: '#c8d9e6',
-  },
-  reorderBannerText: {
-    flex: 1,
-    fontFamily: fonts.dmSans,
-    fontSize: 9,
-    color: colors.blue,
-  },
-  reorderDone: {
-    fontFamily: fonts.dmSansSemiBold,
-    fontSize: 10,
-    color: colors.navy,
-    fontWeight: '600',
+    paddingHorizontal: s(14),
   },
   listContent: {
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    paddingBottom: 24,
+    paddingHorizontal: s(12),
+    paddingTop: s(4),
+    paddingBottom: s(24),
   },
   footer: {
-    marginTop: 4,
+    marginTop: s(4),
   },
   footerSpacer: {
-    height: 8,
+    height: vs(8),
   },
 });

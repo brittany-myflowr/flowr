@@ -1,10 +1,18 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { CheckIcon } from '@/components/icons/ActionIcons';
-import { Badge } from '@/components/ui/Badge';
+import {
+  getVerdictHeartColor,
+  VerdictHeartIcon,
+} from '@/components/icons/VerdictHeartIcon';
+import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
+import { plannerCard } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
+import { resolveProductCategory } from '@/lib/filterProducts';
+import type { ProductTagLink } from '@/lib/productLinks';
 import type { Product, Verdict } from '@/types';
+import { s, vs, fs } from '@/lib/scale';
 
 export const verdictColors: Record<Verdict, string> = {
   'Love It': colors.blue,
@@ -14,41 +22,94 @@ export const verdictColors: Record<Verdict, string> = {
 
 type ProductCardProps = {
   product: Product;
-  linkedStepNames?: string[];
+  tagLinks?: ProductTagLink[];
+  selected?: boolean;
   onPress?: () => void;
+  onTagPress?: (link: ProductTagLink) => void;
 };
 
-export function ProductCard({ product, linkedStepNames = [], onPress }: ProductCardProps) {
-  return (
-    <Pressable onPress={onPress} style={styles.card}>
-      <Text style={styles.name}>{product.name}</Text>
-      <Text style={styles.brand}>{product.brand}</Text>
+export function ProductCard({
+  product,
+  tagLinks = [],
+  selected = false,
+  onPress,
+  onTagPress,
+}: ProductCardProps) {
+  const category = resolveProductCategory(product);
+  const categoryColor = categoryColors[category];
+  const accessibilityLabel = `${product.name}, ${product.brand}, ${category}, ${product.verdict}${
+    selected ? ', selected' : ''
+  }`;
 
-      <View style={styles.metaRow}>
-        <Text style={styles.category}>{product.category}</Text>
-        <Text style={styles.dot}>·</Text>
-        <Text style={[styles.verdict, { color: verdictColors[product.verdict] }]}>
-          {product.verdict}
-        </Text>
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.card,
+        plannerCard(categoryColor),
+        selected && styles.cardSelected,
+      ]}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      accessibilityLabel={accessibilityLabel}
+    >
+      <View style={styles.headerRow}>
+        <View style={styles.titleBlock}>
+          <Text style={styles.name}>{product.name}</Text>
+          <Text style={styles.brand}>{product.brand}</Text>
+        </View>
+        <View style={styles.headerActions}>
+          {selected ? <CheckIcon size={s(14)} color={colors.blue} /> : null}
+          <View
+            style={styles.verdictIconWrap}
+            accessibilityLabel={product.verdict}
+            importantForAccessibility="yes"
+          >
+            <VerdictHeartIcon
+              verdict={product.verdict}
+              size={s(18)}
+              color={getVerdictHeartColor(product.verdict)}
+            />
+          </View>
+        </View>
       </View>
 
-      {product.notes ? (
-        <View style={styles.notesBox}>
-          <Text style={styles.notes}>{product.notes}</Text>
+      {tagLinks.length > 0 ? (
+        <View style={styles.tagRow}>
+          {tagLinks.map((link) =>
+            onTagPress ? (
+              <Pressable
+                key={`${link.routineId}-${link.stepId}`}
+                onPress={() => onTagPress(link)}
+                style={styles.tagChip}
+                accessibilityRole="button"
+                accessibilityLabel={`Open ${link.stepName} in ${link.routineName}`}
+              >
+                <Text style={styles.tagRoutine}>{link.routineName}</Text>
+                <Text style={styles.tagSeparator}> · </Text>
+                <Text style={styles.tagStep}>{link.stepName}</Text>
+              </Pressable>
+            ) : (
+              <View
+                key={`${link.routineId}-${link.stepId}`}
+                style={styles.tagChip}
+                accessibilityLabel={`Tagged to ${link.stepName} in ${link.routineName}`}
+              >
+                <Text style={styles.tagRoutine}>{link.routineName}</Text>
+                <Text style={styles.tagSeparator}> · </Text>
+                <Text style={styles.tagStep}>{link.stepName}</Text>
+              </View>
+            ),
+          )}
         </View>
-      ) : null}
+      ) : (
+        <Text style={styles.untaggedHint}>Not tagged to a routine step yet</Text>
+      )}
 
-      {linkedStepNames.length > 0 ? (
-        <View style={styles.linkedSteps}>
-          {linkedStepNames.map((stepName) => (
-            <Badge
-              key={stepName}
-              label={stepName}
-              color={colors.blue}
-              backgroundColor={colors.light}
-            />
-          ))}
-        </View>
+      {product.notes ? (
+        <Text style={styles.notes} numberOfLines={1} ellipsizeMode="tail">
+          {product.notes}
+        </Text>
       ) : null}
     </Pressable>
   );
@@ -69,82 +130,101 @@ export function ProductPickRow({ product, selected = false, onPress }: ProductPi
           {product.verdict}
         </Text>
       </View>
-      {selected ? <CheckIcon size={14} color={colors.blue} /> : null}
+      {selected ? <CheckIcon size={s(14)} color={colors.blue} /> : null}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 6,
-    borderWidth: 1,
-    borderColor: colors.border,
+    paddingHorizontal: s(12),
+    paddingVertical: vs(11),
+    marginBottom: s(6),
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: s(8),
+  },
+  titleBlock: {
+    flex: 1,
+    minWidth: 0,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: s(6),
+    flexShrink: 0,
+  },
+  cardSelected: {
+    backgroundColor: colors.light,
+    borderColor: '#c8d9e6',
+  },
+  verdictIconWrap: {
+    flexShrink: 0,
+    paddingTop: s(1),
   },
   name: {
-    fontFamily: fonts.lora,
-    fontSize: 13,
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(13),
     color: colors.navy,
   },
   brand: {
-    marginTop: 1,
+    marginTop: s(2),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(11),
     color: colors.muted,
   },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 3,
-  },
-  category: {
-    fontFamily: fonts.dmSans,
-    fontSize: 8,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.muted,
-  },
-  dot: {
-    color: colors.border,
-    fontSize: 8,
-  },
-  verdict: {
-    fontFamily: fonts.dmSans,
-    fontSize: 9,
-    fontWeight: '500',
-  },
-  notesBox: {
-    marginTop: 4,
-    backgroundColor: colors.inputBg,
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 4,
-  },
-  notes: {
-    fontFamily: fonts.dmSans,
-    fontSize: 9,
-    color: colors.gray,
-  },
-  linkedSteps: {
+  tagRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
-    marginTop: 5,
+    gap: s(6),
+    marginTop: s(8),
+  },
+  tagChip: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    maxWidth: '100%',
+  },
+  tagRoutine: {
+    fontFamily: fonts.dmSansSemiBold,
+    fontSize: fs(9),
+    color: colors.navy,
+    fontWeight: '600',
+  },
+  tagSeparator: {
+    fontFamily: fonts.dmSans,
+    fontSize: fs(9),
+    color: colors.muted,
+  },
+  tagStep: {
+    fontFamily: fonts.dmSans,
+    fontSize: fs(9),
+    color: colors.gray,
+    flexShrink: 1,
+  },
+  untaggedHint: {
+    marginTop: s(8),
+    fontFamily: fonts.dmSans,
+    fontSize: fs(9),
+    color: colors.muted,
+    fontStyle: 'italic',
+  },
+  notes: {
+    marginTop: s(8),
+    fontFamily: fonts.dmSans,
+    fontSize: fs(10),
+    color: colors.gray,
+    lineHeight: fs(14),
   },
   pickRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    paddingHorizontal: 11,
-    paddingVertical: 9,
-    marginBottom: 5,
-    borderWidth: 1,
-    borderColor: colors.border,
+    paddingHorizontal: s(11),
+    paddingVertical: vs(9),
+    marginBottom: s(5),
   },
   pickRowSelected: {
     backgroundColor: colors.light,
@@ -154,14 +234,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pickName: {
-    fontFamily: fonts.lora,
-    fontSize: 12,
+    fontFamily: fonts.cardTitle,
+    fontSize: fs(12),
     color: colors.navy,
   },
   pickVerdict: {
-    marginTop: 1,
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: fs(9),
     fontWeight: '500',
   },
 });

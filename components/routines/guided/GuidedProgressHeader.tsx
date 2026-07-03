@@ -1,7 +1,13 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/constants/colors';
+import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
+import {
+  guidedFlowSizes,
+  guidedFlowTypography,
+} from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
+import { s } from '@/lib/scale';
 
 const STEP_TITLES = [
   'Name your routine',
@@ -13,14 +19,20 @@ const STEP_TITLES = [
 type GuidedProgressHeaderProps = {
   step: number;
   onBack?: () => void;
+  onCancel?: () => void;
 };
 
-export function GuidedProgressHeader({ step, onBack }: GuidedProgressHeaderProps) {
+export function GuidedProgressHeader({ step, onBack, onCancel }: GuidedProgressHeaderProps) {
+  const backLabel = step <= 1 ? 'Cancel' : '← Back';
+
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
-        <Pressable onPress={onBack} disabled={step <= 1 || !onBack}>
-          <Text style={[styles.back, step <= 1 && styles.backHidden]}>← Back</Text>
+        <Pressable
+          onPress={step <= 1 ? onCancel : onBack}
+          disabled={step <= 1 ? !onCancel : !onBack}
+        >
+          <Text style={styles.back}>{backLabel}</Text>
         </Pressable>
         <View style={styles.progress}>
           {[1, 2, 3, 4].map((index) => (
@@ -43,57 +55,54 @@ export function GuidedProgressHeader({ step, onBack }: GuidedProgressHeaderProps
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 18,
-    paddingHorizontal: 14,
-    paddingBottom: 10,
+    paddingTop: guidedFlowSizes.headerPaddingTop,
+    paddingHorizontal: guidedFlowSizes.headerPaddingHorizontal,
+    paddingBottom: guidedFlowSizes.headerPaddingBottom,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: plannerCardBorder,
     backgroundColor: colors.bg,
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: s(10),
   },
   back: {
-    width: 52,
+    width: s(56),
     fontFamily: fonts.dmSans,
-    fontSize: 10,
+    fontSize: guidedFlowTypography.back,
     color: colors.blue,
-  },
-  backHidden: {
-    opacity: 0,
   },
   progress: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: s(5),
   },
   progressBar: {
-    height: 3,
-    width: 12,
-    borderRadius: 2,
-    backgroundColor: colors.border,
+    height: guidedFlowSizes.progressBarHeight,
+    width: guidedFlowSizes.progressBarWidth,
+    borderRadius: plannerCornerRadius,
+    backgroundColor: plannerCardBorder,
   },
   progressComplete: {
     backgroundColor: colors.navy,
   },
   progressCurrent: {
-    width: 18,
+    width: guidedFlowSizes.progressBarCurrentWidth,
     backgroundColor: colors.blue,
   },
   stepCount: {
-    width: 52,
+    width: s(56),
     fontFamily: fonts.dmSans,
-    fontSize: 9,
+    fontSize: guidedFlowTypography.stepCount,
     color: colors.muted,
     textAlign: 'right',
   },
   title: {
     fontFamily: fonts.lora,
-    fontSize: 16,
+    fontSize: guidedFlowTypography.title,
     color: colors.navy,
-    lineHeight: 20,
+    lineHeight: guidedFlowTypography.titleLineHeight,
   },
 });

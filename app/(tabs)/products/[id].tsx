@@ -3,30 +3,25 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
+import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
+import { FocusScrollView } from '@/components/layout/FocusScrollView';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { VerdictPicker } from '@/components/products/VerdictPicker';
 import { FullWidthButton } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
-import { categories, type Category } from '@/constants/categories';
+import { categories } from '@/constants/categories';
 import { colors } from '@/constants/colors';
+import { resolveProductCategory } from '@/lib/filterProducts';
 import { useProduct, useProducts } from '@/providers/AppStore';
 import { useToast } from '@/providers/ToastProvider';
 import type { Verdict } from '@/types';
-
-const FORM_CATEGORIES: Category[] = [
-  'Skincare',
-  'Body Care',
-  'Hair Care',
-  'Nail Care',
-  'Supplements',
-];
+import { s } from '@/lib/scale';
 
 export default function EditProductScreen() {
   const router = useRouter();
@@ -47,7 +42,7 @@ export default function EditProductScreen() {
     if (!product) return;
     setName(product.name);
     setBrand(product.brand);
-    setCategoryIndex(Math.max(0, FORM_CATEGORIES.indexOf(product.category as Category)));
+    setCategoryIndex(Math.max(0, categories.indexOf(resolveProductCategory(product))));
     setVerdict(product.verdict);
     setNotes(product.notes ?? '');
   }, [product]);
@@ -58,7 +53,11 @@ export default function EditProductScreen() {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
         <SubPageHeader title="Edit Product" onBack={() => router.back()} />
-        <FullWidthButton label="← Back to Products" onPress={() => router.back()} />
+        <InlineEmptyCard
+          title="Product not found"
+          body="It may have been removed or this link is out of date."
+        />
+        <FullWidthButton label="← Back to Products" onPress={() => router.replace('/(tabs)/products')} />
       </View>
     );
   }
@@ -69,7 +68,7 @@ export default function EditProductScreen() {
     updateProduct(product.id, {
       name: name.trim(),
       brand: brand.trim(),
-      category: FORM_CATEGORIES[categoryIndex],
+      category: categories[categoryIndex],
       verdict,
       notes: notes.trim() || undefined,
     });
@@ -90,17 +89,11 @@ export default function EditProductScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <SubPageHeader title="Edit Product" onBack={() => router.back()} />
-      <ScrollView
+      <FocusScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <FormField
-          label="Product Name"
-          value={name}
-          onChangeText={setName}
-          autoCapitalize="words"
-        />
         <FormField
           label="Brand"
           value={brand}
@@ -108,8 +101,14 @@ export default function EditProductScreen() {
           autoCapitalize="words"
         />
         <FormField
+          label="Product Name"
+          value={name}
+          onChangeText={setName}
+          autoCapitalize="words"
+        />
+        <FormField
           label="Category"
-          chips={FORM_CATEGORIES}
+          chips={categories}
           selectedChipIndex={categoryIndex}
           onChipPress={setCategoryIndex}
         />
@@ -131,7 +130,7 @@ export default function EditProductScreen() {
             onPress={() => setShowDelete(true)}
           />
         </View>
-      </ScrollView>
+      </FocusScrollView>
 
       <DeleteConfirmSheet
         visible={showDelete}
@@ -150,14 +149,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   centered: {
-    paddingHorizontal: 14,
+    paddingHorizontal: s(14),
   },
   content: {
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingHorizontal: s(14),
+    paddingTop: s(12),
+    paddingBottom: s(24),
   },
   deleteButton: {
-    marginTop: 8,
+    marginTop: s(8),
   },
 });
