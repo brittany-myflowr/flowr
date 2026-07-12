@@ -9,7 +9,7 @@ export const TERMS_URL = 'https://myflowr.co/terms';
 export const PRIVACY_POLICY_URL = 'https://myflowr.co/privacy';
 
 export const APP_DESCRIPTION =
-  'flowr is your personal self-care companion. Build routines around the things that make you feel your best — skincare, wellness, supplements, and more. Track your consistency, log your favorite products, and optionally sync your routines to your cycle. Because taking care of yourself should feel effortless.';
+  'flowr is your personal self-care planner. Build routines around the things that make you feel your best — skincare, wellness, supplements, and more. Log your favorite products, sync your routines to your cycle, and keep everything beautifully organized. Because taking care of yourself should feel effortless.';
 
 export type PremiumPlan = {
   id: PremiumPlanId;
