@@ -127,15 +127,19 @@ export default function ProfileScreen() {
           onPress={handleSignOut}
         />
 
-        <Divider label="Developer" large outlined />
+        {__DEV__ ? (
+          <>
+            <Divider label="Developer" large outlined />
 
-        <ProfileMenuRow
-          label="Reset App Data"
-          icon={<WarningOutlineIcon />}
-          danger
-          trailing="Dev only"
-          onPress={handleReset}
-        />
+            <ProfileMenuRow
+              label="Reset App Data"
+              icon={<WarningOutlineIcon />}
+              danger
+              trailing="Dev only"
+              onPress={handleReset}
+            />
+          </>
+        ) : null}
       </FocusScrollView>
     </View>
   );
