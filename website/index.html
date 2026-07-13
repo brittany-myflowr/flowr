@@ -308,6 +308,83 @@
       margin: 0 auto;
     }
 
+    /* Product showcase */
+    .showcase {
+      padding: 4.5rem 0 5rem;
+    }
+
+    .showcase-head {
+      text-align: center;
+      max-width: 36ch;
+      margin: 0 auto 2.5rem;
+    }
+
+    .showcase-head .section-eyebrow {
+      justify-content: center;
+    }
+
+    .showcase-head .section-title {
+      margin-bottom: 0.55rem;
+    }
+
+    .showcase-head .section-lead {
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .showcase-track {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      align-items: start;
+      width: min(100% - 2.5rem, var(--max));
+      margin-inline: auto;
+    }
+
+    .showcase-item {
+      margin: 0;
+    }
+
+    .showcase-item img {
+      width: 100%;
+      height: auto;
+      border-radius: 18px;
+      box-shadow: 0 18px 50px rgba(26, 26, 46, 0.1);
+    }
+
+    @media (max-width: 860px) {
+      .showcase {
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .showcase-head {
+        padding-inline: 1.25rem;
+        margin-bottom: 1.75rem;
+      }
+
+      .showcase-track {
+        display: flex;
+        width: 100%;
+        gap: 1rem;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-padding-inline: 1.25rem;
+        padding: 0.35rem 1.25rem 1.25rem;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+
+      .showcase-track::-webkit-scrollbar {
+        display: none;
+      }
+
+      .showcase-item {
+        flex: 0 0 min(72vw, 300px);
+        scroll-snap-align: center;
+      }
+    }
+
     .section-rule {
       width: min(100% - 2.5rem, var(--max));
       margin: 0 auto;
@@ -717,6 +794,53 @@
     <!-- REFRAME -->
     <section class="reframe wrap">
       <p class="reveal">No streaks. No guilt. No judgment. Just your routine, exactly when you need it.</p>
+    </section>
+
+    <hr class="section-rule" />
+
+    <!-- PRODUCT SHOWCASE -->
+    <section class="showcase" id="see-flowr" aria-labelledby="showcase-title">
+      <div class="showcase-head wrap reveal">
+        <p class="section-eyebrow">
+          <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+          See flowr
+        </p>
+        <h2 class="section-title" id="showcase-title">Your self-care, beautifully organized.</h2>
+        <p class="section-lead">A peek inside — Today, routines, and your product shelf.</p>
+      </div>
+
+      <div class="showcase-track" role="list">
+        <figure class="showcase-item reveal" role="listitem">
+          <img
+            src="assets/2.png"
+            alt="Today screen — know exactly what to do, morning through evening"
+            width="660"
+            height="1434"
+            loading="lazy"
+            decoding="async"
+          />
+        </figure>
+        <figure class="showcase-item reveal reveal-delay-1" role="listitem">
+          <img
+            src="assets/3.png"
+            alt="My Routines — every routine in one place across self-care categories"
+            width="660"
+            height="1434"
+            loading="lazy"
+            decoding="async"
+          />
+        </figure>
+        <figure class="showcase-item reveal reveal-delay-2" role="listitem">
+          <img
+            src="assets/5.png"
+            alt="My Products — log, rate, and tag products to routine steps"
+            width="660"
+            height="1434"
+            loading="lazy"
+            decoding="async"
+          />
+        </figure>
+      </div>
     </section>
 
     <hr class="section-rule" />
