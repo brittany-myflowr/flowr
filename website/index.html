@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>flowr — The self-care planner you've been missing</title>
+  <meta name="description" content="Plan it. Schedule it. Actually do it. flowr is the self-care routine planner that gets your routines out of screenshots and into real life." />
+  <meta property="og:title" content="flowr — The self-care planner you've been missing" />
+  <meta property="og:description" content="Your saved routines deserve more than a screenshot folder. Try flowr free for 14 days." />
+  <meta property="og:image" content="assets/email-header.png" />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#faf8f6" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="apple-touch-icon" href="assets/app-store-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Lora:ital,wght@1,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #faf8f6;
+      --navy: #1a1a2e;
+      --lavender: #c0b0d8;
+      --lavender-soft: rgba(192, 176, 216, 0.28);
+      --peach: #fceee0;
+      --peach-mid: #ecb090;
+      --periwinkle: #9eb0d4;
+      --muted: #6b6b7b;
+      --line: rgba(26, 26, 46, 0.08);
+      --white: #ffffff;
+      --radius: 20px;
+      --max: 1080px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --logo: "Lora", Georgia, serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      color: var(--navy);
+      background: var(--bg);
+      line-height: 1.6;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    img { max-width: 100%; display: block; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; border: none; cursor: pointer; background: none; }
+
+    .wrap {
+      width: min(100% - 2.5rem, var(--max));
+      margin-inline: auto;
+    }
+
+    /* Atmosphere */
+    .atmosphere {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .atmosphere::before,
+    .atmosphere::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.55;
+      animation: drift 22s ease-in-out infinite alternate;
+    }
+
+    .atmosphere::before {
+      width: 55vw;
+      height: 55vw;
+      top: -12%;
+      right: -10%;
+      background: radial-gradient(circle, var(--peach) 0%, transparent 70%);
+    }
+
+    .atmosphere::after {
+      width: 45vw;
+      height: 45vw;
+      bottom: 10%;
+      left: -8%;
+      background: radial-gradient(circle, var(--lavender-soft) 0%, transparent 70%);
+      animation-delay: -8s;
+    }
+
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to { transform: translate(3%, 4%) scale(1.06); }
+    }
+
+    main, header, footer { position: relative; z-index: 1; }
+
+    /* Wordmark */
+    .wordmark {
+      font-family: var(--logo);
+      font-style: italic;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+    }
+
+    .daisy {
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .daisy svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Nav */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.35rem 0;
+    }
+
+    .nav-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .nav-brand .daisy { width: 28px; height: 28px; }
+    .nav-brand .wordmark { font-size: 1.55rem; line-height: 1; }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.55rem 1.1rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(8px);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--navy);
+      transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+    }
+
+    .nav-cta:hover {
+      border-color: var(--lavender);
+      background: rgba(255, 255, 255, 0.9);
+      transform: translateY(-1px);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.95rem 1.6rem;
+      border-radius: 999px;
+      background: var(--navy);
+      color: var(--white);
+      font-weight: 500;
+      font-size: 1rem;
+      letter-spacing: -0.01em;
+      transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+      box-shadow: 0 10px 30px rgba(26, 26, 46, 0.12);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      background: #2a2a42;
+      box-shadow: 0 14px 36px rgba(26, 26, 46, 0.16);
+    }
+
+    .btn:active { transform: translateY(0); }
+
+    .btn-lavender {
+      background: var(--lavender);
+      color: var(--navy);
+      box-shadow: 0 10px 30px rgba(192, 176, 216, 0.35);
+    }
+
+    .btn-lavender:hover {
+      background: #b5a3d0;
+      box-shadow: 0 14px 36px rgba(192, 176, 216, 0.45);
+    }
+
+    /* Reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* Hero */
+    .hero {
+      min-height: min(100vh, 920px);
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 4rem;
+    }
+
+    .hero-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 3rem 0 2rem;
+      gap: 0;
+    }
+
+    .hero-mark {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2.75rem;
+    }
+
+    .hero-mark .daisy {
+      width: 56px;
+      height: 56px;
+      animation: breathe 5s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); opacity: 0.92; }
+      50% { transform: scale(1.04); opacity: 1; }
+    }
+
+    .hero-mark .wordmark {
+      font-size: clamp(3.25rem, 9vw, 5.5rem);
+      line-height: 0.95;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.65rem, 4.2vw, 2.35rem);
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      line-height: 1.25;
+      max-width: 18ch;
+      margin: 0 auto 1rem;
+    }
+
+    .hero-sub {
+      font-size: clamp(1.05rem, 2.2vw, 1.2rem);
+      color: var(--muted);
+      max-width: 28ch;
+      margin: 0 auto 1.75rem;
+      font-weight: 400;
+    }
+
+    .hero-tag {
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      color: var(--navy);
+      margin-bottom: 2.25rem;
+      position: relative;
+      display: inline-block;
+    }
+
+    .hero-tag::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -0.55rem;
+      width: 2.5rem;
+      height: 2px;
+      background: var(--lavender);
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+
+    .hero .btn { margin-top: 0.5rem; }
+
+    /* Reframe */
+    .reframe {
+      padding: 4.5rem 0;
+      text-align: center;
+    }
+
+    .reframe p {
+      font-size: clamp(1.2rem, 2.8vw, 1.55rem);
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      line-height: 1.45;
+      max-width: 28ch;
+      margin: 0 auto;
+    }
+
+    .section-rule {
+      width: min(100% - 2.5rem, var(--max));
+      margin: 0 auto;
+      border: none;
+      border-top: 1px solid var(--line);
+    }
+
+    /* Sections */
+    section { padding: 5.5rem 0; }
+
+    .section-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.85rem;
+    }
+
+    .section-eyebrow .daisy { width: 14px; height: 14px; opacity: 0.7; }
+
+    .section-title {
+      font-size: clamp(1.6rem, 3.5vw, 2.1rem);
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 0.65rem;
+    }
+
+    .section-lead {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 42ch;
+      margin-bottom: 2.75rem;
+    }
+
+    /* Features */
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (min-width: 700px) {
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 1000px) {
+      .features-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .feature-card {
+      padding: 1.65rem 1.5rem 1.75rem;
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid var(--line);
+      transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(192, 176, 216, 0.55);
+      background: rgba(255, 255, 255, 0.85);
+      transform: translateY(-3px);
+    }
+
+    .feature-card .daisy {
+      width: 22px;
+      height: 22px;
+      margin-bottom: 1.1rem;
+      color: var(--navy);
+      opacity: 0.75;
+    }
+
+    .feature-card h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.55rem;
+      line-height: 1.3;
+    }
+
+    .feature-card p {
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* How it works */
+    .how {
+      background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(192, 176, 216, 0.08) 20%,
+        rgba(252, 238, 224, 0.25) 60%,
+        transparent 100%
+      );
+    }
+
+    .steps {
+      display: grid;
+      gap: 2rem;
+      counter-reset: step;
+    }
+
+    @media (min-width: 800px) {
+      .steps {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2.5rem;
+      }
+    }
+
+    .step {
+      position: relative;
+      padding-top: 0.25rem;
+    }
+
+    .step-num {
+      font-family: var(--logo);
+      font-style: italic;
+      font-weight: 700;
+      font-size: 2.5rem;
+      color: var(--lavender);
+      line-height: 1;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .step h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.55rem;
+    }
+
+    .step p {
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.55;
+    }
+
+    /* Social proof */
+    .proof {
+      text-align: center;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .proof blockquote {
+      font-size: clamp(1.15rem, 2.6vw, 1.4rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.5;
+      margin-bottom: 1.75rem;
+    }
+
+    .proof-author {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .proof-author .daisy {
+      width: 20px;
+      height: 20px;
+      margin-bottom: 0.4rem;
+      opacity: 0.65;
+    }
+
+    .proof-author strong {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .proof-author span {
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    /* Pricing */
+    .pricing-head {
+      text-align: center;
+      max-width: 520px;
+      margin: 0 auto 2.75rem;
+    }
+
+    .pricing-head .section-title { margin-bottom: 0.75rem; }
+
+    .pricing-head .section-lead {
+      margin: 0 auto 1.25rem;
+      max-width: 38ch;
+    }
+
+    .pricing-body {
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.6;
+      max-width: 48ch;
+      margin: 0 auto;
+    }
+
+    .price-cards {
+      display: grid;
+      gap: 1.25rem;
+      max-width: 640px;
+      margin: 2.5rem auto 0;
+    }
+
+    @media (min-width: 600px) {
+      .price-cards {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .price-card {
+      padding: 1.75rem 1.5rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.6);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      transition: border-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .price-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .price-card.featured {
+      border-color: var(--lavender);
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(192, 176, 216, 0.18));
+      box-shadow: 0 12px 40px rgba(192, 176, 216, 0.2);
+    }
+
+    .price-label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .price-amount {
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin: 0.35rem 0 0.15rem;
+    }
+
+    .price-amount span {
+      font-size: 0.95rem;
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    .price-save {
+      display: inline-block;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--navy);
+      background: rgba(192, 176, 216, 0.35);
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+    }
+
+    .pricing-fine {
+      text-align: center;
+      margin-top: 1.75rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* Final CTA */
+    .final-cta {
+      text-align: center;
+      padding: 6rem 0 5rem;
+    }
+
+    .final-cta .daisy {
+      width: 36px;
+      height: 36px;
+      margin: 0 auto 1.25rem;
+      animation: breathe 5s ease-in-out infinite;
+    }
+
+    .final-cta h2 {
+      font-size: clamp(1.55rem, 3.8vw, 2.15rem);
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      line-height: 1.25;
+      max-width: 18ch;
+      margin: 0 auto 0.85rem;
+    }
+
+    .final-cta p {
+      color: var(--muted);
+      margin-bottom: 2rem;
+      font-size: 1.05rem;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem 0 2.5rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.85rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.35rem 1.1rem;
+    }
+
+    .footer-links a {
+      transition: color 0.2s ease;
+    }
+
+    .footer-links a:hover { color: var(--navy); }
+
+    .footer-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .footer-brand .daisy { width: 16px; height: 16px; opacity: 0.6; }
+    .footer-brand .wordmark { font-size: 1.05rem; color: var(--navy); }
+
+    @media (max-width: 480px) {
+      .wrap { width: min(100% - 1.75rem, var(--max)); }
+      .nav-cta { display: none; }
+      section { padding: 4rem 0; }
+      .hero-body { padding-top: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"></div>
+
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="daisy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5"/>
+      <path d="M12 7.5V9"/>
+      <path d="M7.5 12H9"/>
+      <path d="M16.5 12H15"/>
+      <path d="M12 16.5V15"/>
+      <path d="m8 8 1.88 1.88"/>
+      <path d="M14.12 9.88 16 8"/>
+      <path d="m8 16 1.88-1.88"/>
+      <path d="M14.12 14.12 16 16"/>
+    </symbol>
+  </svg>
+
+  <header>
+    <div class="wrap">
+      <nav class="nav" aria-label="Primary">
+        <a class="nav-brand" href="#top" aria-label="flowr home">
+          <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+          <span class="wordmark">flowr</span>
+        </a>
+        <a class="nav-cta" href="https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497" target="_blank" rel="noopener noreferrer">Download — Free trial</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- HERO -->
+    <section class="hero wrap">
+      <div class="hero-body">
+        <div class="hero-mark reveal">
+          <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+          <span class="wordmark">flowr</span>
+        </div>
+        <h1 class="reveal reveal-delay-1">The self-care planner you've been missing.</h1>
+        <p class="hero-sub reveal reveal-delay-2">Your saved routines deserve more than a screenshot folder.</p>
+        <p class="hero-tag reveal reveal-delay-2">Plan it. Schedule it. Actually do it.</p>
+        <a class="btn reveal reveal-delay-3" href="https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497" target="_blank" rel="noopener noreferrer">Download flowr — Free for 14 days</a>
+      </div>
+    </section>
+
+    <hr class="section-rule" />
+
+    <!-- REFRAME -->
+    <section class="reframe wrap">
+      <p class="reveal">No streaks. No guilt. No judgment. Just your routine, exactly when you need it.</p>
+    </section>
+
+    <hr class="section-rule" />
+
+    <!-- FEATURES -->
+    <section class="wrap" id="features" aria-labelledby="features-title">
+      <div class="reveal">
+        <p class="section-eyebrow">
+          <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+          Features
+        </p>
+        <h2 class="section-title" id="features-title">Everything you need to show up for yourself.</h2>
+        <p class="section-lead">From planning to checking off — flowr keeps your self-care organized without the pressure.</p>
+      </div>
+
+      <div class="features-grid">
+        <article class="feature-card reveal">
+          <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+          <h3>Your Today Dashboard</h3>
+          <p>See exactly what's coming up — morning, afternoon, and evening. Check off steps as you go and flowr remembers your routine so you don't have to.</p>
+        </article>
+
+        <article class="feature-card reveal">
+          <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+          <h3>Routine Planning &amp; Scheduling</h3>
+          <p>Build routines across 10 categories and schedule them your way — daily, weekly, monthly, or whenever you want. It's completely customizable. Toggle any routine on or off without losing it — switch between your summer and winter routines, test something new without deleting the old, or pause when life gets busy. Duplicate any routine to use as a starting point for something similar, so you never have to build from scratch.</p>
+        </article>
+
+        <article class="feature-card reveal">
+          <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+          <h3>Step-Level Customization</h3>
+          <p>Not every step belongs on the same schedule. Set a default schedule for the whole routine, then fine-tune each step individually — because some steps are daily and some are twice a week.</p>
+        </article>
+
+        <article class="feature-card reveal">
+          <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+          <h3>Your Product Shelf</h3>
+          <p>Log every product you use, rate it, and tag it to a step in your routine. flowr will show you exactly what to reach for — and help you remember what's actually working for you.</p>
+        </article>
+
+        <article class="feature-card reveal">
+          <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+          <h3>Cycle Syncing</h3>
+          <p>Assign routines to specific cycle phases and flowr will surface the right ones at the right time. Supports both menstrual and lunar cycle tracking.</p>
+        </article>
+
+        <article class="feature-card reveal">
+          <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+          <h3>Your Self-Care Calendar</h3>
+          <p>Plan ahead and look back — your entire self-care schedule at a glance. Browse any past or future date to see exactly what's scheduled.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how" id="how" aria-labelledby="how-title">
+      <div class="wrap">
+        <div class="reveal">
+          <p class="section-eyebrow">
+            <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+            How it works
+          </p>
+          <h2 class="section-title" id="how-title">Three steps to a routine that sticks.</h2>
+          <p class="section-lead">Simple enough to start today. Flexible enough to grow with you.</p>
+        </div>
+
+        <div class="steps">
+          <article class="step reveal">
+            <span class="step-num" aria-hidden="true">01</span>
+            <h3>Build your routines</h3>
+            <p>Create routines across any self-care category — skincare, wellness, hair care, and more. Add steps, set schedules, and tag the products you use.</p>
+          </article>
+          <article class="step reveal reveal-delay-1">
+            <span class="step-num" aria-hidden="true">02</span>
+            <h3>Let flowr plan your day</h3>
+            <p>Your Today screen shows exactly what's scheduled — morning, afternoon, and evening. No more guessing what to do or when.</p>
+          </article>
+          <article class="step reveal reveal-delay-2">
+            <span class="step-num" aria-hidden="true">03</span>
+            <h3>Show up for yourself</h3>
+            <p>Check off steps as you go. flowr remembers everything so you can just focus on taking care of yourself.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOCIAL PROOF -->
+    <section class="wrap" aria-label="From the founder">
+      <div class="proof reveal">
+        <blockquote>
+          “I built flowr because I kept saving routines I wanted to start — only to lose track or forget all about them. flowr helps you get your routines out of your screenshots and notes and actually incorporate them IRL.”
+        </blockquote>
+        <div class="proof-author">
+          <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+          <strong>Brittany, Founder of flowr</strong>
+        </div>
+      </div>
+    </section>
+
+    <hr class="section-rule" />
+
+    <!-- PRICING -->
+    <section class="wrap" id="pricing" aria-labelledby="pricing-title">
+      <div class="pricing-head reveal">
+        <p class="section-eyebrow">
+          <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+          Pricing
+        </p>
+        <h2 class="section-title" id="pricing-title">Try flowr free for 14 days.</h2>
+        <p class="section-lead">No credit card required. Full access to everything from day one.</p>
+        <p class="pricing-body">And when your trial ends, nothing happens automatically. No surprise charges, no credit card on file, no gotcha moment. If you love flowr and want to keep going, you choose to subscribe. If you're not ready, your routines will still be there waiting for you.</p>
+      </div>
+
+      <div class="price-cards">
+        <div class="price-card reveal">
+          <span class="price-label">Monthly</span>
+          <p class="price-amount">$4.99<span>/month</span></p>
+        </div>
+        <div class="price-card featured reveal reveal-delay-1">
+          <span class="price-label">Annual</span>
+          <p class="price-amount">$34.99<span>/year</span></p>
+          <span class="price-save">Save over 40%</span>
+        </div>
+      </div>
+
+      <p class="pricing-fine reveal">Cancel anytime through your Apple App Store settings.</p>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="final-cta wrap" aria-labelledby="final-cta-title">
+      <div class="reveal">
+        <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+        <h2 id="final-cta-title">You've been meaning to start. Let's make today the day.</h2>
+        <p>Try flowr free for 14 days — no credit card, no pressure.</p>
+        <a class="btn btn-lavender" href="https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497" target="_blank" rel="noopener noreferrer">Download flowr — Free for 14 days</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <div class="footer-brand">
+        <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+        <span class="wordmark">flowr</span>
+      </div>
+      <p>© 2026 Petal Studios LLC</p>
+      <div class="footer-links">
+        <a href="https://myflowr.co/privacy">Privacy Policy</a>
+        <a href="https://myflowr.co/terms">Terms of Service</a>
+        <a href="mailto:hello@myflowr.co">hello@myflowr.co</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var items = document.querySelectorAll(".reveal");
+
+      if (prefersReduced || !("IntersectionObserver" in window)) {
+        items.forEach(function (el) { el.classList.add("visible"); });
+        return;
+      }
+
+      var observer = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+      );
+
+      items.forEach(function (el) { observer.observe(el); });
+
+      // Hero is above the fold — reveal immediately
+      document.querySelectorAll(".hero .reveal").forEach(function (el) {
+        el.classList.add("visible");
+      });
+    })();
+  </script>
+</body>
+</html>
