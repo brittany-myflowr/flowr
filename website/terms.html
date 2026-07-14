@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Terms of Service — flowr</title>
+  <meta name="description" content="Terms of Service for flowr, the self-care routine planner by Petal Studios LLC." />
+  <meta name="theme-color" content="#faf8f6" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="apple-touch-icon" href="assets/app-store-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Lora:ital,wght@1,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #faf8f6;
+      --navy: #1a1a2e;
+      --lavender: #c0b0d8;
+      --lavender-soft: rgba(192, 176, 216, 0.28);
+      --peach: #fceee0;
+      --muted: #6b6b7b;
+      --line: rgba(26, 26, 46, 0.08);
+      --white: #ffffff;
+      --max: 1080px;
+      --prose: 42rem;
+      --font: "DM Sans", system-ui, sans-serif;
+      --logo: "Lora", Georgia, serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      color: var(--navy);
+      background: var(--bg);
+      line-height: 1.6;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .wrap {
+      width: min(100% - 2.5rem, var(--max));
+      margin-inline: auto;
+    }
+
+    .atmosphere {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .atmosphere::before,
+    .atmosphere::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.45;
+    }
+
+    .atmosphere::before {
+      width: 50vw;
+      height: 50vw;
+      top: -14%;
+      right: -12%;
+      background: radial-gradient(circle, var(--peach) 0%, transparent 70%);
+    }
+
+    .atmosphere::after {
+      width: 40vw;
+      height: 40vw;
+      bottom: 8%;
+      left: -10%;
+      background: radial-gradient(circle, var(--lavender-soft) 0%, transparent 70%);
+    }
+
+    main, header, footer { position: relative; z-index: 1; }
+
+    .wordmark {
+      font-family: var(--logo);
+      font-style: italic;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+    }
+
+    .daisy {
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .daisy svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.35rem 0;
+    }
+
+    .nav-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .nav-brand .daisy { width: 28px; height: 28px; }
+    .nav-brand .wordmark { font-size: 1.55rem; line-height: 1; }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.55rem 1.1rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(8px);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--navy);
+      transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+    }
+
+    .nav-cta:hover {
+      border-color: var(--lavender);
+      background: rgba(255, 255, 255, 0.9);
+      transform: translateY(-1px);
+    }
+
+    .legal {
+      width: min(100% - 2.5rem, var(--prose));
+      margin: 0 auto;
+      padding: 2.5rem 0 5rem;
+    }
+
+    .legal h1 {
+      font-size: clamp(1.85rem, 4vw, 2.35rem);
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 0.85rem;
+    }
+
+    .legal-meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.55;
+      margin-bottom: 2.25rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .legal-meta a {
+      color: var(--lavender);
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+    }
+
+    .legal h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      margin: 2.25rem 0 0.75rem;
+    }
+
+    .legal p {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--navy);
+      margin-bottom: 1rem;
+    }
+
+    .legal ul {
+      margin: 0 0 1.15rem 1.15rem;
+      padding: 0;
+    }
+
+    .legal li {
+      font-size: 1rem;
+      line-height: 1.7;
+      margin-bottom: 0.45rem;
+      color: var(--navy);
+    }
+
+    .legal a {
+      color: var(--lavender);
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+      transition: color 0.2s ease;
+    }
+
+    .legal a:hover {
+      color: #a892c4;
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem 0 2.5rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.85rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.35rem 1.1rem;
+    }
+
+    .footer-links a {
+      transition: color 0.2s ease;
+    }
+
+    .footer-links a:hover { color: var(--navy); }
+
+    .footer-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .footer-brand .daisy { width: 16px; height: 16px; opacity: 0.6; }
+    .footer-brand .wordmark { font-size: 1.05rem; color: var(--navy); }
+
+    @media (max-width: 480px) {
+      .wrap,
+      .legal { width: min(100% - 1.75rem, var(--max)); }
+      .nav-cta { display: none; }
+      .legal { padding-top: 1.5rem; padding-bottom: 4rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"></div>
+
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="daisy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5"/>
+      <path d="M12 7.5V9"/>
+      <path d="M7.5 12H9"/>
+      <path d="M16.5 12H15"/>
+      <path d="M12 16.5V15"/>
+      <path d="m8 8 1.88 1.88"/>
+      <path d="M14.12 9.88 16 8"/>
+      <path d="m8 16 1.88-1.88"/>
+      <path d="M14.12 14.12 16 16"/>
+    </symbol>
+  </svg>
+
+  <header>
+    <div class="wrap">
+      <nav class="nav" aria-label="Primary">
+        <a class="nav-brand" href="/" aria-label="flowr home">
+          <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+          <span class="wordmark">flowr</span>
+        </a>
+        <a class="nav-cta" href="https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497" target="_blank" rel="noopener noreferrer">Download — Free trial</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <article class="legal">
+      <h1>Terms of Service</h1>
+      <p class="legal-meta">
+        flowr<br />
+        Effective Date: June 1, 2026<br />
+        Developer: flowr, Delaware, USA<br />
+        Contact: <a href="mailto:hello@myflowr.co">hello@myflowr.co</a>
+      </p>
+
+      <h2>Overview</h2>
+      <p>These Terms of Service govern your use of the flowr app and any related services. By creating a flowr account or using the app you agree to these terms. Please read them carefully.</p>
+
+      <h2>1. Eligibility</h2>
+      <p>flowr is intended for users who are 17 years of age or older. By using flowr you confirm that you are at least 17 years old. If you are under 17 you may not use flowr.</p>
+
+      <h2>2. Your Account</h2>
+      <p>You are responsible for:</p>
+      <ul>
+        <li>Providing accurate information when creating your account</li>
+        <li>Keeping your password secure and confidential</li>
+        <li>All activity that occurs under your account</li>
+        <li>Notifying us immediately at <a href="mailto:hello@myflowr.co">hello@myflowr.co</a> if you suspect unauthorized access to your account</li>
+      </ul>
+      <p>We reserve the right to suspend or terminate accounts that violate these terms.</p>
+
+      <h2>3. Use of the App</h2>
+      <p>flowr is a personal self-care routine tracking tool. You agree to use flowr only for its intended purpose and in compliance with all applicable laws.</p>
+      <p>You agree not to:</p>
+      <ul>
+        <li>Use flowr for any unlawful purpose</li>
+        <li>Attempt to gain unauthorized access to any part of the app or its infrastructure</li>
+        <li>Reverse engineer, copy, or redistribute any part of the app</li>
+        <li>Use the app in any way that could damage, disable, or impair its functionality</li>
+        <li>Upload or transmit any malicious code or harmful content</li>
+      </ul>
+
+      <h2>4. Health Information Disclaimer</h2>
+      <p>flowr is a personal wellness tracking tool and is not a medical application. The app is not intended to diagnose, treat, cure, or prevent any medical condition. The cycle syncing feature is for personal tracking purposes only and should not be used as a substitute for professional medical advice.</p>
+      <p>Always consult a qualified healthcare provider for medical concerns. flowr is not liable for any health decisions made based on information tracked within the app.</p>
+
+      <h2>5. Subscriptions and Payments</h2>
+      <p>flowr offers a free tier and a paid Premium subscription. By subscribing to flowr Premium you agree to the following:</p>
+      <ul>
+        <li>Subscriptions are billed on a monthly or annual basis as selected at purchase</li>
+        <li>Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period</li>
+        <li>You can manage and cancel your subscription at any time through your Apple App Store or Google Play account settings</li>
+        <li>Refunds are handled in accordance with Apple App Store and Google Play Store policies</li>
+        <li>Prices are subject to change with reasonable notice</li>
+      </ul>
+
+      <h2>6. Intellectual Property</h2>
+      <p>All content, design, code, and branding within flowr — including the flowr name, logo, and app design — are the intellectual property of flowr. You may not copy, reproduce, distribute, or create derivative works from any part of flowr without express written permission.</p>
+      <p>Your personal data (routines, products, notes, etc.) belongs to you. We claim no ownership over content you create within the app.</p>
+
+      <h2>7. Privacy</h2>
+      <p>Your use of flowr is also governed by our Privacy Policy, available at <a href="/privacy">myflowr.co/privacy</a>. By using flowr you agree to the collection and use of your information as described in the Privacy Policy.</p>
+
+      <h2>8. Termination</h2>
+      <p>You may delete your account at any time from the Privacy &amp; Data screen within the app. Upon deletion your data will be permanently removed within 30 days as described in our Privacy Policy.</p>
+      <p>We reserve the right to suspend or terminate your access to flowr at any time if you violate these Terms of Service, with or without notice.</p>
+
+      <h2>9. Disclaimer of Warranties</h2>
+      <p>flowr is provided on an "as is" and "as available" basis without warranties of any kind, either express or implied. We do not warrant that the app will be uninterrupted, error-free, or completely secure.</p>
+
+      <h2>10. Limitation of Liability</h2>
+      <p>To the fullest extent permitted by law, flowr shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of flowr or inability to use flowr.</p>
+
+      <h2>11. Changes to These Terms</h2>
+      <p>We may update these Terms of Service from time to time. When we do, we will update the effective date at the top of this page and notify you within the app. Your continued use of flowr after changes are posted constitutes your acceptance of the updated terms.</p>
+
+      <h2>12. Governing Law</h2>
+      <p>These Terms of Service are governed by the laws of the State of Delaware, USA, without regard to its conflict of law provisions.</p>
+
+      <h2>13. Contact Us</h2>
+      <p>If you have any questions about these Terms of Service please contact us at:</p>
+      <p><a href="mailto:hello@myflowr.co">hello@myflowr.co</a></p>
+      <p>flowr<br />Delaware, USA</p>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <div class="footer-brand">
+        <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+        <span class="wordmark">flowr</span>
+      </div>
+      <p>© 2026 Petal Studios LLC</p>
+      <div class="footer-links">
+        <a href="/privacy">Privacy Policy</a>
+        <a href="/terms">Terms of Service</a>
+        <a href="mailto:hello@myflowr.co">hello@myflowr.co</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

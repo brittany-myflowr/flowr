@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy — flowr</title>
+  <meta name="description" content="Privacy Policy for flowr, the self-care routine planner by Petal Studios LLC." />
+  <meta name="theme-color" content="#faf8f6" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="apple-touch-icon" href="assets/app-store-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Lora:ital,wght@1,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #faf8f6;
+      --navy: #1a1a2e;
+      --lavender: #c0b0d8;
+      --lavender-soft: rgba(192, 176, 216, 0.28);
+      --peach: #fceee0;
+      --muted: #6b6b7b;
+      --line: rgba(26, 26, 46, 0.08);
+      --white: #ffffff;
+      --max: 1080px;
+      --prose: 42rem;
+      --font: "DM Sans", system-ui, sans-serif;
+      --logo: "Lora", Georgia, serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      color: var(--navy);
+      background: var(--bg);
+      line-height: 1.6;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .wrap {
+      width: min(100% - 2.5rem, var(--max));
+      margin-inline: auto;
+    }
+
+    .atmosphere {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .atmosphere::before,
+    .atmosphere::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.45;
+    }
+
+    .atmosphere::before {
+      width: 50vw;
+      height: 50vw;
+      top: -14%;
+      right: -12%;
+      background: radial-gradient(circle, var(--peach) 0%, transparent 70%);
+    }
+
+    .atmosphere::after {
+      width: 40vw;
+      height: 40vw;
+      bottom: 8%;
+      left: -10%;
+      background: radial-gradient(circle, var(--lavender-soft) 0%, transparent 70%);
+    }
+
+    main, header, footer { position: relative; z-index: 1; }
+
+    .wordmark {
+      font-family: var(--logo);
+      font-style: italic;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+    }
+
+    .daisy {
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .daisy svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.35rem 0;
+    }
+
+    .nav-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .nav-brand .daisy { width: 28px; height: 28px; }
+    .nav-brand .wordmark { font-size: 1.55rem; line-height: 1; }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.55rem 1.1rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(8px);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--navy);
+      transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+    }
+
+    .nav-cta:hover {
+      border-color: var(--lavender);
+      background: rgba(255, 255, 255, 0.9);
+      transform: translateY(-1px);
+    }
+
+    .legal {
+      width: min(100% - 2.5rem, var(--prose));
+      margin: 0 auto;
+      padding: 2.5rem 0 5rem;
+    }
+
+    .legal h1 {
+      font-size: clamp(1.85rem, 4vw, 2.35rem);
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 0.85rem;
+    }
+
+    .legal-meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.55;
+      margin-bottom: 2.25rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .legal-meta a {
+      color: var(--lavender);
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+    }
+
+    .legal h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      margin: 2.25rem 0 0.75rem;
+    }
+
+    .legal p {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--navy);
+      margin-bottom: 1rem;
+    }
+
+    .legal ul {
+      margin: 0 0 1.15rem 1.15rem;
+      padding: 0;
+    }
+
+    .legal li {
+      font-size: 1rem;
+      line-height: 1.7;
+      margin-bottom: 0.45rem;
+      color: var(--navy);
+    }
+
+    .legal a {
+      color: var(--lavender);
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+      transition: color 0.2s ease;
+    }
+
+    .legal a:hover {
+      color: #a892c4;
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem 0 2.5rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.85rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.35rem 1.1rem;
+    }
+
+    .footer-links a {
+      transition: color 0.2s ease;
+    }
+
+    .footer-links a:hover { color: var(--navy); }
+
+    .footer-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .footer-brand .daisy { width: 16px; height: 16px; opacity: 0.6; }
+    .footer-brand .wordmark { font-size: 1.05rem; color: var(--navy); }
+
+    @media (max-width: 480px) {
+      .wrap,
+      .legal { width: min(100% - 1.75rem, var(--max)); }
+      .nav-cta { display: none; }
+      .legal { padding-top: 1.5rem; padding-bottom: 4rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"></div>
+
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="daisy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5"/>
+      <path d="M12 7.5V9"/>
+      <path d="M7.5 12H9"/>
+      <path d="M16.5 12H15"/>
+      <path d="M12 16.5V15"/>
+      <path d="m8 8 1.88 1.88"/>
+      <path d="M14.12 9.88 16 8"/>
+      <path d="m8 16 1.88-1.88"/>
+      <path d="M14.12 14.12 16 16"/>
+    </symbol>
+  </svg>
+
+  <header>
+    <div class="wrap">
+      <nav class="nav" aria-label="Primary">
+        <a class="nav-brand" href="/" aria-label="flowr home">
+          <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+          <span class="wordmark">flowr</span>
+        </a>
+        <a class="nav-cta" href="https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497" target="_blank" rel="noopener noreferrer">Download — Free trial</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <article class="legal">
+      <h1>Privacy Policy</h1>
+      <p class="legal-meta">
+        flowr<br />
+        Effective Date: June 1, 2026<br />
+        Developer: flowr, Delaware, USA<br />
+        Contact: <a href="mailto:hello@myflowr.co">hello@myflowr.co</a>
+      </p>
+
+      <h2>Overview</h2>
+      <p>flowr is a self-care routine tracking app designed for users 17 and older. We are committed to protecting your privacy and being transparent about how we handle your data. This Privacy Policy explains what information we collect, how we use it, and your rights regarding your data.</p>
+      <p>By creating a flowr account you agree to this Privacy Policy.</p>
+
+      <h2>1. Information We Collect</h2>
+      <p>Information you provide directly:</p>
+      <ul>
+        <li>Your name and email address when you create an account</li>
+        <li>Routines, steps, and schedules you create</li>
+        <li>Products you log, including verdicts and notes</li>
+        <li>Cycle information, including cycle length, period length, and last cycle start date (only if you enable cycle syncing)</li>
+      </ul>
+      <p>Information collected automatically:</p>
+      <ul>
+        <li>Basic app usage data to help us understand how flowr is used and improve the experience</li>
+        <li>Device type and operating system version</li>
+      </ul>
+      <p>We do not collect your precise location, contacts, camera, microphone, or any other device data beyond what is listed above.</p>
+
+      <h2>2. How We Use Your Information</h2>
+      <p>We use your information solely to:</p>
+      <ul>
+        <li>Power and personalize your flowr experience</li>
+        <li>Sync your data securely across your devices</li>
+        <li>Improve app performance and fix issues</li>
+        <li>Respond to your feedback and support requests</li>
+      </ul>
+      <p>We do not use your information for advertising. We do not sell your data to any third party. We do not share your personal information with anyone except as described in this policy.</p>
+
+      <h2>3. Health Data</h2>
+      <p>flowr's cycle syncing feature involves sensitive health information including menstrual cycle data. This data is:</p>
+      <ul>
+        <li>Stored securely and encrypted</li>
+        <li>Never shared with third parties</li>
+        <li>Never used for advertising or profiling</li>
+        <li>Only used to power the cycle syncing features within the app</li>
+      </ul>
+
+      <h2>4. Third Party Services</h2>
+      <p>flowr uses the following third party services to operate:</p>
+      <ul>
+        <li>Supabase — secure database and authentication provider. Your data is stored on Supabase's encrypted servers. View their privacy policy at <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">supabase.com/privacy</a>.</li>
+        <li>Apple Sign In / Google Sign In — optional authentication methods. We only receive your name and email address from these services.</li>
+        <li>RevenueCat — subscription management. View their privacy policy at <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener noreferrer">revenuecat.com/privacy</a>.</li>
+      </ul>
+      <p>We carefully select third party partners who maintain strong privacy and security standards.</p>
+
+      <h2>5. Data Storage and Security</h2>
+      <p>Your data is stored securely using industry standard encryption. We take reasonable technical and organizational measures to protect your information from unauthorized access, loss, or misuse.</p>
+
+      <h2>6. Data Retention and Account Deletion</h2>
+      <p>You may delete your flowr account at any time from the Privacy &amp; Data screen within the app. Upon requesting deletion:</p>
+      <ul>
+        <li>Your account will be deactivated immediately</li>
+        <li>All associated data will be permanently and irreversibly deleted within 30 days</li>
+        <li>This includes your routines, steps, products, cycle data, and profile information</li>
+      </ul>
+
+      <h2>7. Age Requirement</h2>
+      <p>flowr is intended for users who are 17 years of age or older. We do not knowingly collect personal information from anyone under the age of 17. If we become aware that a user is under 17 we will delete their account and associated data promptly.</p>
+
+      <h2>8. Your Rights</h2>
+      <p>You have the right to:</p>
+      <ul>
+        <li>Access the personal information we hold about you</li>
+        <li>Correct inaccurate information</li>
+        <li>Request deletion of your account and data</li>
+        <li>Withdraw consent at any time by deleting your account</li>
+      </ul>
+      <p>To exercise any of these rights, contact us at <a href="mailto:hello@myflowr.co">hello@myflowr.co</a>.</p>
+
+      <h2>9. Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. When we do, we will update the effective date at the top of this page and notify you within the app. Your continued use of flowr after changes are posted constitutes your acceptance of the updated policy.</p>
+
+      <h2>10. Contact Us</h2>
+      <p>If you have any questions about this Privacy Policy or how we handle your data, please contact us at:</p>
+      <p><a href="mailto:hello@myflowr.co">hello@myflowr.co</a></p>
+      <p>flowr<br />Delaware, USA</p>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <div class="footer-brand">
+        <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+        <span class="wordmark">flowr</span>
+      </div>
+      <p>© 2026 Petal Studios LLC</p>
+      <div class="footer-links">
+        <a href="/privacy">Privacy Policy</a>
+        <a href="/terms">Terms of Service</a>
+        <a href="mailto:hello@myflowr.co">hello@myflowr.co</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
