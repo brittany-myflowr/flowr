@@ -263,6 +263,66 @@
       word-break: break-word;
     }
 
+    .assets {
+      list-style: none;
+      margin: 0 0 1.15rem;
+      padding: 0;
+    }
+
+    .assets li {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem 1rem;
+      padding: 0.9rem 0;
+      margin: 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .assets li:last-child { border-bottom: none; }
+
+    .asset-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    .asset-name { font-weight: 600; font-size: 1rem; }
+    .asset-meta { font-size: 0.85rem; color: var(--muted); }
+
+    .legal a.asset-dl {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1.1rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.6);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--navy);
+      text-decoration: none;
+      transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+    }
+
+    .legal a.asset-dl:hover {
+      color: var(--navy);
+      border-color: var(--lavender);
+      background: rgba(255, 255, 255, 0.95);
+      transform: translateY(-1px);
+    }
+
+    .asset-dl .daisy { width: 15px; height: 15px; }
+
+    .asset-soon {
+      flex-shrink: 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
     .footer {
       border-top: 1px solid var(--line);
       padding: 2rem 0 2.5rem;
@@ -391,12 +451,45 @@
       </dl>
 
       <h2>Brand Assets</h2>
-      <p>Available upon request at <a href="mailto:hello@myflowr.co">hello@myflowr.co</a>:</p>
-      <ul>
-        <li>flowr app icon (1024×1024px PNG)</li>
-        <li>flowr daisy mark (SVG)</li>
-        <li>App screenshots (6 screens, 1320×2868px PNG)</li>
-        <li>Founder photo (coming soon)</li>
+      <p>Download flowr's brand assets below. For anything else, reach us at <a href="mailto:hello@myflowr.co">hello@myflowr.co</a>.</p>
+      <ul class="assets">
+        <li>
+          <span class="asset-info">
+            <span class="asset-name">flowr app icon</span>
+            <span class="asset-meta">PNG · 1024×1024px</span>
+          </span>
+          <a class="asset-dl" href="assets/app-store-icon.png" download="flowr-app-icon.png">
+            <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+            Download
+          </a>
+        </li>
+        <li>
+          <span class="asset-info">
+            <span class="asset-name">flowr daisy mark</span>
+            <span class="asset-meta">SVG · scalable vector</span>
+          </span>
+          <a class="asset-dl" href="assets/flowr-daisy-mark.svg" download>
+            <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+            Download
+          </a>
+        </li>
+        <li>
+          <span class="asset-info">
+            <span class="asset-name">App screenshots</span>
+            <span class="asset-meta">ZIP · 6 screens · 1320×2868px PNG</span>
+          </span>
+          <a class="asset-dl" href="assets/flowr-screenshots.zip" download>
+            <span class="daisy" aria-hidden="true"><svg><use href="#daisy-icon"/></svg></span>
+            Download
+          </a>
+        </li>
+        <li>
+          <span class="asset-info">
+            <span class="asset-name">Founder photo</span>
+            <span class="asset-meta">Coming soon</span>
+          </span>
+          <span class="asset-soon">Coming soon</span>
+        </li>
       </ul>
     </article>
   </main>
