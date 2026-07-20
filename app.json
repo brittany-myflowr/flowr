@@ -6,7 +6,10 @@
     "orientation": "portrait",
     "icon": "./assets/app-store-icon.png",
     "userInterfaceStyle": "light",
-    "scheme": ["flowr", "com.brittanytheodore.flowr"],
+    "scheme": [
+      "flowr",
+      "com.brittanytheodore.flowr"
+    ],
     "newArchEnabled": true,
     "experiments": {
       "typedRoutes": true
@@ -56,7 +59,15 @@
           "iosUrlScheme": "com.googleusercontent.apps.414750833272-8vctbeuvhlrtej005t1n2vgu50kj8nre"
         }
       ],
-      "./plugins/withGoogleModularHeaders"
+      "./plugins/withGoogleModularHeaders",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "buildReactNativeFromSource": true
+          }
+        }
+      ]
     ],
     "extra": {
       "router": {},
