@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -11,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Daisy } from '@/components/brand';
 import { PlanOptionCard } from '@/components/profile/ProfileInfoRows';
+import { SubscriptionLegalNotice } from '@/components/subscription/SubscriptionLegalNotice';
 import { FullWidthButton } from '@/components/ui/Button';
 import { PREMIUM_PLANS, type PremiumPlanId } from '@/constants/appInfo';
 import { colors } from '@/constants/colors';
@@ -47,44 +49,53 @@ export function SubscriptionPaywallModal({
         <Pressable style={styles.backdrop} onPress={onClose} disabled={busy} />
         <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, s(24)) }]}>
           <View style={styles.handle} />
-          <View style={styles.iconWrap}>
-            <Daisy color={colors.blue} size={s(36)} strokeWidth={1.75} />
-          </View>
-          <Text style={styles.message}>{message}</Text>
-
-          {PREMIUM_PLANS.map((plan) => (
-            <PlanOptionCard
-              key={plan.id}
-              label={plan.label}
-              price={plan.price}
-              interval={plan.interval}
-              badge={plan.badge}
-              selected={selectedPlan === plan.id}
-              onPress={() => setSelectedPlan(plan.id)}
-            />
-          ))}
-
-          <FullWidthButton
-            label={isPurchasing ? 'Processing…' : 'Subscribe'}
-            onPress={() => onPurchase(selectedPlan)}
-            disabled={busy}
-          />
-
-          <Pressable
-            onPress={onRestore}
-            disabled={busy}
-            style={styles.restoreButton}
+          <ScrollView
+            bounces={false}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.sheetContent}
           >
-            {isRestoring ? (
-              <ActivityIndicator size="small" color={colors.blue} />
-            ) : (
-              <Text style={styles.restoreLabel}>Restore Purchase</Text>
-            )}
-          </Pressable>
+            <View style={styles.iconWrap}>
+              <Daisy color={colors.blue} size={s(36)} strokeWidth={1.75} />
+            </View>
+            <Text style={styles.heading}>flowr Premium</Text>
+            <Text style={styles.message}>{message}</Text>
 
-          <Pressable onPress={onClose} disabled={busy} style={styles.dismissButton}>
-            <Text style={styles.dismissLabel}>Not now</Text>
-          </Pressable>
+            {PREMIUM_PLANS.map((plan) => (
+              <PlanOptionCard
+                key={plan.id}
+                label={plan.label}
+                price={plan.price}
+                interval={plan.interval}
+                badge={plan.badge}
+                selected={selectedPlan === plan.id}
+                onPress={() => setSelectedPlan(plan.id)}
+              />
+            ))}
+
+            <FullWidthButton
+              label={isPurchasing ? 'Processing…' : 'Subscribe'}
+              onPress={() => onPurchase(selectedPlan)}
+              disabled={busy}
+            />
+
+            <Pressable
+              onPress={onRestore}
+              disabled={busy}
+              style={styles.restoreButton}
+            >
+              {isRestoring ? (
+                <ActivityIndicator size="small" color={colors.blue} />
+              ) : (
+                <Text style={styles.restoreLabel}>Restore Purchase</Text>
+              )}
+            </Pressable>
+
+            <SubscriptionLegalNotice />
+
+            <Pressable onPress={onClose} disabled={busy} style={styles.dismissButton}>
+              <Text style={styles.dismissLabel}>Not now</Text>
+            </Pressable>
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -104,6 +115,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
     borderTopLeftRadius: plannerCornerRadius,
     borderTopRightRadius: plannerCornerRadius,
+    maxHeight: '92%',
     paddingHorizontal: s(18),
     paddingTop: s(0),
     shadowColor: '#000',
@@ -111,6 +123,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 30,
     elevation: 12,
+  },
+  sheetContent: {
+    paddingBottom: s(8),
   },
   handle: {
     width: s(36),
@@ -123,7 +138,14 @@ const styles = StyleSheet.create({
   },
   iconWrap: {
     alignItems: 'center',
-    marginBottom: s(12),
+    marginBottom: s(8),
+  },
+  heading: {
+    fontFamily: fonts.dmSansSemiBold,
+    fontSize: fs(18),
+    color: colors.navy,
+    textAlign: 'center',
+    marginBottom: s(8),
   },
   message: {
     fontFamily: fonts.dmSans,
@@ -148,6 +170,7 @@ const styles = StyleSheet.create({
   dismissButton: {
     alignItems: 'center',
     paddingVertical: vs(10),
+    marginTop: s(4),
   },
   dismissLabel: {
     fontFamily: fonts.dmSans,

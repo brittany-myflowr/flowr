@@ -35,6 +35,18 @@ export const PREMIUM_PLANS: PremiumPlan[] = [
   },
 ];
 
+/** Paste into App Store Connect → App Description (Guideline 3.1.2 metadata). */
+export const APP_STORE_SUBSCRIPTION_DISCLOSURE = `flowr Premium is an auto-renewable subscription that unlocks the full self-care planner experience.
+
+Subscription lengths and prices:
+• Monthly: $4.99 per month
+• Yearly: $34.99 per year
+
+Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period. Subscriptions may be managed by the user and auto-renewal may be turned off by going to the user's Account Settings after purchase.
+
+Privacy Policy: https://myflowr.co/privacy
+Terms of Use: https://myflowr.co/terms`;
+
 export type PremiumPlanId = 'monthly' | 'yearly';
 
 export const APP_CREDITS = [

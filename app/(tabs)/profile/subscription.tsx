@@ -6,6 +6,7 @@ import {
   ProfileScreenShell,
   profileBodyStyles as styles,
 } from '@/components/profile/ProfileScreenShell';
+import { SubscriptionLegalNotice } from '@/components/subscription/SubscriptionLegalNotice';
 import { FullWidthButton } from '@/components/ui/Button';
 import { PREMIUM_PLANS, type PremiumPlanId } from '@/constants/appInfo';
 import { colors } from '@/constants/colors';
@@ -94,6 +95,8 @@ export default function SubscriptionScreen() {
           }}
         />
       ) : null}
+
+      {showPlanPicker ? <SubscriptionLegalNotice /> : null}
     </ProfileScreenShell>
   );
 }
