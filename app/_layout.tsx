@@ -1,7 +1,9 @@
 import 'react-native-gesture-handler';
 
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { LoadingDots } from '@/components/feedback/LoadingDots';
@@ -20,20 +22,41 @@ import {
   useFonts as useLora,
 } from '@expo-google-fonts/lora';
 
+// Keep native splash visible until fonts resolve (or timeout), so a slow/failed
+// font load never presents as a white blank screen to App Review.
+void SplashScreen.preventAutoHideAsync().catch(() => {
+  // Native splash may already be hidden in some environments.
+});
+
+const FONT_BOOT_TIMEOUT_MS = 3000;
+
 export default function RootLayout() {
-  const [loraLoaded] = useLora({
+  const [loraLoaded, loraError] = useLora({
     Lora_700Bold,
     Lora_700Bold_Italic,
   });
-  const [dmSansLoaded] = useDMSans({
+  const [dmSansLoaded, dmSansError] = useDMSans({
     DMSans_400Regular,
     DMSans_500Medium,
     DMSans_600SemiBold,
   });
+  const [fontTimedOut, setFontTimedOut] = useState(false);
 
-  const fontsLoaded = loraLoaded && dmSansLoaded;
+  useEffect(() => {
+    const timer = setTimeout(() => setFontTimedOut(true), FONT_BOOT_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, []);
 
-  if (!fontsLoaded) {
+  const fontsReady =
+    (loraLoaded && dmSansLoaded) || Boolean(loraError || dmSansError) || fontTimedOut;
+
+  useEffect(() => {
+    if (fontsReady) {
+      void SplashScreen.hideAsync().catch(() => undefined);
+    }
+  }, [fontsReady]);
+
+  if (!fontsReady) {
     return (
       <View style={styles.boot}>
         <GradientBackground style={styles.bootGradient}>
@@ -46,7 +69,7 @@ export default function RootLayout() {
 
   return (
     <AppProviders>
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#fafaf8' } }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />

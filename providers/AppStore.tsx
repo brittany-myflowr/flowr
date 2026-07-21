@@ -421,131 +421,150 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    const HYDRATE_TIMEOUT_MS = 5000;
+
+    const finishLoggedOut = () => {
+      applyLoadedState({
+        authUserId: null,
+        isLoggedIn: false,
+        user: null,
+        trialStartedAt: null,
+        routines: [],
+        products: [],
+        dailyCompletions: {},
+        cycleSettings: DEFAULT_CYCLE_SETTINGS,
+        todayStepOrders: EMPTY_TODAY_STEP_ORDERS,
+        pendingSync: false,
+      });
+      setHydrated(true);
+    };
+
+    const hydrateTimeout = setTimeout(() => {
+      if (cancelled) return;
+      console.warn('[hydrate] Timed out waiting for session/remote data; continuing with cache.');
+      setHydrated(true);
+    }, HYDRATE_TIMEOUT_MS);
 
     void (async () => {
-      const cached = await loadPersistedState();
-      if (cancelled) return;
+      try {
+        const cached = await loadPersistedState();
+        if (cancelled) return;
 
-      const cachedRoutines = reconcileStepProducts(cached.routines, cached.products);
-      const cachedCycleSettings = cached.cycleSettings ?? DEFAULT_CYCLE_SETTINGS;
+        const cachedRoutines = reconcileStepProducts(cached.routines, cached.products);
+        const cachedCycleSettings = cached.cycleSettings ?? DEFAULT_CYCLE_SETTINGS;
 
-      const sessionUserId = await getCurrentSessionUserId();
-      if (cancelled) return;
+        const sessionUserId = await getCurrentSessionUserId();
+        if (cancelled) return;
 
-      if (sessionUserId) {
-        try {
-          const online = await checkOnline();
-          if (online) {
-            const remote = await fetchRemoteUserData(sessionUserId);
-            if (remote && !cancelled) {
-              const hasRemoteData = await remoteHasAnyUserData(sessionUserId);
-              const shouldMigrateLocal =
-                !hasRemoteData &&
-                (cachedRoutines.length > 0 ||
-                  cached.products.length > 0 ||
-                  Object.keys(cached.dailyCompletions).length > 0) &&
-                (cached.authUserId === sessionUserId || cached.authUserId === null);
+        if (sessionUserId) {
+          try {
+            const online = await checkOnline();
+            if (online) {
+              const remote = await fetchRemoteUserData(sessionUserId);
+              if (remote && !cancelled) {
+                const hasRemoteData = await remoteHasAnyUserData(sessionUserId);
+                const shouldMigrateLocal =
+                  !hasRemoteData &&
+                  (cachedRoutines.length > 0 ||
+                    cached.products.length > 0 ||
+                    Object.keys(cached.dailyCompletions).length > 0) &&
+                  (cached.authUserId === sessionUserId || cached.authUserId === null);
 
-              if (shouldMigrateLocal) {
+                if (shouldMigrateLocal) {
+                  applyLoadedState({
+                    authUserId: sessionUserId,
+                    isLoggedIn: true,
+                    user: cached.user
+                      ? { ...cached.user, id: sessionUserId }
+                      : profileRowToUser(remote.profile),
+                    trialStartedAt: cached.trialStartedAt,
+                    routines: cachedRoutines,
+                    products: cached.products,
+                    dailyCompletions: reconcileDailyCompletionsOnLoad(
+                      cachedRoutines,
+                      cachedCycleSettings,
+                      cached.dailyCompletions,
+                    ),
+                    cycleSettings: cachedCycleSettings,
+                    todayStepOrders: pruneTodayStepOrders(
+                      cached.todayStepOrders ?? EMPTY_TODAY_STEP_ORDERS,
+                      collectStepIds(cachedRoutines),
+                    ),
+                    pendingSync: true,
+                  });
+                  setHydrated(true);
+                  void flushRemoteSyncRef.current();
+                  return;
+                }
+
+                const appState = remoteDataToAppState(remote, sessionUserId);
                 applyLoadedState({
-                  authUserId: sessionUserId,
-                  isLoggedIn: true,
-                  user: cached.user
-                    ? { ...cached.user, id: sessionUserId }
-                    : profileRowToUser(remote.profile),
-                  trialStartedAt: cached.trialStartedAt,
-                  routines: cachedRoutines,
-                  products: cached.products,
+                  ...appState,
+                  routines: reconcileStepProducts(appState.routines, appState.products),
                   dailyCompletions: reconcileDailyCompletionsOnLoad(
-                    cachedRoutines,
-                    cachedCycleSettings,
-                    cached.dailyCompletions,
+                    appState.routines,
+                    appState.cycleSettings,
+                    appState.dailyCompletions,
                   ),
-                  cycleSettings: cachedCycleSettings,
                   todayStepOrders: pruneTodayStepOrders(
-                    cached.todayStepOrders ?? EMPTY_TODAY_STEP_ORDERS,
-                    collectStepIds(cachedRoutines),
+                    appState.todayStepOrders,
+                    collectStepIds(appState.routines),
                   ),
-                  pendingSync: true,
+                  pendingSync: false,
                 });
                 setHydrated(true);
-                void flushRemoteSyncRef.current();
                 return;
               }
-
-              const appState = remoteDataToAppState(remote, sessionUserId);
-              applyLoadedState({
-                ...appState,
-                routines: reconcileStepProducts(appState.routines, appState.products),
-                dailyCompletions: reconcileDailyCompletionsOnLoad(
-                  appState.routines,
-                  appState.cycleSettings,
-                  appState.dailyCompletions,
-                ),
-                todayStepOrders: pruneTodayStepOrders(
-                  appState.todayStepOrders,
-                  collectStepIds(appState.routines),
-                ),
-                pendingSync: false,
-              });
-              setHydrated(true);
-              return;
             }
+          } catch {
+            // Fall back to cache below.
           }
-        } catch {
-          // Fall back to cache below.
+
+          if (!cancelled && cached.authUserId === sessionUserId && cached.isLoggedIn && cached.user) {
+            applyLoadedState({
+              authUserId: sessionUserId,
+              isLoggedIn: true,
+              user: cached.user,
+              trialStartedAt: cached.trialStartedAt,
+              routines: cachedRoutines,
+              products: cached.products,
+              dailyCompletions: reconcileDailyCompletionsOnLoad(
+                cachedRoutines,
+                cachedCycleSettings,
+                cached.dailyCompletions,
+              ),
+              cycleSettings: cachedCycleSettings,
+              todayStepOrders: pruneTodayStepOrders(
+                cached.todayStepOrders ?? EMPTY_TODAY_STEP_ORDERS,
+                collectStepIds(cachedRoutines),
+              ),
+              pendingSync: cached.pendingSync || true,
+            });
+            setHydrated(true);
+            void flushRemoteSyncRef.current();
+            return;
+          }
         }
 
-        if (!cancelled && cached.authUserId === sessionUserId && cached.isLoggedIn && cached.user) {
-          applyLoadedState({
-            authUserId: sessionUserId,
-            isLoggedIn: true,
-            user: cached.user,
-            trialStartedAt: cached.trialStartedAt,
-            routines: cachedRoutines,
-            products: cached.products,
-            dailyCompletions: reconcileDailyCompletionsOnLoad(
-              cachedRoutines,
-              cachedCycleSettings,
-              cached.dailyCompletions,
-            ),
-            cycleSettings: cachedCycleSettings,
-            todayStepOrders: pruneTodayStepOrders(
-              cached.todayStepOrders ?? EMPTY_TODAY_STEP_ORDERS,
-              collectStepIds(cachedRoutines),
-            ),
-            pendingSync: cached.pendingSync || true,
-          });
-          setHydrated(true);
-          void flushRemoteSyncRef.current();
-          return;
-        }
-      }
+        if (!cancelled) {
+          if (isLoggedInRef.current || (await getCurrentSessionUserId())) {
+            setHydrated(true);
+            return;
+          }
 
-      if (!cancelled) {
-        if (isLoggedInRef.current || (await getCurrentSessionUserId())) {
-          setHydrated(true);
-          return;
+          finishLoggedOut();
         }
-
-        applyLoadedState({
-          authUserId: null,
-          isLoggedIn: false,
-          user: null,
-          trialStartedAt: null,
-          routines: [],
-          products: [],
-          dailyCompletions: {},
-          cycleSettings: DEFAULT_CYCLE_SETTINGS,
-          todayStepOrders: EMPTY_TODAY_STEP_ORDERS,
-          pendingSync: false,
-        });
-        setHydrated(true);
+      } catch (error) {
+        console.warn('[hydrate] Unexpected failure; continuing logged out.', error);
+        if (!cancelled) finishLoggedOut();
+      } finally {
+        clearTimeout(hydrateTimeout);
       }
     })();
 
     return () => {
       cancelled = true;
+      clearTimeout(hydrateTimeout);
       if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
     };
   }, [applyLoadedState]);

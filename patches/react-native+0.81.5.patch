@@ -1,20 +1,19 @@
-diff --git a/node_modules/react-native/.DS_Store b/node_modules/react-native/.DS_Store
-new file mode 100644
-index 0000000..97c3344
-Binary files /dev/null and b/node_modules/react-native/.DS_Store differ
 diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm b/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
-index 2a67797..bd270d2 100644
+index 2a67797..7c8e1f2 100644
 --- a/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
 +++ b/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
-@@ -435,7 +435,15 @@ TraceSection s(
+@@ -435,7 +435,18 @@ TraceSection s(
      @try {
        [inv invokeWithTarget:strongModule];
      } @catch (NSException *exception) {
 -      throw convertNSExceptionToJSError(runtime, exception, std::string{moduleName}, methodNameStr);
 +      // Void methods are always async: converting to JSError here runs on the
 +      // TurboModule queue and is not thread-safe with Hermes. On iOS 26 that
-+      // corrupts the JS heap (EXC_BAD_ACCESS). Log instead of converting
-+      // (facebook/react-native#55390 / #56265).
++      // corrupts the JS heap (EXC_BAD_ACCESS). Swallow + log instead of
++      // rethrowing so an NSException (e.g. from a fatal JS report) cannot
++      // abort the process on App Review devices. Upstream uses @throw;
++      // we prefer log-and-continue for App Store launch resilience.
++      // (facebook/react-native#56265 / #54859, expo/expo#44606)
 +      RCTLogError(
 +          @"Exception thrown while invoking async method %s.%s: %@",
 +          moduleName,
