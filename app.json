@@ -24,6 +24,11 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.brittanytheodore.flowr",
       "usesAppleSignIn": true,
+      "splash": {
+        "image": "./assets/splash-icon.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#fafaf8"
+      },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleURLTypes": [
@@ -41,7 +46,12 @@
       "package": "com.brittanytheodore.flowr",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#fafaf8"
+      },
+      "splash": {
+        "image": "./assets/splash-icon.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#fafaf8"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -53,6 +63,14 @@
       "expo-router",
       "expo-font",
       "expo-apple-authentication",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#fafaf8",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200
+        }
+      ],
       [
         "@react-native-google-signin/google-signin",
         {
