@@ -4,12 +4,6 @@
   "rewrites": [
     { "source": "/routine/:id", "destination": "/shared-routine.html" }
   ],
-  "routes": [
-    {
-      "src": "^/routine/([0-9a-fA-F-]{36})/?$",
-      "dest": "/shared-routine.html"
-    }
-  ],
   "headers": [
     {
       "source": "/.well-known/apple-app-site-association",
