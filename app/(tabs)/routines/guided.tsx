@@ -57,6 +57,7 @@ export default function GuidedSetupScreen() {
 
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Category>('Skincare');
   const [routineSchedule, setRoutineSchedule] = useState<Schedule>(() =>
     normalizeSchedule(defaultScheduleForTimeOfDay('morning')),
@@ -98,6 +99,7 @@ export default function GuidedSetupScreen() {
   const validSteps = steps.filter((entry) => entry.name.trim().length > 0);
   const hasProgress =
     name.trim().length > 0 ||
+    description.trim().length > 0 ||
     steps.some(
       (entry) =>
         entry.name.trim().length > 0 ||
@@ -140,6 +142,7 @@ export default function GuidedSetupScreen() {
 
     const routine = addRoutine({
       name,
+      description: description.trim() || undefined,
       category,
       schedule: routineSchedule,
       steps: validSteps.map((entry) => ({
@@ -251,6 +254,16 @@ export default function GuidedSetupScreen() {
               autoCapitalize="words"
               style={styles.nameInput}
             />
+            <Text style={styles.fieldLabel}>Description</Text>
+            <Input
+              value={description}
+              onChangeText={setDescription}
+              placeholder="Add a description (optional)"
+              autoCapitalize="sentences"
+              autoCorrect
+              multiline
+              style={styles.descriptionInput}
+            />
             <Text style={styles.fieldLabel}>Category</Text>
             <View style={styles.chips}>
               {categories.map((item) => (
@@ -319,6 +332,7 @@ export default function GuidedSetupScreen() {
         {step === 4 ? (
           <RoutineReviewCard
             name={name.trim()}
+            description={description.trim() || undefined}
             category={category}
             scheduleLabel={formatSchedulePreview(routineSchedule)}
             steps={reviewSteps}
@@ -346,6 +360,11 @@ const styles = StyleSheet.create({
   },
   nameInput: {
     fontSize: guidedFlowTypography.body,
+  },
+  descriptionInput: {
+    fontSize: guidedFlowTypography.body,
+    minHeight: vs(64),
+    textAlignVertical: 'top',
   },
   helper: {
     fontFamily: fonts.dmSans,

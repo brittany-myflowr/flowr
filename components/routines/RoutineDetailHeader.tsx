@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Daisy } from '@/components/brand';
 import { Chip } from '@/components/ui/Chip';
+import { Input } from '@/components/ui/Input';
 import { categories, categoryColors, type Category } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
@@ -20,6 +21,7 @@ type RoutineDetailHeaderProps = {
   onEditSchedule?: () => void;
   onCategoryChange?: (category: Category) => void;
   onNameChange?: (name: string) => void;
+  onDescriptionChange?: (description: string) => void;
 };
 
 export function RoutineDetailHeader({
@@ -28,10 +30,16 @@ export function RoutineDetailHeader({
   onEditSchedule,
   onCategoryChange,
   onNameChange,
+  onDescriptionChange,
 }: RoutineDetailHeaderProps) {
   const categoryColor = categoryColors[routine.category];
   const [isEditingName, setIsEditingName] = useState(false);
   const [draftName, setDraftName] = useState(routine.name);
+  const [draftDescription, setDraftDescription] = useState(routine.description ?? '');
+
+  useEffect(() => {
+    setDraftDescription(routine.description ?? '');
+  }, [routine.id, routine.description]);
 
   const startEditingName = () => {
     setDraftName(routine.name);
@@ -44,6 +52,13 @@ export function RoutineDetailHeader({
       onNameChange(trimmed || 'My Routine');
     }
     setIsEditingName(false);
+  };
+
+  const finishEditingDescription = () => {
+    if (!onDescriptionChange) return;
+    const trimmed = draftDescription.trim();
+    if (trimmed === (routine.description ?? '')) return;
+    onDescriptionChange(trimmed);
   };
 
   return (
@@ -71,6 +86,9 @@ export function RoutineDetailHeader({
             <Pressable onPress={onNameChange ? startEditingName : undefined}>
               <Text style={styles.name}>{routine.name}</Text>
               {onNameChange ? <Text style={styles.editHint}>tap to edit</Text> : null}
+              {routine.description ? (
+                <Text style={styles.descriptionDisplay}>{routine.description}</Text>
+              ) : null}
               <Text style={styles.subtitle}>
                 {routine.category} · {routine.steps.length} steps
               </Text>
@@ -85,6 +103,22 @@ export function RoutineDetailHeader({
           {formatTimeOfDay(routine.timeOfDay)} · Edit
         </Text>
       </Pressable>
+
+      {onDescriptionChange ? (
+        <>
+          <Text style={styles.fieldLabel}>Description</Text>
+          <Input
+            value={draftDescription}
+            onChangeText={setDraftDescription}
+            onBlur={finishEditingDescription}
+            placeholder="Add a description (optional)"
+            autoCapitalize="sentences"
+            autoCorrect
+            multiline
+            style={styles.descriptionInput}
+          />
+        </>
+      ) : null}
 
       <Text style={styles.fieldLabel}>Category</Text>
       <ScrollView
@@ -153,6 +187,13 @@ const styles = StyleSheet.create({
     fontSize: fs(8),
     color: '#c8d9e6',
   },
+  descriptionDisplay: {
+    marginTop: s(4),
+    fontFamily: fonts.dmSans,
+    fontSize: fs(11),
+    lineHeight: fs(15),
+    color: colors.gray,
+  },
   subtitle: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
@@ -181,6 +222,11 @@ const styles = StyleSheet.create({
     letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
+  },
+  descriptionInput: {
+    fontSize: fs(12),
+    minHeight: vs(56),
+    textAlignVertical: 'top',
   },
   categoryRow: {
     flexDirection: 'row',

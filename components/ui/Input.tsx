@@ -36,13 +36,14 @@ export function Input({
   value,
   placeholder,
   secureTextEntry = false,
+  multiline = false,
   style,
   ...rest
 }: InputProps) {
   const [hidden, setHidden] = useState(secureTextEntry);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, multiline && styles.containerMultiline]}>
       <TextInput
         value={value}
         placeholder={placeholder}
@@ -50,7 +51,8 @@ export function Input({
         secureTextEntry={hidden}
         autoCapitalize="none"
         autoCorrect={false}
-        style={[styles.input, style]}
+        multiline={multiline}
+        style={[styles.input, multiline && styles.inputMultiline, style]}
         {...rest}
       />
       {secureTextEntry ? (
@@ -76,11 +78,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: s(8),
   },
+  containerMultiline: {
+    alignItems: 'flex-start',
+  },
   input: {
     flex: 1,
     fontFamily: fonts.dmSans,
     fontSize: fs(12),
     color: colors.navy,
     padding: s(0),
+  },
+  inputMultiline: {
+    textAlignVertical: 'top',
   },
 });

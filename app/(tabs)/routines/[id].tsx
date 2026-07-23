@@ -134,6 +134,9 @@ export default function RoutineDetailScreen() {
           showToast('Category updated');
         }}
         onNameChange={(name) => updateRoutine(routine.id, { name })}
+        onDescriptionChange={(description) =>
+          updateRoutine(routine.id, { description })
+        }
       />
 
       <ReorderableList

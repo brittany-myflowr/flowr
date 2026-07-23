@@ -87,6 +87,7 @@ export type CreateRoutineStepInput = {
 
 export type CreateRoutineInput = {
   name: string;
+  description?: string;
   category: Category;
   schedule: Schedule;
   steps: CreateRoutineStepInput[];
@@ -164,7 +165,7 @@ type AppStoreValue = {
   addStep: (routineId: string, input: AddStepInput) => Step | null;
   updateRoutine: (
     routineId: string,
-    updates: Partial<Pick<Routine, 'name' | 'category' | 'timeOfDay' | 'active'>>,
+    updates: Partial<Pick<Routine, 'name' | 'description' | 'category' | 'timeOfDay' | 'active'>>,
   ) => void;
   updateRoutineSchedule: (routineId: string, schedule: Schedule) => void;
   updateStepSchedule: (routineId: string, stepId: string, schedule: Schedule) => void;
@@ -944,6 +945,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
         const routine: Routine = {
           id: routineId,
           name: input.name.trim(),
+          description: input.description?.trim() || undefined,
           category: input.category,
           timeOfDay: routineSchedule.timeOfDay,
           active: true,
@@ -969,6 +971,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
           created = {
             id: createId('routine'),
             name: buildDuplicateRoutineName(source.name),
+            description: source.description,
             category: source.category,
             timeOfDay: source.timeOfDay,
             active: false,
@@ -1144,7 +1147,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const updateRoutine = useCallback(
     (
       routineId: string,
-      updates: Partial<Pick<Routine, 'name' | 'category' | 'timeOfDay' | 'active'>>,
+      updates: Partial<Pick<Routine, 'name' | 'description' | 'category' | 'timeOfDay' | 'active'>>,
     ) => {
       runPremiumMutationVoid(() => {
         setRoutines((current) =>
@@ -1152,6 +1155,11 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
             if (routine.id !== routineId) return routine;
 
             const nextRoutine = { ...routine, ...updates };
+
+            if (updates.description !== undefined) {
+              const trimmed = updates.description?.trim() ?? '';
+              nextRoutine.description = trimmed || undefined;
+            }
 
             if (updates.category && updates.category !== routine.category) {
               nextRoutine.steps = routine.steps.map((step) => ({

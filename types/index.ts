@@ -27,6 +27,7 @@ export type Step = {
 export type Routine = {
   id: string;
   name: string;
+  description?: string;
   category: Category;
   timeOfDay: TimeOfDay;
   active: boolean;

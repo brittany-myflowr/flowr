@@ -11,11 +11,12 @@ Restart the Expo dev server after changing env vars.
 
 ## 2. Database migration
 
-In the [Supabase SQL Editor](https://supabase.com/dashboard/project/_/sql), run the full contents of:
+In the [Supabase SQL Editor](https://supabase.com/dashboard/project/_/sql), run migrations in order:
 
-`supabase/migrations/001_initial_schema.sql`
+1. `supabase/migrations/001_initial_schema.sql` — tables, RLS, sign-up profile trigger, account purge
+2. Later numbered files under `supabase/migrations/` (e.g. `003_routine_description.sql` for optional routine descriptions)
 
-This creates all tables, RLS policies, the sign-up profile trigger, and the account purge function.
+For an existing project, only run migrations you have not applied yet.
 
 ## 3. Auth settings
 

@@ -30,6 +30,7 @@ export type RoutineRow = {
   id: string;
   user_id: string;
   name: string;
+  description: string | null;
   category: string;
   time_of_day: string;
   active: boolean;
@@ -138,6 +139,7 @@ export function assembleRoutines(routineRows: RoutineRow[], stepRows: StepRow[])
     return {
       id: routine.id,
       name: routine.name,
+      description: routine.description?.trim() || undefined,
       category: routine.category as Category,
       timeOfDay: routine.time_of_day as TimeOfDay,
       active: routine.active,
@@ -169,6 +171,7 @@ export function flattenRoutinesToRows(routines: Routine[], userId: string) {
       id: routine.id,
       user_id: userId,
       name: routine.name,
+      description: routine.description?.trim() || null,
       category: routine.category,
       time_of_day: routine.timeOfDay,
       active: routine.active,

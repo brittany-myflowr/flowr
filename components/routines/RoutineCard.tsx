@@ -67,6 +67,7 @@ export type RoutineReviewStep = {
 
 type RoutineReviewCardProps = {
   name: string;
+  description?: string;
   category: Category;
   scheduleLabel: string;
   steps: RoutineReviewStep[];
@@ -74,6 +75,7 @@ type RoutineReviewCardProps = {
 
 export function RoutineReviewCard({
   name,
+  description,
   category,
   scheduleLabel,
   steps,
@@ -86,6 +88,7 @@ export function RoutineReviewCard({
         <Daisy color={categoryColor} size={guidedFlowSizes.reviewIcon} />
         <View style={styles.meta}>
           <Text style={styles.reviewName}>{name}</Text>
+          {description ? <Text style={styles.reviewDescription}>{description}</Text> : null}
           <Text style={styles.reviewSubtitle}>{scheduleLabel}</Text>
         </View>
       </View>
@@ -151,6 +154,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.cardTitle,
     fontSize: guidedFlowTypography.reviewName,
     color: colors.navy,
+  },
+  reviewDescription: {
+    marginTop: s(3),
+    fontFamily: fonts.dmSans,
+    fontSize: guidedFlowTypography.reviewMeta,
+    color: colors.gray,
+    lineHeight: guidedFlowTypography.helperLineHeight,
   },
   reviewSubtitle: {
     marginTop: s(2),
