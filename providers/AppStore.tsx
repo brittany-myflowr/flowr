@@ -69,6 +69,8 @@ import type {
   User,
 } from '@/types';
 import { DEFAULT_CYCLE_SETTINGS } from '@/types';
+import type { SharedRoutineSnapshot } from '@/types/share';
+import { sharedProductKey } from '@/lib/shareRoutineSnapshot';
 import { runPremiumMutation, runPremiumMutationVoid } from '@/lib/premiumGate';
 import {
   collectStepIds,
@@ -147,6 +149,7 @@ type AppStoreValue = {
   requestPasswordReset: (email: string) => Promise<string | null>;
   updatePassword: (password: string) => Promise<string | null>;
   addRoutine: (input: CreateRoutineInput) => Routine | null;
+  importSharedRoutine: (snapshot: SharedRoutineSnapshot) => Routine | null;
   duplicateRoutine: (routineId: string) => Routine | null;
   toggleRoutineActive: (id: string) => void;
   removeRoutine: (id: string) => void;
@@ -959,6 +962,80 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     [products, applyRoutineUpdate],
   );
 
+  const importSharedRoutine = useCallback(
+    (snapshot: SharedRoutineSnapshot) =>
+      runPremiumMutation(() => {
+        let nextProducts = productsRef.current;
+        const keyToId = new Map(
+          nextProducts.map((product) => [sharedProductKey(product.brand, product.name), product.id]),
+        );
+
+        const resolveProductId = (
+          shared: { name: string; brand: string } | undefined,
+        ): string | undefined => {
+          if (!shared?.name.trim()) return undefined;
+          const key = sharedProductKey(shared.brand, shared.name);
+          const existingId = keyToId.get(key);
+          if (existingId) return existingId;
+
+          const product: Product = {
+            id: createId('product'),
+            name: shared.name.trim(),
+            brand: shared.brand.trim(),
+            category: snapshot.category,
+          };
+          nextProducts = [...nextProducts, product];
+          keyToId.set(key, product.id);
+          return product.id;
+        };
+
+        const routineSchedule = normalizeSchedule({
+          ...cloneSchedule(snapshot.schedule),
+          timeOfDay: snapshot.timeOfDay ?? snapshot.schedule.timeOfDay,
+        });
+
+        const steps: Step[] = snapshot.steps
+          .map((stepInput) => {
+            const productId = resolveProductId(stepInput.product);
+            const product = productId
+              ? nextProducts.find((item) => item.id === productId)
+              : undefined;
+
+            return {
+              id: createId('step'),
+              name: stepInput.name.trim(),
+              note: stepInput.note?.trim() || undefined,
+              category: snapshot.category,
+              done: false,
+              schedule: stepInput.schedule ? cloneSchedule(stepInput.schedule) : undefined,
+              productId: product?.id,
+              productName: product ? formatTaggedProductLabel(product) : undefined,
+            };
+          })
+          .filter((step) => step.name.length > 0);
+
+        if (nextProducts !== productsRef.current) {
+          productsRef.current = nextProducts;
+          setProducts(nextProducts);
+        }
+
+        const routine: Routine = {
+          id: createId('routine'),
+          name: snapshot.name.trim(),
+          description: snapshot.description?.trim() || undefined,
+          category: snapshot.category,
+          timeOfDay: routineSchedule.timeOfDay,
+          active: true,
+          steps,
+          schedule: routineSchedule,
+        };
+
+        applyRoutineUpdate((current) => [...current, routine]);
+        return routine;
+      }),
+    [applyRoutineUpdate],
+  );
+
   const duplicateRoutine = useCallback(
     (routineId: string) =>
       runPremiumMutation(() => {
@@ -1417,6 +1494,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       updatePassword,
       resetAllData,
       addRoutine,
+      importSharedRoutine,
       duplicateRoutine,
       toggleRoutineActive,
       removeRoutine,
@@ -1476,6 +1554,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       updatePassword,
       resetAllData,
       addRoutine,
+      importSharedRoutine,
       duplicateRoutine,
       toggleRoutineActive,
       removeRoutine,
@@ -1558,6 +1637,7 @@ export function useRoutines() {
   return {
     routines: store.routines,
     addRoutine: store.addRoutine,
+    importSharedRoutine: store.importSharedRoutine,
     duplicateRoutine: store.duplicateRoutine,
     toggleRoutineActive: store.toggleRoutineActive,
     removeRoutine: store.removeRoutine,

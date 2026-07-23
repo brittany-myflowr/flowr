@@ -7,6 +7,9 @@ export const FEEDBACK_SUBJECT = 'flowr feedback';
 
 export const TERMS_URL = 'https://myflowr.co/terms';
 export const PRIVACY_POLICY_URL = 'https://myflowr.co/privacy';
+export const SHARE_BASE_URL = 'https://myflowr.co';
+export const APP_STORE_URL =
+  'https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497';
 
 export const APP_DESCRIPTION =
   'flowr is your personal self-care planner. Build routines around the things that make you feel your best — skincare, wellness, supplements, and more. Log your favorite products, sync your routines to your cycle, and keep everything beautifully organized. Because taking care of yourself should feel effortless.';

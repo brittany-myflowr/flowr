@@ -24,6 +24,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.brittanytheodore.flowr",
       "usesAppleSignIn": true,
+      "associatedDomains": [
+        "applinks:myflowr.co",
+        "applinks:www.myflowr.co"
+      ],
       "splash": {
         "image": "./assets/splash-icon.png",
         "resizeMode": "contain",

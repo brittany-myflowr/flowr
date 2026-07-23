@@ -43,7 +43,7 @@ export default function EditProductScreen() {
     setName(product.name);
     setBrand(product.brand);
     setCategoryIndex(Math.max(0, categories.indexOf(resolveProductCategory(product))));
-    setVerdict(product.verdict);
+    setVerdict(product.verdict ?? 'Love It');
     setNotes(product.notes ?? '');
   }, [product]);
 

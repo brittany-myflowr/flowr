@@ -58,7 +58,7 @@ export type ProductRow = {
   name: string;
   brand: string;
   category: string;
-  verdict: string;
+  verdict: string | null;
   notes: string | null;
   created_at: string;
 };
@@ -203,7 +203,7 @@ export function productRowToProduct(row: ProductRow): Product {
     name: row.name,
     brand: row.brand,
     category: row.category as Category,
-    verdict: row.verdict as Verdict,
+    verdict: row.verdict ? (row.verdict as Verdict) : undefined,
     notes: row.notes ?? undefined,
   };
 }
@@ -215,7 +215,7 @@ export function productToRow(product: Product, userId: string): Omit<ProductRow,
     name: product.name,
     brand: product.brand,
     category: product.category,
-    verdict: product.verdict,
+    verdict: product.verdict ?? null,
     notes: product.notes ?? null,
   };
 }

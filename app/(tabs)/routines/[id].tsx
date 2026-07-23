@@ -12,7 +12,8 @@ import { RoutineStepRow } from '@/components/routines/RoutineStepRow';
 import { FullWidthButton } from '@/components/ui/Button';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
-import { useRoutine, useRoutines } from '@/providers/RoutinesProvider';
+import { createRoutineShareLink, shareRoutineLink } from '@/lib/shareRoutine';
+import { useAppStore, useProducts, useRoutine, useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
 import { s, vs, fs } from '@/lib/scale';
 
@@ -22,10 +23,13 @@ export default function RoutineDetailScreen() {
   const { id, promptRename } = useLocalSearchParams<{ id: string; promptRename?: string }>();
   const routine = useRoutine(id);
   const { updateRoutine, removeRoutine, duplicateRoutine } = useRoutines();
+  const { products } = useProducts();
+  const { user } = useAppStore();
   const { showToast } = useToast();
 
   const [showRename, setShowRename] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     if (promptRename === '1') {
@@ -62,6 +66,27 @@ export default function RoutineDetailScreen() {
     });
   };
 
+  const handleShare = async () => {
+    if (!user?.id || sharing) return;
+    setSharing(true);
+    try {
+      const result = await createRoutineShareLink({
+        routine,
+        products,
+        userId: user.id,
+      });
+      if ('error' in result) {
+        showToast(result.error, 'destructive');
+        return;
+      }
+      await shareRoutineLink(result.url, routine.name);
+    } catch {
+      showToast('Could not share routine', 'destructive');
+    } finally {
+      setSharing(false);
+    }
+  };
+
   const handleDuplicate = () => {
     const duplicated = duplicateRoutine(routine.id);
     if (!duplicated) return;
@@ -86,6 +111,10 @@ export default function RoutineDetailScreen() {
         routine={routine}
         onBack={() => router.back()}
         onEdit={openEditRoutine}
+        onShare={() => {
+          void handleShare();
+        }}
+        sharing={sharing}
       />
 
       <ScrollView

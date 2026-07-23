@@ -40,7 +40,8 @@ export type Product = {
   name: string;
   brand: string;
   category: Category;
-  verdict: Verdict;
+  /** Omitted for products copied from a shared routine until the recipient sets one. */
+  verdict?: Verdict;
   notes?: string;
 };
 

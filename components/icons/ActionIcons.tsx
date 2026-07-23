@@ -68,6 +68,34 @@ export function CheckIcon({ size = s(10), color = colors.blue }: IconProps) {
   );
 }
 
+export function ShareIcon({ size = s(18), color = colors.navy }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M12 3v12"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="m8 7 4-4 4 4"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export function PencilIcon({ size = s(14), color = colors.blue }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">

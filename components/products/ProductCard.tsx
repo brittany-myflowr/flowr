@@ -37,9 +37,9 @@ export function ProductCard({
 }: ProductCardProps) {
   const category = resolveProductCategory(product);
   const categoryColor = categoryColors[category];
-  const accessibilityLabel = `${product.name}, ${product.brand}, ${category}, ${product.verdict}${
-    selected ? ', selected' : ''
-  }`;
+  const accessibilityLabel = `${product.name}, ${product.brand}, ${category}${
+    product.verdict ? `, ${product.verdict}` : ''
+  }${selected ? ', selected' : ''}`;
 
   return (
     <Pressable
@@ -60,17 +60,19 @@ export function ProductCard({
         </View>
         <View style={styles.headerActions}>
           {selected ? <CheckIcon size={s(14)} color={colors.blue} /> : null}
-          <View
-            style={styles.verdictIconWrap}
-            accessibilityLabel={product.verdict}
-            importantForAccessibility="yes"
-          >
-            <VerdictHeartIcon
-              verdict={product.verdict}
-              size={s(18)}
-              color={getVerdictHeartColor(product.verdict)}
-            />
-          </View>
+          {product.verdict ? (
+            <View
+              style={styles.verdictIconWrap}
+              accessibilityLabel={product.verdict}
+              importantForAccessibility="yes"
+            >
+              <VerdictHeartIcon
+                verdict={product.verdict}
+                size={s(18)}
+                color={getVerdictHeartColor(product.verdict)}
+              />
+            </View>
+          ) : null}
         </View>
       </View>
 
@@ -126,9 +128,13 @@ export function ProductPickRow({ product, selected = false, onPress }: ProductPi
     <Pressable onPress={onPress} style={[styles.pickRow, selected && styles.pickRowSelected]}>
       <View style={styles.pickCopy}>
         <Text style={styles.pickName}>{product.name}</Text>
-        <Text style={[styles.pickVerdict, { color: verdictColors[product.verdict] }]}>
-          {product.verdict}
-        </Text>
+        {product.verdict ? (
+          <Text style={[styles.pickVerdict, { color: verdictColors[product.verdict] }]}>
+            {product.verdict}
+          </Text>
+        ) : (
+          <Text style={[styles.pickVerdict, { color: colors.muted }]}>{product.brand}</Text>
+        )}
       </View>
       {selected ? <CheckIcon size={s(14)} color={colors.blue} /> : null}
     </Pressable>

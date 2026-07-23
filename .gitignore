@@ -43,3 +43,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Local MCP config (may include project-scoped URLs)
+.cursor/mcp.json

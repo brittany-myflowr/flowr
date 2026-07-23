@@ -14,9 +14,15 @@ Restart the Expo dev server after changing env vars.
 In the [Supabase SQL Editor](https://supabase.com/dashboard/project/_/sql), run migrations in order:
 
 1. `supabase/migrations/001_initial_schema.sql` — tables, RLS, sign-up profile trigger, account purge
-2. Later numbered files under `supabase/migrations/` (e.g. `003_routine_description.sql` for optional routine descriptions)
+2. Later numbered files under `supabase/migrations/` (e.g. `003_routine_description.sql` for optional routine descriptions, `004_shared_routines.sql` for routine sharing)
 
 For an existing project, only run migrations you have not applied yet.
+
+### Routine sharing (`004_shared_routines.sql`)
+
+Creates `shared_routines` (public read by id, owner insert/delete) and makes `products.verdict` nullable so recipients can import shared products without a verdict.
+
+Website preview pages need the same Supabase URL + anon key in `website/config.js` (see `website/config.example.js`). Replace `TEAMID` in `website/.well-known/apple-app-site-association` with your Apple Developer Team ID so universal links open the app.
 
 ## 3. Auth settings
 

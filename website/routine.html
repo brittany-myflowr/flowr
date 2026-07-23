@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shared routine — flowr</title>
+  <meta name="description" content="Someone shared a self-care routine with you on flowr." />
+  <meta name="theme-color" content="#faf8f6" />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon.png?v=4" />
+  <link rel="apple-touch-icon" href="/assets/app-store-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Lora:ital,wght@1,700&display=swap" rel="stylesheet" />
+  <script src="/config.js"></script>
+  <style>
+    :root {
+      --bg: #faf8f6;
+      --navy: #1a1a2e;
+      --lavender: #c0b0d8;
+      --lavender-soft: rgba(192, 176, 216, 0.28);
+      --peach: #fceee0;
+      --peach-mid: #ecb090;
+      --periwinkle: #9eb0d4;
+      --muted: #6b6b7b;
+      --line: rgba(26, 26, 46, 0.08);
+      --white: #ffffff;
+      --radius: 20px;
+      --max: 640px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --logo: "Lora", Georgia, serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      color: var(--navy);
+      background: var(--bg);
+      line-height: 1.6;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .atmosphere {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .atmosphere::before,
+    .atmosphere::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.5;
+    }
+
+    .atmosphere::before {
+      width: 55vw;
+      height: 55vw;
+      top: -12%;
+      right: -10%;
+      background: radial-gradient(circle, var(--peach) 0%, transparent 70%);
+    }
+
+    .atmosphere::after {
+      width: 45vw;
+      height: 45vw;
+      bottom: 10%;
+      left: -8%;
+      background: radial-gradient(circle, var(--lavender-soft) 0%, transparent 70%);
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      width: min(100% - 2rem, var(--max));
+      margin: 0 auto;
+      padding: 2.5rem 0 4rem;
+    }
+
+    .wordmark {
+      font-family: var(--logo);
+      font-style: italic;
+      font-weight: 700;
+      font-size: 1.5rem;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 2rem;
+    }
+
+    .daisy {
+      width: 1.15rem;
+      height: 1.15rem;
+      flex-shrink: 0;
+    }
+
+    .eyebrow {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-bottom: 0.65rem;
+    }
+
+    .title {
+      font-family: var(--logo);
+      font-style: italic;
+      font-weight: 700;
+      font-size: clamp(1.75rem, 5vw, 2.25rem);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+    }
+
+    .description {
+      color: #4a4a5a;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .meta {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 1.75rem;
+    }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 1.5rem 1fr;
+      gap: 0.75rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .step:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .step-index {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      padding-top: 0.15rem;
+    }
+
+    .step-name {
+      font-weight: 600;
+      font-size: 1.05rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .step-meta,
+    .step-note,
+    .step-product {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .step-note { color: #4a4a5a; margin-top: 0.2rem; }
+    .step-product { color: var(--periwinkle); margin-top: 0.25rem; }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 0.95rem 1.25rem;
+      border-radius: 999px;
+      background: var(--navy);
+      color: var(--white);
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
+      transition: opacity 0.15s ease;
+    }
+
+    .cta:hover { opacity: 0.9; }
+
+    .hint {
+      margin-top: 0.85rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .state {
+      padding: 3rem 0;
+      text-align: center;
+    }
+
+    .state p {
+      color: var(--muted);
+      margin-top: 0.5rem;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <main class="page">
+    <a class="wordmark" href="/">
+      <img class="daisy" src="/assets/daisy-icon.svg" alt="" />
+      flowr
+    </a>
+
+    <div id="loading" class="state">
+      <p>Loading routine…</p>
+    </div>
+
+    <div id="error" class="state hidden">
+      <h1 class="title" style="font-size:1.5rem">Routine unavailable</h1>
+      <p>This share link may be out of date, or the routine was removed.</p>
+      <p style="margin-top:1.25rem">
+        <a class="cta" style="width:auto;padding-inline:1.5rem" href="https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497">Get flowr</a>
+      </p>
+    </div>
+
+    <div id="content" class="hidden">
+      <p class="eyebrow">Someone shared a routine with you</p>
+      <h1 class="title" id="routine-name"></h1>
+      <p class="description hidden" id="routine-description"></p>
+      <p class="meta" id="routine-meta"></p>
+      <div class="steps" id="steps"></div>
+      <a
+        class="cta"
+        id="cta"
+        href="https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497"
+      >Add to flowr</a>
+      <p class="hint">Open the link in flowr to add this routine to yours.</p>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var APP_STORE =
+        (window.FLOWR_CONFIG && window.FLOWR_CONFIG.appStoreUrl) ||
+        'https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497';
+
+      var cta = document.getElementById('cta');
+      if (cta) cta.href = APP_STORE;
+
+      function show(id) {
+        ['loading', 'error', 'content'].forEach(function (key) {
+          document.getElementById(key).classList.toggle('hidden', key !== id);
+        });
+      }
+
+      function formatFrequency(frequency) {
+        switch (frequency) {
+          case 'daily': return 'Every day';
+          case 'weekly': return 'Weekly';
+          case 'biweekly': return 'Every 2 weeks';
+          case 'monthly': return 'Monthly';
+          case 'custom': return 'Custom';
+          case 'cycle': return 'Cycle Phase';
+          default: return frequency || '';
+        }
+      }
+
+      function formatTimeOfDay(timeOfDay) {
+        if (!timeOfDay) return '';
+        return timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1);
+      }
+
+      function formatSchedule(schedule) {
+        if (!schedule) return '';
+        var parts = [];
+        if (schedule.frequency === 'custom') {
+          parts.push('Every ' + (schedule.customIntervalDays || 3) + ' days');
+        } else {
+          parts.push(formatFrequency(schedule.frequency));
+        }
+        if (schedule.timeOfDay) parts.push(formatTimeOfDay(schedule.timeOfDay));
+        return parts.filter(Boolean).join(' · ');
+      }
+
+      function productLabel(product) {
+        if (!product) return '';
+        var brand = (product.brand || '').trim();
+        var name = (product.name || '').trim();
+        if (brand && name) return brand + ' · ' + name;
+        return brand || name;
+      }
+
+      function shareIdFromPath() {
+        var match = window.location.pathname.match(/\/routine\/([0-9a-f-]{36})\/?$/i);
+        return match ? match[1] : null;
+      }
+
+      function render(snapshot) {
+        document.getElementById('routine-name').textContent = snapshot.name || 'Routine';
+        document.title = (snapshot.name || 'Shared routine') + ' — flowr';
+
+        var descriptionEl = document.getElementById('routine-description');
+        if (snapshot.description) {
+          descriptionEl.textContent = snapshot.description;
+          descriptionEl.classList.remove('hidden');
+        }
+
+        var steps = Array.isArray(snapshot.steps) ? snapshot.steps : [];
+        var metaParts = [
+          snapshot.category,
+          steps.length + (steps.length === 1 ? ' step' : ' steps'),
+          formatSchedule(snapshot.schedule),
+        ].filter(Boolean);
+        document.getElementById('routine-meta').textContent = metaParts.join(' · ');
+
+        var stepsEl = document.getElementById('steps');
+        stepsEl.innerHTML = '';
+        steps.forEach(function (step, index) {
+          var row = document.createElement('div');
+          row.className = 'step';
+
+          var indexEl = document.createElement('div');
+          indexEl.className = 'step-index';
+          indexEl.textContent = String(index + 1);
+
+          var body = document.createElement('div');
+          var nameEl = document.createElement('div');
+          nameEl.className = 'step-name';
+          nameEl.textContent = step.name || 'Step';
+          body.appendChild(nameEl);
+
+          if (step.schedule) {
+            var scheduleEl = document.createElement('div');
+            scheduleEl.className = 'step-meta';
+            scheduleEl.textContent = formatSchedule(step.schedule);
+            body.appendChild(scheduleEl);
+          }
+
+          if (step.note) {
+            var noteEl = document.createElement('div');
+            noteEl.className = 'step-note';
+            noteEl.textContent = step.note;
+            body.appendChild(noteEl);
+          }
+
+          var label = productLabel(step.product);
+          if (label) {
+            var productEl = document.createElement('div');
+            productEl.className = 'step-product';
+            productEl.textContent = label;
+            body.appendChild(productEl);
+          }
+
+          row.appendChild(indexEl);
+          row.appendChild(body);
+          stepsEl.appendChild(row);
+        });
+
+        show('content');
+      }
+
+      async function load() {
+        var shareId = shareIdFromPath();
+        if (!shareId) {
+          show('error');
+          return;
+        }
+
+        var config = window.FLOWR_CONFIG || {};
+        if (!config.supabaseUrl || !config.supabaseAnonKey) {
+          console.error('Missing FLOWR_CONFIG.supabaseUrl / supabaseAnonKey in /config.js');
+          show('error');
+          return;
+        }
+
+        try {
+          var endpoint =
+            config.supabaseUrl.replace(/\/$/, '') +
+            '/rest/v1/shared_routines?id=eq.' +
+            encodeURIComponent(shareId) +
+            '&select=snapshot';
+
+          var response = await fetch(endpoint, {
+            headers: {
+              apikey: config.supabaseAnonKey,
+              Authorization: 'Bearer ' + config.supabaseAnonKey,
+              Accept: 'application/json',
+            },
+          });
+
+          if (!response.ok) {
+            show('error');
+            return;
+          }
+
+          var rows = await response.json();
+          if (!rows || !rows.length || !rows[0].snapshot) {
+            show('error');
+            return;
+          }
+
+          render(rows[0].snapshot);
+        } catch (err) {
+          console.error(err);
+          show('error');
+        }
+      }
+
+      load();
+    })();
+  </script>
+</body>
+</html>
