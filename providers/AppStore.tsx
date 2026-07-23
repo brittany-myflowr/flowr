@@ -18,6 +18,8 @@ import { buildDuplicateRoutineName } from '@/lib/routineNames';
 import { defaultScheduleForTimeOfDay, normalizeSchedule, cloneSchedule } from '@/constants/schedules';
 import {
   type DailyCompletionMap,
+  hydrateRoutinesWithCompletions,
+  mergeDailyCompletions,
   pruneDailyCompletions,
   reconcileDailyCompletionsOnLoad,
   snapshotTodayCompletion,
@@ -442,6 +444,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     const hydrateTimeout = setTimeout(() => {
       if (cancelled) return;
       console.warn('[hydrate] Timed out waiting for session/remote data; continuing with cache.');
+      // Do not clear state — if cache already applied, keep it; otherwise unblock UI.
       setHydrated(true);
     }, HYDRATE_TIMEOUT_MS);
 
@@ -471,6 +474,11 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
                   (cached.authUserId === sessionUserId || cached.authUserId === null);
 
                 if (shouldMigrateLocal) {
+                  const hydrated = hydrateRoutinesWithCompletions(
+                    cachedRoutines,
+                    cachedCycleSettings,
+                    cached.dailyCompletions,
+                  );
                   applyLoadedState({
                     authUserId: sessionUserId,
                     isLoggedIn: true,
@@ -478,17 +486,13 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
                       ? { ...cached.user, id: sessionUserId }
                       : profileRowToUser(remote.profile),
                     trialStartedAt: cached.trialStartedAt,
-                    routines: cachedRoutines,
+                    routines: hydrated.routines,
                     products: cached.products,
-                    dailyCompletions: reconcileDailyCompletionsOnLoad(
-                      cachedRoutines,
-                      cachedCycleSettings,
-                      cached.dailyCompletions,
-                    ),
+                    dailyCompletions: hydrated.dailyCompletions,
                     cycleSettings: cachedCycleSettings,
                     todayStepOrders: pruneTodayStepOrders(
                       cached.todayStepOrders ?? EMPTY_TODAY_STEP_ORDERS,
-                      collectStepIds(cachedRoutines),
+                      collectStepIds(hydrated.routines),
                     ),
                     pendingSync: true,
                   });
@@ -498,21 +502,38 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
                 }
 
                 const appState = remoteDataToAppState(remote, sessionUserId);
+                const remoteRoutines = reconcileStepProducts(appState.routines, appState.products);
+                const mergedCompletions = mergeDailyCompletions(
+                  cached.dailyCompletions,
+                  appState.dailyCompletions,
+                );
+                const hydrated = hydrateRoutinesWithCompletions(
+                  remoteRoutines,
+                  appState.cycleSettings,
+                  mergedCompletions,
+                );
+                const remoteNormalized = reconcileDailyCompletionsOnLoad(
+                  remoteRoutines,
+                  appState.cycleSettings,
+                  appState.dailyCompletions,
+                );
+                const recoveredLocalProgress =
+                  JSON.stringify(hydrated.dailyCompletions) !==
+                  JSON.stringify(remoteNormalized);
                 applyLoadedState({
                   ...appState,
-                  routines: reconcileStepProducts(appState.routines, appState.products),
-                  dailyCompletions: reconcileDailyCompletionsOnLoad(
-                    appState.routines,
-                    appState.cycleSettings,
-                    appState.dailyCompletions,
-                  ),
+                  routines: hydrated.routines,
+                  dailyCompletions: hydrated.dailyCompletions,
                   todayStepOrders: pruneTodayStepOrders(
                     appState.todayStepOrders,
-                    collectStepIds(appState.routines),
+                    collectStepIds(hydrated.routines),
                   ),
-                  pendingSync: false,
+                  pendingSync: recoveredLocalProgress,
                 });
                 setHydrated(true);
+                if (recoveredLocalProgress) {
+                  void flushRemoteSyncRef.current();
+                }
                 return;
               }
             }
@@ -521,24 +542,55 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
           }
 
           if (!cancelled && cached.authUserId === sessionUserId && cached.isLoggedIn && cached.user) {
+            const hydrated = hydrateRoutinesWithCompletions(
+              cachedRoutines,
+              cachedCycleSettings,
+              cached.dailyCompletions,
+            );
             applyLoadedState({
               authUserId: sessionUserId,
               isLoggedIn: true,
               user: cached.user,
               trialStartedAt: cached.trialStartedAt,
-              routines: cachedRoutines,
+              routines: hydrated.routines,
               products: cached.products,
-              dailyCompletions: reconcileDailyCompletionsOnLoad(
-                cachedRoutines,
-                cachedCycleSettings,
-                cached.dailyCompletions,
-              ),
+              dailyCompletions: hydrated.dailyCompletions,
               cycleSettings: cachedCycleSettings,
               todayStepOrders: pruneTodayStepOrders(
                 cached.todayStepOrders ?? EMPTY_TODAY_STEP_ORDERS,
-                collectStepIds(cachedRoutines),
+                collectStepIds(hydrated.routines),
               ),
               pendingSync: cached.pendingSync || true,
+            });
+            setHydrated(true);
+            void flushRemoteSyncRef.current();
+            return;
+          }
+
+          // Session exists but cache didn't match — still restore whatever local
+          // completions we have so Today doesn't open empty.
+          if (!cancelled && Object.keys(cached.dailyCompletions).length > 0) {
+            const hydrated = hydrateRoutinesWithCompletions(
+              cachedRoutines,
+              cachedCycleSettings,
+              cached.dailyCompletions,
+            );
+            applyLoadedState({
+              authUserId: sessionUserId,
+              isLoggedIn: true,
+              user: cached.user
+                ? { ...cached.user, id: sessionUserId }
+                : null,
+              trialStartedAt: cached.trialStartedAt,
+              routines: hydrated.routines,
+              products: cached.products,
+              dailyCompletions: hydrated.dailyCompletions,
+              cycleSettings: cachedCycleSettings,
+              todayStepOrders: pruneTodayStepOrders(
+                cached.todayStepOrders ?? EMPTY_TODAY_STEP_ORDERS,
+                collectStepIds(hydrated.routines),
+              ),
+              pendingSync: true,
             });
             setHydrated(true);
             void flushRemoteSyncRef.current();
@@ -548,6 +600,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
         if (!cancelled) {
           if (isLoggedInRef.current || (await getCurrentSessionUserId())) {
+            // Keep any already-applied state; just unblock navigation.
             setHydrated(true);
             return;
           }
@@ -678,20 +731,37 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
           const remote = await fetchRemoteUserData(result.userId);
           if (remote) {
             const appState = remoteDataToAppState(remote, result.userId);
+            const remoteRoutines = reconcileStepProducts(appState.routines, appState.products);
+            const cached = await loadPersistedState();
+            const mergedCompletions = mergeDailyCompletions(
+              cached.dailyCompletions,
+              appState.dailyCompletions,
+            );
+            const hydrated = hydrateRoutinesWithCompletions(
+              remoteRoutines,
+              appState.cycleSettings,
+              mergedCompletions,
+            );
+            const remoteOnly = reconcileDailyCompletionsOnLoad(
+              remoteRoutines,
+              appState.cycleSettings,
+              appState.dailyCompletions,
+            );
+            const recoveredLocalProgress =
+              JSON.stringify(hydrated.dailyCompletions) !== JSON.stringify(remoteOnly);
             applyLoadedState({
               ...appState,
-              routines: reconcileStepProducts(appState.routines, appState.products),
-              dailyCompletions: reconcileDailyCompletionsOnLoad(
-                appState.routines,
-                appState.cycleSettings,
-                appState.dailyCompletions,
-              ),
+              routines: hydrated.routines,
+              dailyCompletions: hydrated.dailyCompletions,
               todayStepOrders: pruneTodayStepOrders(
                 appState.todayStepOrders,
-                collectStepIds(appState.routines),
+                collectStepIds(hydrated.routines),
               ),
-              pendingSync: false,
+              pendingSync: recoveredLocalProgress,
             });
+            if (recoveredLocalProgress) {
+              queueRemoteSync();
+            }
             return;
           }
         }
