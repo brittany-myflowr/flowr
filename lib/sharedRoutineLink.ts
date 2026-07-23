@@ -1,4 +1,4 @@
-/** Parse share id from myflowr.co/routine/[id] or flowr://routine/[id] deep links. */
+/** Parse share id from myflowr.co shared links or flowr:// deep links. */
 export function parseSharedRoutineIdFromUrl(url: string): string | null {
   try {
     const normalized = url.trim();
@@ -12,14 +12,24 @@ export function parseSharedRoutineIdFromUrl(url: string): string | null {
 
     const parsed = new URL(normalized.includes('://') ? normalized : `https://${normalized}`);
     const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
-    if (host !== 'myflowr.co' && host !== 'localhost') {
-      // Expo Go / development may use exp:// — still accept path-only matches below.
-      if (!/\/routine\//i.test(parsed.pathname)) return null;
+    const isFlowrHost = host === 'myflowr.co' || host === 'localhost';
+
+    const queryId = parsed.searchParams.get('id');
+    if (queryId && /^[0-9a-f-]{36}$/i.test(queryId)) {
+      if (isFlowrHost || /shared-routine|\/routine/i.test(parsed.pathname)) {
+        return queryId;
+      }
+    }
+
+    if (!isFlowrHost && !/\/routine\//i.test(parsed.pathname)) {
+      return null;
     }
 
     const pathMatch = parsed.pathname.match(/\/routine\/([0-9a-f-]{36})\/?$/i);
     return pathMatch?.[1] ?? null;
   } catch {
+    const queryFallback = url.match(/[?&]id=([0-9a-f-]{36})/i);
+    if (queryFallback?.[1]) return queryFallback[1];
     const fallback = url.match(/\/routine\/([0-9a-f-]{36})/i);
     return fallback?.[1] ?? null;
   }

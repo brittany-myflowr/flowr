@@ -7,7 +7,9 @@ import type { Product, Routine } from '@/types';
 import type { SharedRoutineRow, SharedRoutineSnapshot } from '@/types/share';
 
 export function buildRoutineShareUrl(shareId: string): string {
-  return `${SHARE_BASE_URL}/routine/${shareId}`;
+  // Query form avoids a Vercel cleanUrls clash with /routine → routine.html.
+  // Path form /routine/:id is still accepted by the preview page + deep link parser.
+  return `${SHARE_BASE_URL}/shared-routine?id=${encodeURIComponent(shareId)}`;
 }
 
 export async function createRoutineShareLink(input: {

@@ -298,7 +298,10 @@
         return brand || name;
       }
 
-      function shareIdFromPath() {
+      function shareIdFromUrl() {
+        var params = new URLSearchParams(window.location.search);
+        var fromQuery = params.get('id');
+        if (fromQuery && /^[0-9a-f-]{36}$/i.test(fromQuery)) return fromQuery;
         var match = window.location.pathname.match(/\/routine\/([0-9a-f-]{36})\/?$/i);
         return match ? match[1] : null;
       }
@@ -368,7 +371,7 @@
       }
 
       async function load() {
-        var shareId = shareIdFromPath();
+        var shareId = shareIdFromUrl();
         if (!shareId) {
           show('error');
           return;

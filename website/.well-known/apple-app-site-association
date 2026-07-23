@@ -4,7 +4,7 @@
     "details": [
       {
         "appID": "TEAMID.com.brittanytheodore.flowr",
-        "paths": ["/routine/*"]
+        "paths": ["/routine/*", "/shared-routine", "/shared-routine?*"]
       }
     ]
   }
