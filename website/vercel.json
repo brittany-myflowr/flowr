@@ -2,7 +2,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/routine/:id", "destination": "/routine.html" }
+    { "source": "/routine/:id", "destination": "/shared-routine.html" }
   ],
   "headers": [
     {
