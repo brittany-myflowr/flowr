@@ -12,7 +12,6 @@ import { s, vs, fs } from '@/lib/scale';
 
 type TodayCompletedRoutineRowProps = {
   group: TodayRoutineGroup;
-  periodLabel: string;
   expanded: boolean;
   onToggleExpanded: () => void;
   renderStepRow: (
@@ -24,7 +23,6 @@ type TodayCompletedRoutineRowProps = {
 
 export function TodayCompletedRoutineRow({
   group,
-  periodLabel,
   expanded,
   onToggleExpanded,
   renderStepRow,
@@ -37,7 +35,7 @@ export function TodayCompletedRoutineRow({
         onPress={onToggleExpanded}
         style={styles.headerPressable}
         accessibilityRole="button"
-        accessibilityLabel={`${group.routine.name}, completed, ${periodLabel}`}
+        accessibilityLabel={`${group.routine.name}, completed, ${group.routine.category}`}
       >
         <Daisy color={categoryColor} size={s(14)} />
 
@@ -45,7 +43,7 @@ export function TodayCompletedRoutineRow({
           <Text style={styles.name} numberOfLines={1}>
             {group.routine.name}
           </Text>
-          <Text style={styles.subtitle}>{periodLabel}</Text>
+          <Text style={styles.subtitle}>{group.routine.category}</Text>
         </View>
 
         <View style={styles.checkWrap}>
@@ -94,16 +92,15 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: fonts.cardTitle,
-    fontSize: fs(11),
+    fontSize: fs(13),
     color: colors.navy,
   },
   subtitle: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
-    letterSpacing: s(0.6),
-    textTransform: 'uppercase',
+    fontSize: fs(11),
     color: colors.muted,
+    textTransform: 'capitalize',
   },
   checkWrap: {
     width: s(18),
@@ -115,7 +112,7 @@ const styles = StyleSheet.create({
   },
   progress: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     color: colors.muted,
     flexShrink: 0,
   },

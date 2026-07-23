@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   previewEmail: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     color: colors.muted,
   },
   content: {
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(10),
     letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   },
   colorSectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(10),
     letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,

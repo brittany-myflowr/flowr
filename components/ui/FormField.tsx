@@ -1,10 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, type TextInputProps } from 'react-native';
 
 import { Chip } from './Chip';
 import { Input } from './Input';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
-import type { TextInputProps } from 'react-native';
 import { s, fs } from '@/lib/scale';
 
 type FormFieldProps = {
@@ -15,13 +14,16 @@ type FormFieldProps = {
   selectedChipIndex?: number;
   onChipPress?: (index: number) => void;
   secureTextEntry?: boolean;
+  multiline?: boolean;
   onChangeText?: TextInputProps['onChangeText'];
   keyboardType?: TextInputProps['keyboardType'];
   autoCapitalize?: TextInputProps['autoCapitalize'];
+  autoCorrect?: TextInputProps['autoCorrect'];
   textContentType?: TextInputProps['textContentType'];
   autoComplete?: TextInputProps['autoComplete'];
   passwordRules?: TextInputProps['passwordRules'];
   importantForAutofill?: TextInputProps['importantForAutofill'];
+  style?: TextInputProps['style'];
 };
 
 export function FormField({
@@ -32,13 +34,16 @@ export function FormField({
   selectedChipIndex = 0,
   onChipPress,
   secureTextEntry,
+  multiline,
   onChangeText,
   keyboardType,
   autoCapitalize,
+  autoCorrect,
   textContentType,
   autoComplete,
   passwordRules,
   importantForAutofill,
+  style,
 }: FormFieldProps) {
   return (
     <View style={styles.container}>
@@ -60,13 +65,16 @@ export function FormField({
           value={value}
           placeholder={placeholder}
           secureTextEntry={secureTextEntry}
+          multiline={multiline}
           onChangeText={onChangeText}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
+          autoCorrect={autoCorrect}
           textContentType={textContentType}
           autoComplete={autoComplete}
           passwordRules={passwordRules}
           importantForAutofill={importantForAutofill}
+          style={style}
         />
       )}
     </View>
@@ -79,8 +87,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
-    letterSpacing: s(2),
+    fontSize: fs(10),
+    letterSpacing: s(1.5),
     textTransform: 'uppercase',
     color: colors.muted,
     marginBottom: s(5),

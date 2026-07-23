@@ -238,7 +238,10 @@ export default function RoutinesScreen() {
         routineName={selectedRoutine?.name ?? ''}
         onEdit={() => {
           if (!selectedRoutine) return;
-          router.push(`/(tabs)/routines/${selectedRoutine.id}`);
+          router.push({
+            pathname: '/(tabs)/routines/edit',
+            params: { routineId: selectedRoutine.id },
+          });
           closeOptions();
         }}
         onDuplicate={() => {

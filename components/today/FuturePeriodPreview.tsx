@@ -63,14 +63,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: fs(10),
+    fontSize: fs(12),
     fontWeight: '600',
     color: colors.navy,
   },
   subtitle: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     color: colors.muted,
   },
 });

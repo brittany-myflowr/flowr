@@ -95,11 +95,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: plannerCardBorder,
     borderRadius: plannerCornerRadius,
-    paddingHorizontal: s(8),
-    paddingVertical: vs(3),
+    paddingHorizontal: s(10),
+    paddingVertical: vs(5),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: s(4),
+    gap: s(6),
     maxWidth: '100%',
   },
   chipButton: {
@@ -108,16 +108,16 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(12),
     color: colors.navy,
   },
   chipButtonLabel: {
     flex: 1,
-    fontSize: fs(11),
+    fontSize: fs(13),
   },
   actionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     color: colors.blue,
     textDecorationLine: 'underline',
     flexShrink: 0,
@@ -138,9 +138,9 @@ const styles = StyleSheet.create({
     color: colors.navy,
   },
   productLabel: {
-    marginTop: s(2),
+    marginTop: s(3),
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(12),
     color: colors.navy,
   },
   productLabelDone: {

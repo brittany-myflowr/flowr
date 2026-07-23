@@ -5,7 +5,7 @@ import { colors } from '@/constants/colors';
 import { plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
-import { s, fs } from '@/lib/scale';
+import { s } from '@/lib/scale';
 
 type TabPageHeaderProps = {
   title: string;
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   },
   backLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(10),
+    fontSize: tabPageTypography.subPageBack,
     color: colors.blue,
   },
   headerRow: {
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
   actionLabel: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: fs(10),
+    fontSize: tabPageTypography.actionLabel,
     color: colors.white,
     fontWeight: '600',
   },

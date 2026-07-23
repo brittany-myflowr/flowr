@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   noteText: {
     marginTop: s(2),
     fontFamily: fonts.dmSans,
-    fontSize: fs(11),
+    fontSize: fs(12),
     color: colors.muted,
   },
   noteTextDone: {

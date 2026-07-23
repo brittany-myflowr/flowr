@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     color: colors.muted,
     textTransform: 'capitalize',
   },
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
   progress: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: fs(9),
+    fontSize: fs(12),
     fontWeight: '600',
     color: colors.blue,
     flexShrink: 0,

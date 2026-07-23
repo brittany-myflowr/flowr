@@ -1,147 +1,69 @@
-import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Daisy } from '@/components/brand';
-import { Chip } from '@/components/ui/Chip';
-import { Input } from '@/components/ui/Input';
-import { categories, categoryColors, type Category } from '@/constants/categories';
+import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
+import { tabPageTypography } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import {
   formatFrequency,
   formatTimeOfDay,
 } from '@/providers/RoutinesProvider';
 import type { Routine } from '@/types';
-import { s, vs, fs } from '@/lib/scale';
+import { s, fs } from '@/lib/scale';
+
+const FLOWER_SIZE = s(18);
+const TITLE_GAP = s(8);
 
 type RoutineDetailHeaderProps = {
   routine: Routine;
   onBack?: () => void;
-  onEditSchedule?: () => void;
-  onCategoryChange?: (category: Category) => void;
-  onNameChange?: (name: string) => void;
-  onDescriptionChange?: (description: string) => void;
+  onEdit?: () => void;
 };
 
 export function RoutineDetailHeader({
   routine,
   onBack,
-  onEditSchedule,
-  onCategoryChange,
-  onNameChange,
-  onDescriptionChange,
+  onEdit,
 }: RoutineDetailHeaderProps) {
   const categoryColor = categoryColors[routine.category];
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [draftName, setDraftName] = useState(routine.name);
-  const [draftDescription, setDraftDescription] = useState(routine.description ?? '');
-
-  useEffect(() => {
-    setDraftDescription(routine.description ?? '');
-  }, [routine.id, routine.description]);
-
-  const startEditingName = () => {
-    setDraftName(routine.name);
-    setIsEditingName(true);
-  };
-
-  const finishEditingName = () => {
-    const trimmed = draftName.trim();
-    if (onNameChange) {
-      onNameChange(trimmed || 'My Routine');
-    }
-    setIsEditingName(false);
-  };
-
-  const finishEditingDescription = () => {
-    if (!onDescriptionChange) return;
-    const trimmed = draftDescription.trim();
-    if (trimmed === (routine.description ?? '')) return;
-    onDescriptionChange(trimmed);
-  };
 
   return (
     <View style={styles.container}>
-      <Pressable onPress={onBack}>
-        <Text style={styles.back}>← Back</Text>
-      </Pressable>
-
-      <View style={styles.titleRow}>
-        <Daisy color={categoryColor} size={s(18)} />
-        <View style={styles.meta}>
-          {isEditingName ? (
-            <TextInput
-              value={draftName}
-              onChangeText={setDraftName}
-              onBlur={finishEditingName}
-              autoFocus
-              autoCapitalize="words"
-              autoCorrect
-              style={styles.nameInput}
-              placeholder="Routine name"
-              placeholderTextColor={colors.muted}
-            />
-          ) : (
-            <Pressable onPress={onNameChange ? startEditingName : undefined}>
-              <Text style={styles.name}>{routine.name}</Text>
-              {onNameChange ? <Text style={styles.editHint}>tap to edit</Text> : null}
-              {routine.description ? (
-                <Text style={styles.descriptionDisplay}>{routine.description}</Text>
-              ) : null}
-              <Text style={styles.subtitle}>
-                {routine.category} · {routine.steps.length} steps
-              </Text>
-            </Pressable>
-          )}
-        </View>
+      <View style={styles.topRow}>
+        <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back">
+          <Text style={styles.back}>← Back</Text>
+        </Pressable>
+        {onEdit ? (
+          <Pressable
+            onPress={onEdit}
+            accessibilityRole="button"
+            accessibilityLabel="Edit routine"
+            style={styles.editButton}
+          >
+            <Text style={styles.editLabel}>Edit</Text>
+          </Pressable>
+        ) : null}
       </View>
 
-      <Pressable onPress={onEditSchedule} style={styles.scheduleChip}>
-        <Text style={styles.scheduleText}>
+      <View style={styles.titleLine}>
+        <View style={styles.flower}>
+          <Daisy color={categoryColor} size={FLOWER_SIZE} />
+        </View>
+        <Text style={styles.name}>{routine.name}</Text>
+      </View>
+
+      <View style={styles.details}>
+        {routine.description ? (
+          <Text style={styles.description}>{routine.description}</Text>
+        ) : null}
+        <Text style={styles.subtitle}>
+          {routine.category} · {routine.steps.length} steps ·{' '}
           {formatFrequency(routine.schedule.frequency)} ·{' '}
-          {formatTimeOfDay(routine.timeOfDay)} · Edit
+          {formatTimeOfDay(routine.timeOfDay)}
         </Text>
-      </Pressable>
-
-      {onDescriptionChange ? (
-        <>
-          <Text style={styles.fieldLabel}>Description</Text>
-          <Input
-            value={draftDescription}
-            onChangeText={setDraftDescription}
-            onBlur={finishEditingDescription}
-            placeholder="Add a description (optional)"
-            autoCapitalize="sentences"
-            autoCorrect
-            multiline
-            style={styles.descriptionInput}
-          />
-        </>
-      ) : null}
-
-      <Text style={styles.fieldLabel}>Category</Text>
-      <ScrollView
-        horizontal
-        nestedScrollEnabled
-        showsHorizontalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.categoryRow}
-      >
-        {categories.map((category) => (
-          <Chip
-            key={category}
-            label={category}
-            selected={routine.category === category}
-            form
-            onPress={
-              onCategoryChange && routine.category !== category
-                ? () => onCategoryChange(category)
-                : undefined
-            }
-          />
-        ))}
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -155,83 +77,63 @@ const styles = StyleSheet.create({
     borderBottomColor: plannerCardBorder,
     backgroundColor: colors.bg,
   },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: s(8),
+  },
   back: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(10),
+    fontSize: fs(12),
     color: colors.blue,
-    marginBottom: s(8),
   },
-  titleRow: {
+  editButton: {
+    paddingHorizontal: s(10),
+    paddingVertical: s(6),
+    borderRadius: plannerCornerRadius,
+    backgroundColor: colors.navy,
+  },
+  editLabel: {
+    fontFamily: fonts.dmSansSemiBold,
+    fontSize: tabPageTypography.actionLabel,
+    color: colors.white,
+    fontWeight: '600',
+  },
+  titleLine: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: s(10),
-    marginBottom: s(8),
+    gap: TITLE_GAP,
   },
-  meta: {
-    flex: 1,
+  flower: {
+    width: FLOWER_SIZE,
+    height: FLOWER_SIZE,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   name: {
+    flex: 1,
     fontFamily: fonts.lora,
-    fontSize: fs(16),
+    fontSize: fs(18),
+    lineHeight: fs(22),
     color: colors.navy,
   },
-  nameInput: {
-    fontFamily: fonts.lora,
-    fontSize: fs(16),
-    color: colors.navy,
-    padding: 0,
+  details: {
+    marginTop: s(8),
+    alignItems: 'flex-start',
+    gap: s(4),
   },
-  editHint: {
-    marginTop: s(1),
+  description: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
-    color: '#c8d9e6',
-  },
-  descriptionDisplay: {
-    marginTop: s(4),
-    fontFamily: fonts.dmSans,
-    fontSize: fs(11),
-    lineHeight: fs(15),
+    fontSize: fs(13),
+    lineHeight: fs(18),
     color: colors.gray,
+    textAlign: 'left',
   },
   subtitle: {
-    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
-    color: colors.muted,
-  },
-  scheduleChip: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.light,
-    borderWidth: 1,
-    borderColor: '#c8d9e6',
-    borderRadius: plannerCornerRadius,
-    paddingHorizontal: s(10),
-    paddingVertical: vs(4),
-  },
-  scheduleText: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(9),
-    color: colors.blue,
-  },
-  fieldLabel: {
-    marginTop: s(10),
-    marginBottom: s(6),
-    fontFamily: fonts.dmSans,
-    fontSize: fs(8),
-    letterSpacing: s(2),
-    textTransform: 'uppercase',
-    color: colors.muted,
-  },
-  descriptionInput: {
     fontSize: fs(12),
-    minHeight: vs(56),
-    textAlignVertical: 'top',
-  },
-  categoryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: s(6),
-    paddingRight: s(4),
+    color: colors.muted,
+    textAlign: 'left',
   },
 });

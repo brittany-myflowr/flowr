@@ -271,8 +271,7 @@ export default function GuidedSetupScreen() {
                   key={item}
                   label={item}
                   selected={category === item}
-                  small
-                  large
+                  form
                   onPress={() => setCategory(item)}
                 />
               ))}

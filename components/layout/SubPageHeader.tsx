@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   },
   actionLabel: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: tabPageTypography.subPageBack,
+    fontSize: tabPageTypography.actionLabel,
     color: colors.white,
     fontWeight: '600',
   },

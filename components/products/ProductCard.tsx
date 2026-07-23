@@ -190,34 +190,34 @@ const styles = StyleSheet.create({
   },
   tagRoutine: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: fs(9),
+    fontSize: fs(12),
     color: colors.navy,
     fontWeight: '600',
   },
   tagSeparator: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     color: colors.muted,
   },
   tagStep: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     color: colors.gray,
     flexShrink: 1,
   },
   untaggedHint: {
     marginTop: s(8),
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     color: colors.muted,
     fontStyle: 'italic',
   },
   notes: {
     marginTop: s(8),
     fontFamily: fonts.dmSans,
-    fontSize: fs(10),
+    fontSize: fs(12),
     color: colors.gray,
-    lineHeight: fs(14),
+    lineHeight: fs(17),
   },
   pickRow: {
     flexDirection: 'row',
@@ -235,13 +235,13 @@ const styles = StyleSheet.create({
   },
   pickName: {
     fontFamily: fonts.cardTitle,
-    fontSize: fs(12),
+    fontSize: fs(13),
     color: colors.navy,
   },
   pickVerdict: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     fontWeight: '500',
   },
 });

@@ -126,20 +126,19 @@ const styles = StyleSheet.create({
   email: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     color: colors.blue,
   },
   editButton: {
-    backgroundColor: colors.light,
-    borderWidth: 1,
-    borderColor: '#c8d9e6',
+    backgroundColor: colors.navy,
     borderRadius: plannerCornerRadius,
     paddingHorizontal: s(10),
-    paddingVertical: vs(5),
+    paddingVertical: s(6),
   },
   editLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(9),
-    color: colors.blue,
+    fontFamily: fonts.dmSansSemiBold,
+    fontSize: fs(10),
+    color: colors.white,
+    fontWeight: '600',
   },
 });

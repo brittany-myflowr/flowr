@@ -27,7 +27,7 @@ export function TextLink({
 const styles = StyleSheet.create({
   link: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(10),
+    fontSize: fs(12),
     textDecorationLine: 'underline',
   },
 });

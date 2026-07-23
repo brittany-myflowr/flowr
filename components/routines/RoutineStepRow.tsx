@@ -13,6 +13,7 @@ import { s, vs, fs } from '@/lib/scale';
 type RoutineStepRowProps = {
   step: Step;
   index: number;
+  editable?: boolean;
   isDragging?: boolean;
   dragHandlers?: GestureResponderHandlers;
   dragTouchHandlers?: ReorderableDragTouchHandlers;
@@ -22,35 +23,49 @@ type RoutineStepRowProps = {
 export function RoutineStepRow({
   step,
   index,
+  editable = false,
   isDragging = false,
   dragHandlers,
   dragTouchHandlers,
   onDelete,
 }: RoutineStepRowProps) {
+  const body = (
+    <>
+      <StepNumberBadge number={index + 1} style={styles.stepBadge} />
+      <View style={styles.copy}>
+        <Text style={styles.stepName}>{step.name}</Text>
+        {step.note ? <Text style={styles.noteText}>{step.note}</Text> : null}
+        {step.productName ? <StepProductLabel label={step.productName} /> : null}
+        {editable ? (
+          <Text style={styles.editHint}>tap to edit · hold to drag</Text>
+        ) : null}
+      </View>
+    </>
+  );
+
   return (
     <View style={[styles.card, plannerCard(), isDragging && styles.cardDragging]}>
       <View style={styles.mainRow}>
-        <View style={styles.dragArea} {...dragTouchHandlers} {...dragHandlers}>
-          <StepNumberBadge number={index + 1} style={styles.stepBadge} />
-
-          <View style={styles.copy}>
-            <Text style={styles.stepName}>{step.name}</Text>
-            {step.note ? <Text style={styles.noteText}>{step.note}</Text> : null}
-            {step.productName ? <StepProductLabel label={step.productName} /> : null}
-            <Text style={styles.editHint}>tap for details · hold to drag</Text>
+        {editable ? (
+          <View style={styles.dragArea} {...dragTouchHandlers} {...dragHandlers}>
+            {body}
           </View>
-        </View>
+        ) : (
+          <View style={styles.dragArea}>{body}</View>
+        )}
 
-        <View style={styles.actions}>
-          <Pressable
-            onPress={onDelete}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={`Remove ${step.name}`}
-          >
-            <CloseIcon color={plannerCardBorder} />
-          </Pressable>
-        </View>
+        {editable && onDelete ? (
+          <View style={styles.actions}>
+            <Pressable
+              onPress={onDelete}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={`Remove ${step.name}`}
+            >
+              <CloseIcon color={plannerCardBorder} />
+            </Pressable>
+          </View>
+        ) : null}
       </View>
     </View>
   );
@@ -90,19 +105,19 @@ const styles = StyleSheet.create({
   },
   stepName: {
     fontFamily: fonts.cardTitle,
-    fontSize: fs(13),
+    fontSize: fs(14),
     color: colors.navy,
   },
   noteText: {
     marginTop: s(2),
     fontFamily: fonts.dmSans,
-    fontSize: fs(11),
+    fontSize: fs(12),
     color: colors.muted,
   },
   editHint: {
-    marginTop: s(1),
+    marginTop: s(2),
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(11),
     color: colors.muted,
   },
   actions: {

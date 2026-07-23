@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   labelLarge: {
-    fontSize: fs(7.6),
+    fontSize: fs(9),
   },
   lineLight: {
     backgroundColor: 'rgba(255,255,255,0.22)',

@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
   },
   previewLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(10),
     letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(10),
     letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   },
   endsLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
   },
   endsLabelDefault: {
     color: colors.gray,

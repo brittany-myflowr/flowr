@@ -49,6 +49,7 @@ type ReorderableListProps<T> = {
   onScrollLockChange?: (locked: boolean) => void;
   renderItem: (info: ReorderableRenderItemInfo<T>) => ReactNode;
   contentContainerStyle?: ViewStyle;
+  ListHeaderComponent?: ReactNode;
   ListFooterComponent?: ReactNode;
   style?: ViewStyle;
 };
@@ -95,6 +96,7 @@ export function ReorderableList<T>({
   onScrollLockChange,
   renderItem,
   contentContainerStyle,
+  ListHeaderComponent,
   ListFooterComponent,
   style,
 }: ReorderableListProps<T>) {
@@ -385,6 +387,7 @@ export function ReorderableList<T>({
 
   const listContent = (
     <View ref={contentRef} style={contentContainerStyle}>
+      {ListHeaderComponent}
       {items.map((item, index) => {
         const key = keyExtractor(item);
         const isActive = activeKey === key;

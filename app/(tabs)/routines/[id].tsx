@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
@@ -10,30 +10,22 @@ import { RoutineDetailHeader } from '@/components/routines/RoutineDetailHeader';
 import { RoutineRenameSheet } from '@/components/routines/RoutineRenameSheet';
 import { RoutineStepRow } from '@/components/routines/RoutineStepRow';
 import { FullWidthButton } from '@/components/ui/Button';
-import { ReorderableList } from '@/components/ui/ReorderableList';
 import { colors } from '@/constants/colors';
-import type { Category } from '@/constants/categories';
+import { fonts } from '@/constants/typography';
 import { useRoutine, useRoutines } from '@/providers/RoutinesProvider';
 import { useToast } from '@/providers/ToastProvider';
-import type { Step } from '@/types';
-import { s, vs } from '@/lib/scale';
-
-type DeleteTarget =
-  | { type: 'step'; stepId: string; stepName: string }
-  | { type: 'routine' }
-  | null;
+import { s, vs, fs } from '@/lib/scale';
 
 export default function RoutineDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id, promptRename } = useLocalSearchParams<{ id: string; promptRename?: string }>();
   const routine = useRoutine(id);
-  const { reorderSteps, removeStep, removeRoutine, updateRoutine, duplicateRoutine } =
-    useRoutines();
+  const { updateRoutine, removeRoutine, duplicateRoutine } = useRoutines();
   const { showToast } = useToast();
 
-  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [showRename, setShowRename] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
 
   useEffect(() => {
     if (promptRename === '1') {
@@ -50,7 +42,10 @@ export default function RoutineDetailScreen() {
           body="It may have been removed or this link is out of date."
         />
         <View style={styles.footerSpacer} />
-        <FullWidthButton label="← Back to Routines" onPress={() => router.replace('/(tabs)/routines')} />
+        <FullWidthButton
+          label="← Back to Routines"
+          onPress={() => router.replace('/(tabs)/routines')}
+        />
       </View>
     );
   }
@@ -58,6 +53,13 @@ export default function RoutineDetailScreen() {
   const clearRenamePrompt = () => {
     setShowRename(false);
     router.setParams({ promptRename: undefined });
+  };
+
+  const openEditRoutine = () => {
+    router.push({
+      pathname: '/(tabs)/routines/edit',
+      params: { routineId: routine.id },
+    });
   };
 
   const handleDuplicate = () => {
@@ -71,56 +73,11 @@ export default function RoutineDetailScreen() {
     });
   };
 
-  const handleRenameSave = (name: string) => {
-    updateRoutine(routine.id, { name });
-    clearRenamePrompt();
-  };
-
-  const confirmDelete = () => {
-    if (!deleteTarget) return;
-
-    if (deleteTarget.type === 'routine') {
-      removeRoutine(routine.id);
-      showToast('Routine removed', 'destructive');
-      router.replace('/(tabs)/routines');
-    } else {
-      removeStep(routine.id, deleteTarget.stepId);
-      showToast('Step removed', 'destructive');
-    }
-
-    setDeleteTarget(null);
-  };
-
-  const deleteTitle =
-    deleteTarget?.type === 'routine' ? 'Remove routine?' : 'Remove step?';
-  const deleteMessage =
-    deleteTarget?.type === 'routine'
-      ? `${routine.name} and all of its steps will be permanently deleted.`
-      : `${deleteTarget?.stepName ?? 'This step'} will be permanently deleted from ${routine.name}.`;
-
-  const openRoutineSchedule = () => {
-    router.push({
-      pathname: '/(tabs)/routines/schedule',
-      params: { routineId: routine.id },
-    });
-  };
-
-  const openAddStep = () => {
-    router.push({
-      pathname: '/(tabs)/routines/add-step',
-      params: { routineId: routine.id },
-    });
-  };
-
-  const openStepDetail = (stepId: string) => {
-    router.push({
-      pathname: '/(tabs)/routines/step/[id]',
-      params: { id: stepId, routineId: routine.id },
-    });
-  };
-
-  const handleDragEnd = (data: Step[]) => {
-    reorderSteps(routine.id, data);
+  const handleDelete = () => {
+    removeRoutine(routine.id);
+    setShowDelete(false);
+    showToast('Routine removed', 'destructive');
+    router.replace('/(tabs)/routines');
   };
 
   return (
@@ -128,70 +85,53 @@ export default function RoutineDetailScreen() {
       <RoutineDetailHeader
         routine={routine}
         onBack={() => router.back()}
-        onEditSchedule={openRoutineSchedule}
-        onCategoryChange={(category: Category) => {
-          updateRoutine(routine.id, { category });
-          showToast('Category updated');
-        }}
-        onNameChange={(name) => updateRoutine(routine.id, { name })}
-        onDescriptionChange={(description) =>
-          updateRoutine(routine.id, { description })
-        }
+        onEdit={openEditRoutine}
       />
 
-      <ReorderableList
-        data={routine.steps}
-        keyExtractor={(item) => item.id}
-        onDragEnd={handleDragEnd}
-        onItemPress={(item) => openStepDetail(item.id)}
+      <ScrollView
         contentContainerStyle={styles.listContent}
-        ListFooterComponent={
-          <View style={styles.footer}>
-            {routine.steps.length === 0 ? (
-              <InlineEmptyCard
-                compact
-                title="No steps yet"
-                body="Add your first step to start building this routine."
-              />
-            ) : null}
-            <FullWidthButton label="+ Add Step" onPress={openAddStep} />
-            <View style={styles.footerSpacer} />
-            <FullWidthButton
-              label="Remove Routine"
-              variant="danger"
-              onPress={() => setDeleteTarget({ type: 'routine' })}
-            />
-            <View style={styles.footerSpacer} />
-            <FullWidthButton label="Duplicate Routine" onPress={handleDuplicate} />
-          </View>
-        }
-        renderItem={({ item, index, isActive, dragHandlers, dragTouchHandlers }) => (
-          <RoutineStepRow
-            step={item}
-            index={index}
-            isDragging={isActive}
-            dragHandlers={dragHandlers}
-            dragTouchHandlers={dragTouchHandlers}
-            onDelete={() =>
-              setDeleteTarget({ type: 'step', stepId: item.id, stepName: item.name })
-            }
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.sectionLabel}>Steps</Text>
+        {routine.steps.length === 0 ? (
+          <InlineEmptyCard
+            compact
+            title="No steps yet"
+            body="Tap Edit to add steps to this routine."
           />
+        ) : (
+          routine.steps.map((step, index) => (
+            <RoutineStepRow key={step.id} step={step} index={index} />
+          ))
         )}
-      />
 
-      <DeleteConfirmSheet
-        visible={deleteTarget !== null}
-        title={deleteTitle}
-        message={deleteMessage}
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleteTarget(null)}
-      />
+        <View style={styles.footer}>
+          <FullWidthButton label="Duplicate Routine" onPress={handleDuplicate} />
+          <View style={styles.footerSpacer} />
+          <FullWidthButton
+            label="Remove Routine"
+            variant="danger"
+            onPress={() => setShowDelete(true)}
+          />
+        </View>
+      </ScrollView>
 
       <RoutineRenameSheet
         visible={showRename}
         initialName={routine.name}
-        onSave={handleRenameSave}
+        onSave={(name) => {
+          updateRoutine(routine.id, { name });
+          clearRenamePrompt();
+        }}
         onCancel={clearRenamePrompt}
+      />
+
+      <DeleteConfirmSheet
+        visible={showDelete}
+        title="Remove routine?"
+        message={`${routine.name} and all of its steps will be permanently deleted.`}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDelete(false)}
       />
     </View>
   );
@@ -208,11 +148,19 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: s(12),
-    paddingTop: s(4),
+    paddingTop: s(12),
     paddingBottom: s(24),
   },
+  sectionLabel: {
+    marginBottom: s(8),
+    fontFamily: fonts.dmSans,
+    fontSize: fs(10),
+    letterSpacing: s(1.5),
+    textTransform: 'uppercase',
+    color: colors.muted,
+  },
   footer: {
-    marginTop: s(4),
+    marginTop: s(16),
   },
   footerSpacer: {
     height: vs(8),

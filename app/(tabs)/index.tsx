@@ -31,13 +31,10 @@ import { hapticDayComplete, hapticStepComplete } from '@/lib/haptics';
 import { useAuth, useRoutines } from '@/providers/AppStore';
 import type { TodayStep } from '@/hooks/useTodaySteps';
 import type { TodayRoutineGroup } from '@/lib/todayGroups';
-import type { TimeOfDay } from '@/types';
 import { s, fs } from '@/lib/scale';
 
 type CompletedTodayItem = {
   group: TodayRoutineGroup;
-  periodLabel: string;
-  timeOfDay: TimeOfDay;
 };
 
 function buildPeriodDividerLabel(
@@ -73,11 +70,7 @@ export default function TodayScreen() {
 
     for (const section of periodSections) {
       for (const group of section.completedGroups) {
-        items.push({
-          group,
-          periodLabel: section.label,
-          timeOfDay: section.timeOfDay,
-        });
+        items.push({ group });
       }
     }
 
@@ -216,11 +209,10 @@ export default function TodayScreen() {
         </Pressable>
 
         {showDoneToday
-          ? completedToday.map(({ group, periodLabel }) => (
+          ? completedToday.map(({ group }) => (
               <TodayCompletedRoutineRow
                 key={group.routine.id}
                 group={group}
-                periodLabel={periodLabel}
                 expanded={expandedDoneRoutineIds[group.routine.id] === true}
                 onToggleExpanded={() =>
                   setExpandedDoneRoutineIds((current) => ({

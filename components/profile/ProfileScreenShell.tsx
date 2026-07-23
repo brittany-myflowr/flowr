@@ -55,7 +55,7 @@ export const profileBodyStyles = StyleSheet.create({
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(10),
     letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
@@ -68,7 +68,7 @@ export const profileBodyStyles = StyleSheet.create({
   },
   meta: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(10),
+    fontSize: fs(12),
     color: colors.muted,
     marginTop: s(4),
   },

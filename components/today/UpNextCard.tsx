@@ -1,11 +1,11 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { PhaseChip } from '@/components/cycle/PhaseChip';
-import { getTimeOfDayIcon } from '@/components/icons/TimeOfDayIcons';
+import { Daisy } from '@/components/brand';
 import { StepProductLabel } from '@/components/steps/StepProductChip';
+import { FullWidthButton } from '@/components/ui/Button';
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
-import { todayGlassCard, todayCornerRadius } from '@/constants/todayCardStyles';
+import { todayGlassCard } from '@/constants/todayCardStyles';
 import { fonts } from '@/constants/typography';
 import type { UpNextStep } from '@/hooks/useUpNextStep';
 import { fs, s, vs } from '@/lib/scale';
@@ -20,110 +20,77 @@ export function UpNextCard({ upNext, onComplete }: UpNextCardProps) {
 
   return (
     <View style={[styles.card, todayGlassCard(categoryColor, 'hero')]}>
-      <View style={styles.headerRow}>
-        {getTimeOfDayIcon(upNext.timeOfDay, colors.blue)}
-        <Text style={styles.eyebrow}>Up next · {upNext.periodLabel}</Text>
+      <Text style={styles.eyebrow}>Up next · {upNext.periodLabel}</Text>
+
+      <View style={styles.titleRow}>
+        <Daisy color={categoryColor} size={s(18)} />
+        <Text style={styles.stepName}>{upNext.step.name}</Text>
       </View>
 
-      <Text style={styles.routineName}>{upNext.routineName}</Text>
-      <Text style={styles.stepName}>{upNext.step.name}</Text>
+      <Text style={styles.support}>
+        {upNext.routineName} · Step {upNext.stepNumber} of {upNext.totalSteps}
+      </Text>
 
       {upNext.step.note ? <Text style={styles.note}>{upNext.step.note}</Text> : null}
       {upNext.step.productName ? (
         <StepProductLabel label={upNext.step.productName} style={styles.productLabel} />
       ) : null}
 
-      <Text style={styles.meta}>
-        Step {upNext.stepNumber} of {upNext.totalSteps}
-        {upNext.isCycleSynced ? ' · Cycle-synced' : ''}
-      </Text>
-
-      {upNext.phaseKeys?.length ? (
-        <View style={styles.chips}>
-          {upNext.phaseKeys.map((phaseKey) => (
-            <PhaseChip key={phaseKey} phaseKey={phaseKey} />
-          ))}
-        </View>
-      ) : null}
-
-      <Pressable
-        onPress={onComplete}
-        style={styles.actionButton}
-        accessibilityRole="button"
-        accessibilityLabel={`Mark ${upNext.step.name} complete`}
-      >
-        <Text style={styles.actionLabel}>Mark done</Text>
-      </Pressable>
+      <View style={styles.actionWrap}>
+        <FullWidthButton label="Mark done" onPress={onComplete} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    padding: s(14),
+    paddingHorizontal: s(16),
+    paddingTop: s(16),
+    paddingBottom: s(14),
     marginBottom: s(10),
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: s(6),
-    marginBottom: s(8),
   },
   eyebrow: {
     fontFamily: fonts.dmSansMedium,
-    fontSize: fs(8),
+    fontSize: fs(10),
     fontWeight: '500',
-    letterSpacing: s(2.4),
+    letterSpacing: s(1.5),
     textTransform: 'uppercase',
-    color: colors.navy,
-  },
-  routineName: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(9),
     color: colors.muted,
-    marginBottom: s(2),
+    marginBottom: s(10),
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: s(8),
+    marginBottom: s(6),
   },
   stepName: {
-    fontFamily: fonts.cardTitle,
-    fontSize: fs(15),
+    flex: 1,
+    fontFamily: fonts.lora,
+    fontSize: fs(18),
+    lineHeight: fs(22),
     color: colors.navy,
+  },
+  support: {
+    fontFamily: fonts.dmSans,
+    fontSize: fs(12),
+    color: colors.muted,
     marginBottom: s(4),
   },
   note: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(11),
-    color: colors.muted,
-    marginBottom: s(4),
+    fontSize: fs(12),
+    color: colors.gray,
+    marginBottom: s(2),
   },
   productLabel: {
-    marginTop: 0,
-    marginBottom: s(6),
-    fontSize: fs(9),
+    marginTop: s(2),
+    marginBottom: 0,
+    fontSize: fs(12),
   },
-  meta: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(9),
-    color: colors.gray,
-    marginBottom: s(8),
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: s(4),
-    marginBottom: s(10),
-  },
-  actionButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.navy,
-    borderRadius: todayCornerRadius,
-    paddingHorizontal: s(14),
-    paddingVertical: vs(8),
-  },
-  actionLabel: {
-    fontFamily: fonts.dmSansSemiBold,
-    fontSize: fs(10),
-    fontWeight: '600',
-    color: colors.white,
+  actionWrap: {
+    marginTop: s(14),
   },
 });
 

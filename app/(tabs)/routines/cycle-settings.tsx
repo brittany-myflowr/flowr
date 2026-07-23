@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   toggleSubtitle: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     color: colors.blue,
   },
   currentPhaseCard: {
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   },
   currentPhaseLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(10),
     letterSpacing: s(1.5),
     textTransform: 'uppercase',
     color: colors.muted,
@@ -218,12 +218,12 @@ const styles = StyleSheet.create({
   currentPhaseMeta: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     color: colors.gray,
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(10),
     letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(10),
     letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,

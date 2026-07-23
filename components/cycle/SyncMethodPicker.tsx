@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   description: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     color: colors.gray,
   },
   radio: {
@@ -141,8 +141,8 @@ const styles = StyleSheet.create({
   },
   counterLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
-    letterSpacing: s(2),
+    fontSize: fs(10),
+    letterSpacing: s(1.5),
     textTransform: 'uppercase',
     color: colors.muted,
     marginBottom: s(5),

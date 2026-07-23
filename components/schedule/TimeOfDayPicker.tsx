@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     textAlign: 'center',
   },
   labelDefault: {

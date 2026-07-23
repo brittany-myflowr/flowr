@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
+    fontSize: fs(12),
     color: colors.muted,
     textTransform: 'capitalize',
   },

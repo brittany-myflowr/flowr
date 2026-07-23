@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(8),
+    fontSize: fs(10),
     letterSpacing: s(2),
     textTransform: 'uppercase',
     color: colors.muted,

@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   },
   editProductText: {
     fontFamily: fonts.dmSans,
-    fontSize: guidedFlowTypography.fieldLabel,
-    color: colors.navy,
+    fontSize: guidedFlowTypography.link,
+    color: colors.blue,
   },
 });
