@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +7,7 @@ import { DeleteConfirmSheet } from '@/components/feedback/DeleteConfirmSheet';
 import { InlineEmptyCard } from '@/components/feedback/InlineEmptyCard';
 import { SubPageHeader } from '@/components/layout/SubPageHeader';
 import { RoutineDetailHeader } from '@/components/routines/RoutineDetailHeader';
+import { RoutineOptionsSheet } from '@/components/routines/RoutineOptionsSheet';
 import { RoutineRenameSheet } from '@/components/routines/RoutineRenameSheet';
 import { RoutineStepRow } from '@/components/routines/RoutineStepRow';
 import { FullWidthButton } from '@/components/ui/Button';
@@ -28,6 +29,7 @@ export default function RoutineDetailScreen() {
   const { showToast } = useToast();
 
   const [showRename, setShowRename] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [sharing, setSharing] = useState(false);
 
@@ -60,6 +62,7 @@ export default function RoutineDetailScreen() {
   };
 
   const openEditRoutine = () => {
+    setShowMenu(false);
     router.push({
       pathname: '/(tabs)/routines/edit',
       params: { routineId: routine.id },
@@ -74,12 +77,13 @@ export default function RoutineDetailScreen() {
         routine,
         products,
         userId: user.id,
+        sharedByFirstName: user.firstName,
       });
       if ('error' in result) {
         showToast(result.error, 'destructive');
         return;
       }
-      await shareRoutineLink(result.url, routine.name);
+      await shareRoutineLink(result.url, result.title);
     } catch {
       showToast('Could not share routine', 'destructive');
     } finally {
@@ -87,7 +91,12 @@ export default function RoutineDetailScreen() {
     }
   };
 
+  const openNotificationSettings = () => {
+    router.push(`/(tabs)/routines/notifications/${routine.id}` as Href);
+  };
+
   const handleDuplicate = () => {
+    setShowMenu(false);
     const duplicated = duplicateRoutine(routine.id);
     if (!duplicated) return;
 
@@ -110,11 +119,12 @@ export default function RoutineDetailScreen() {
       <RoutineDetailHeader
         routine={routine}
         onBack={() => router.back()}
-        onEdit={openEditRoutine}
+        onOpenMenu={() => setShowMenu(true)}
         onShare={() => {
           void handleShare();
         }}
         sharing={sharing}
+        onOpenNotificationSettings={openNotificationSettings}
       />
 
       <ScrollView
@@ -126,24 +136,26 @@ export default function RoutineDetailScreen() {
           <InlineEmptyCard
             compact
             title="No steps yet"
-            body="Tap Edit to add steps to this routine."
+            body="Open the menu to edit and add steps to this routine."
           />
         ) : (
           routine.steps.map((step, index) => (
             <RoutineStepRow key={step.id} step={step} index={index} />
           ))
         )}
-
-        <View style={styles.footer}>
-          <FullWidthButton label="Duplicate Routine" onPress={handleDuplicate} />
-          <View style={styles.footerSpacer} />
-          <FullWidthButton
-            label="Remove Routine"
-            variant="danger"
-            onPress={() => setShowDelete(true)}
-          />
-        </View>
       </ScrollView>
+
+      <RoutineOptionsSheet
+        visible={showMenu}
+        routineName={routine.name}
+        onEdit={openEditRoutine}
+        onDuplicate={handleDuplicate}
+        onDelete={() => {
+          setShowMenu(false);
+          setShowDelete(true);
+        }}
+        onCancel={() => setShowMenu(false)}
+      />
 
       <RoutineRenameSheet
         visible={showRename}
@@ -187,9 +199,6 @@ const styles = StyleSheet.create({
     letterSpacing: s(1.5),
     textTransform: 'uppercase',
     color: colors.muted,
-  },
-  footer: {
-    marginTop: s(16),
   },
   footerSpacer: {
     height: vs(8),

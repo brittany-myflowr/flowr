@@ -13,6 +13,38 @@ function getTimeOfDay(date = new Date()): TimeOfDay {
   return 'evening';
 }
 
+/**
+ * Start/end of a time-of-day window for `date` (local).
+ * End is exclusive and matches `getTimeOfDay` boundaries
+ * (morning → 12:00, afternoon → 19:00, evening → 05:00 next day).
+ */
+export function getTimeOfDayWindowBounds(
+  timeOfDay: TimeOfDay,
+  date: Date,
+): { start: Date; end: Date } {
+  const y = date.getFullYear();
+  const m = date.getMonth();
+  const d = date.getDate();
+
+  switch (timeOfDay) {
+    case 'morning':
+      return {
+        start: new Date(y, m, d, 5, 0, 0, 0),
+        end: new Date(y, m, d, 12, 0, 0, 0),
+      };
+    case 'afternoon':
+      return {
+        start: new Date(y, m, d, 12, 0, 0, 0),
+        end: new Date(y, m, d, 19, 0, 0, 0),
+      };
+    case 'evening':
+      return {
+        start: new Date(y, m, d, 19, 0, 0, 0),
+        end: new Date(y, m, d + 1, 5, 0, 0, 0),
+      };
+  }
+}
+
 export function useTimeOfDay(): TimeOfDay {
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(() => getTimeOfDay());
 

@@ -1,11 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Daisy } from '@/components/brand';
-import { ShareIcon } from '@/components/icons/ActionIcons';
+import { BellIcon, MoreHorizontalIcon, ShareIcon } from '@/components/icons/ActionIcons';
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
-import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
-import { tabPageTypography } from '@/constants/tabPageTypography';
+import { plannerCardBorder } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import {
   formatFrequency,
@@ -20,17 +19,19 @@ const TITLE_GAP = s(8);
 type RoutineDetailHeaderProps = {
   routine: Routine;
   onBack?: () => void;
-  onEdit?: () => void;
+  onOpenMenu?: () => void;
   onShare?: () => void;
   sharing?: boolean;
+  onOpenNotificationSettings?: () => void;
 };
 
 export function RoutineDetailHeader({
   routine,
   onBack,
-  onEdit,
+  onOpenMenu,
   onShare,
   sharing = false,
+  onOpenNotificationSettings,
 }: RoutineDetailHeaderProps) {
   const categoryColor = categoryColors[routine.category];
 
@@ -40,29 +41,39 @@ export function RoutineDetailHeader({
         <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back">
           <Text style={styles.back}>← Back</Text>
         </Pressable>
-        <View style={styles.topActions}>
+        <View style={styles.iconCluster}>
+          {onOpenNotificationSettings ? (
+            <Pressable
+              onPress={onOpenNotificationSettings}
+              accessibilityRole="button"
+              accessibilityLabel="Notifications"
+              hitSlop={8}
+              style={styles.iconButton}
+            >
+              <BellIcon size={s(18)} color={colors.navy} />
+            </Pressable>
+          ) : null}
           {onShare ? (
             <Pressable
               onPress={onShare}
               disabled={sharing}
               accessibilityRole="button"
               accessibilityLabel="Share this routine"
-              style={[styles.shareButton, sharing && styles.shareButtonDisabled]}
+              hitSlop={8}
+              style={styles.iconButton}
             >
-              <ShareIcon size={s(14)} color={sharing ? colors.muted : colors.navy} />
-              <Text style={[styles.shareLabel, sharing && styles.shareLabelDisabled]}>
-                Share
-              </Text>
+              <ShareIcon size={s(18)} color={sharing ? colors.muted : colors.navy} />
             </Pressable>
           ) : null}
-          {onEdit ? (
+          {onOpenMenu ? (
             <Pressable
-              onPress={onEdit}
+              onPress={onOpenMenu}
               accessibilityRole="button"
-              accessibilityLabel="Edit routine"
-              style={styles.editButton}
+              accessibilityLabel="More options"
+              hitSlop={8}
+              style={styles.iconButton}
             >
-              <Text style={styles.editLabel}>Edit</Text>
+              <MoreHorizontalIcon size={s(18)} color={colors.navy} />
             </Pressable>
           ) : null}
         </View>
@@ -104,50 +115,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: s(8),
   },
-  topActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: s(8),
-  },
   back: {
     fontFamily: fonts.dmSans,
     fontSize: fs(12),
     color: colors.blue,
   },
-  shareButton: {
+  iconCluster: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: s(5),
-    paddingHorizontal: s(10),
+    gap: s(2),
+  },
+  iconButton: {
+    paddingHorizontal: s(2),
     paddingVertical: s(6),
-    borderRadius: plannerCornerRadius,
-    borderWidth: 1,
-    borderColor: colors.navy,
-    backgroundColor: colors.bg,
-  },
-  shareButtonDisabled: {
-    borderColor: colors.muted,
-  },
-  shareLabel: {
-    fontFamily: fonts.dmSansSemiBold,
-    fontSize: tabPageTypography.actionLabel,
-    color: colors.navy,
-    fontWeight: '600',
-  },
-  shareLabelDisabled: {
-    color: colors.muted,
-  },
-  editButton: {
-    paddingHorizontal: s(10),
-    paddingVertical: s(6),
-    borderRadius: plannerCornerRadius,
-    backgroundColor: colors.navy,
-  },
-  editLabel: {
-    fontFamily: fonts.dmSansSemiBold,
-    fontSize: tabPageTypography.actionLabel,
-    color: colors.white,
-    fontWeight: '600',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   titleLine: {
     flexDirection: 'row',

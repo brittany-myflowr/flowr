@@ -33,6 +33,11 @@ export type Routine = {
   active: boolean;
   steps: Step[];
   schedule: Schedule;
+  /** Opt-in local reminders — always off by default. */
+  notificationsEnabled?: boolean;
+  notificationMode?: 'specific' | 'timeOfDay';
+  /** "HH:mm" local time when mode is specific. */
+  notificationTime?: string;
 };
 
 export type Product = {

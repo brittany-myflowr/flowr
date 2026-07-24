@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Daisy } from '@/components/brand';
+import { getTimeOfDayIcon } from '@/components/icons/TimeOfDayIcons';
 import { StepProductLabel } from '@/components/steps/StepProductChip';
 import { FullWidthButton } from '@/components/ui/Button';
 import { categoryColors } from '@/constants/categories';
@@ -20,12 +20,12 @@ export function UpNextCard({ upNext, onComplete }: UpNextCardProps) {
 
   return (
     <View style={[styles.card, todayGlassCard(categoryColor, 'hero')]}>
-      <Text style={styles.eyebrow}>Up next · {upNext.periodLabel}</Text>
-
-      <View style={styles.titleRow}>
-        <Daisy color={categoryColor} size={s(18)} />
-        <Text style={styles.stepName}>{upNext.step.name}</Text>
+      <View style={styles.headerRow}>
+        {getTimeOfDayIcon(upNext.timeOfDay, colors.blue)}
+        <Text style={styles.eyebrow}>Up next · {upNext.periodLabel}</Text>
       </View>
+
+      <Text style={styles.stepName}>{upNext.step.name}</Text>
 
       <Text style={styles.support}>
         {upNext.routineName} · Step {upNext.stepNumber} of {upNext.totalSteps}
@@ -50,6 +50,12 @@ const styles = StyleSheet.create({
     paddingBottom: s(14),
     marginBottom: s(10),
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: s(6),
+    marginBottom: s(10),
+  },
   eyebrow: {
     fontFamily: fonts.dmSansMedium,
     fontSize: fs(10),
@@ -57,20 +63,13 @@ const styles = StyleSheet.create({
     letterSpacing: s(1.5),
     textTransform: 'uppercase',
     color: colors.muted,
-    marginBottom: s(10),
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: s(8),
-    marginBottom: s(6),
   },
   stepName: {
-    flex: 1,
     fontFamily: fonts.lora,
     fontSize: fs(18),
     lineHeight: fs(22),
     color: colors.navy,
+    marginBottom: s(6),
   },
   support: {
     fontFamily: fonts.dmSans,

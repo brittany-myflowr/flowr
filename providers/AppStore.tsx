@@ -72,6 +72,7 @@ import { DEFAULT_CYCLE_SETTINGS } from '@/types';
 import type { SharedRoutineSnapshot } from '@/types/share';
 import { sharedProductKey } from '@/lib/shareRoutineSnapshot';
 import { runPremiumMutation, runPremiumMutationVoid } from '@/lib/premiumGate';
+import { syncTodayNotifications } from '@/lib/routineNotifications';
 import {
   collectStepIds,
   EMPTY_TODAY_STEP_ORDERS,
@@ -168,7 +169,19 @@ type AppStoreValue = {
   addStep: (routineId: string, input: AddStepInput) => Step | null;
   updateRoutine: (
     routineId: string,
-    updates: Partial<Pick<Routine, 'name' | 'description' | 'category' | 'timeOfDay' | 'active'>>,
+    updates: Partial<
+      Pick<
+        Routine,
+        | 'name'
+        | 'description'
+        | 'category'
+        | 'timeOfDay'
+        | 'active'
+        | 'notificationsEnabled'
+        | 'notificationMode'
+        | 'notificationTime'
+      >
+    >,
   ) => void;
   updateRoutineSchedule: (routineId: string, schedule: Schedule) => void;
   updateStepSchedule: (routineId: string, stepId: string, schedule: Schedule) => void;
@@ -652,10 +665,16 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       if (nextState === 'active' && pendingSyncRef.current) {
         void flushRemoteSync();
       }
+      if (nextState === 'active' && hydrated) {
+        void syncTodayNotifications({
+          routines: routinesRef.current,
+          cycleSettings: cycleSettingsRef.current,
+        });
+      }
     });
 
     return () => subscription.remove();
-  }, [flushRemoteSync]);
+  }, [flushRemoteSync, hydrated]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -694,6 +713,28 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     pendingSync,
     queueRemoteSync,
   ]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (__DEV__) {
+      console.log('[flowr/notifications] AppStore effect → syncTodayNotifications', {
+        routineCount: routines.length,
+        enabled: routines
+          .filter((r) => r.notificationsEnabled)
+          .map((r) => ({
+            id: r.id,
+            name: r.name,
+            mode: r.notificationMode,
+            time: r.notificationTime,
+            active: r.active,
+          })),
+      });
+    }
+    void syncTodayNotifications({
+      routines,
+      cycleSettings,
+    });
+  }, [hydrated, routines, dailyCompletions, cycleSettings]);
 
   const signUp = useCallback(async (input: SignUpInput): Promise<string | null> => {
     const result = await signUpWithSupabase(input);
@@ -1224,7 +1265,19 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const updateRoutine = useCallback(
     (
       routineId: string,
-      updates: Partial<Pick<Routine, 'name' | 'description' | 'category' | 'timeOfDay' | 'active'>>,
+      updates: Partial<
+        Pick<
+          Routine,
+          | 'name'
+          | 'description'
+          | 'category'
+          | 'timeOfDay'
+          | 'active'
+          | 'notificationsEnabled'
+          | 'notificationMode'
+          | 'notificationTime'
+        >
+      >,
     ) => {
       runPremiumMutationVoid(() => {
         setRoutines((current) =>
@@ -1236,6 +1289,11 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
             if (updates.description !== undefined) {
               const trimmed = updates.description?.trim() ?? '';
               nextRoutine.description = trimmed || undefined;
+            }
+
+            if (updates.notificationsEnabled === false) {
+              nextRoutine.notificationMode = undefined;
+              nextRoutine.notificationTime = undefined;
             }
 
             if (updates.category && updates.category !== routine.category) {

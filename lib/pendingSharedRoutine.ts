@@ -1,8 +1,23 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Clipboard from 'expo-clipboard';
 
 const PENDING_KEY = '@flowr/v2/pending-shared-routine-id';
 export const SHARED_ROUTINE_CLIPBOARD_PREFIX = 'flowr-share:';
+
+type ClipboardModule = {
+  hasStringAsync: () => Promise<boolean>;
+  getStringAsync: () => Promise<string>;
+  setStringAsync: (text: string) => Promise<boolean>;
+};
+
+/** Lazy load so missing native module (old dev builds) does not crash app boot. */
+function getClipboard(): ClipboardModule | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('expo-clipboard') as ClipboardModule;
+  } catch {
+    return null;
+  }
+}
 
 export async function savePendingSharedRoutineId(shareId: string): Promise<void> {
   const id = shareId.trim();
@@ -32,16 +47,18 @@ export function parseSharedRoutineIdFromClipboardText(text: string): string | nu
 
 /**
  * One-shot deferred-deep-link reclaim after App Store install.
- * Returns a share id if the web CTA left a flowr-share: token on the clipboard.
+ * No-ops on builds that don't include the ExpoClipboard native module yet.
  */
 export async function consumeSharedRoutineIdFromClipboard(): Promise<string | null> {
+  const Clipboard = getClipboard();
+  if (!Clipboard) return null;
+
   try {
     const hasString = await Clipboard.hasStringAsync();
     if (!hasString) return null;
     const text = await Clipboard.getStringAsync();
     const id = parseSharedRoutineIdFromClipboardText(text);
     if (!id) return null;
-    // Clear so we don't reclaim on every launch.
     await Clipboard.setStringAsync('');
     await savePendingSharedRoutineId(id);
     return id;

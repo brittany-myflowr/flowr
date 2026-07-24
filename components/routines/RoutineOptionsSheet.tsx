@@ -8,9 +8,11 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/colors';
-import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
 import { fonts } from '@/constants/typography';
 import { s, vs, fs } from '@/lib/scale';
+
+const SHEET_RADIUS = s(14);
+const SIDE_INSET = s(10);
 
 type RoutineOptionsSheetProps = {
   visible: boolean;
@@ -34,24 +36,33 @@ export function RoutineOptionsSheet({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onCancel}>
       <View style={styles.overlay}>
-        <Pressable style={styles.backdrop} onPress={onCancel} />
-        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, s(36)) }]}>
-          <View style={styles.handle} />
-          <Text style={styles.title} numberOfLines={2}>
-            {routineName}
-          </Text>
-          <Pressable onPress={onEdit} style={styles.actionButton}>
-            <Text style={styles.actionLabel}>Edit routine</Text>
-          </Pressable>
-          <Pressable onPress={onDuplicate} style={styles.actionButton}>
-            <Text style={styles.actionLabel}>Duplicate routine</Text>
-          </Pressable>
-          <Pressable onPress={onDelete} style={styles.deleteButton}>
-            <Text style={styles.deleteLabel}>Delete routine</Text>
-          </Pressable>
-          <Pressable onPress={onCancel} style={styles.cancelButton}>
-            <Text style={styles.cancelLabel}>Cancel</Text>
-          </Pressable>
+        <Pressable style={styles.backdrop} onPress={onCancel} accessibilityLabel="Dismiss" />
+        <View
+          style={[
+            styles.sheet,
+            { paddingBottom: Math.max(insets.bottom, s(10)) },
+          ]}
+          accessibilityLabel={`Options for ${routineName}`}
+        >
+          <View style={styles.group}>
+            <Pressable onPress={onEdit} style={styles.row} accessibilityRole="button">
+              <Text style={styles.rowLabel}>Edit</Text>
+            </Pressable>
+            <View style={styles.divider} />
+            <Pressable onPress={onDuplicate} style={styles.row} accessibilityRole="button">
+              <Text style={styles.rowLabel}>Duplicate</Text>
+            </Pressable>
+            <View style={styles.divider} />
+            <Pressable onPress={onDelete} style={styles.row} accessibilityRole="button">
+              <Text style={styles.destructiveLabel}>Remove</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.group}>
+            <Pressable onPress={onCancel} style={styles.row} accessibilityRole="button">
+              <Text style={styles.cancelLabel}>Cancel</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </Modal>
@@ -68,73 +79,42 @@ const styles = StyleSheet.create({
     backgroundColor: colors.overlay,
   },
   sheet: {
-    backgroundColor: colors.bg,
-    borderTopLeftRadius: plannerCornerRadius,
-    borderTopRightRadius: plannerCornerRadius,
-    paddingHorizontal: s(18),
-    paddingTop: s(0),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 30,
-    elevation: 12,
+    paddingHorizontal: SIDE_INSET,
+    gap: s(8),
   },
-  handle: {
-    width: s(36),
-    height: vs(4),
-    borderRadius: plannerCornerRadius,
-    backgroundColor: plannerCardBorder,
-    alignSelf: 'center',
-    marginTop: s(12),
-    marginBottom: s(18),
+  group: {
+    backgroundColor: colors.white,
+    borderRadius: SHEET_RADIUS,
+    overflow: 'hidden',
   },
-  title: {
-    fontFamily: fonts.lora,
-    fontSize: fs(20),
-    color: colors.navy,
-    marginBottom: s(16),
-  },
-  actionButton: {
-    paddingVertical: vs(12),
-    borderRadius: plannerCornerRadius,
-    borderWidth: 1,
-    borderColor: plannerCardBorder,
+  row: {
+    paddingVertical: vs(16),
+    paddingHorizontal: s(16),
     alignItems: 'center',
-    marginBottom: s(8),
+    justifyContent: 'center',
+    minHeight: vs(52),
   },
-  actionLabel: {
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(26,26,46,0.12)',
+  },
+  rowLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
-    letterSpacing: s(2),
-    textTransform: 'uppercase',
+    fontSize: fs(13),
     color: colors.navy,
+    textAlign: 'center',
   },
-  deleteButton: {
-    paddingVertical: vs(12),
-    borderRadius: plannerCornerRadius,
-    backgroundColor: colors.danger,
-    alignItems: 'center',
-    marginBottom: s(8),
-  },
-  deleteLabel: {
+  destructiveLabel: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(9),
-    letterSpacing: s(2),
-    textTransform: 'uppercase',
-    color: colors.white,
-  },
-  cancelButton: {
-    paddingVertical: vs(12),
-    borderRadius: plannerCornerRadius,
-    borderWidth: 1,
-    borderColor: plannerCardBorder,
-    alignItems: 'center',
+    fontSize: fs(13),
+    color: colors.danger,
+    textAlign: 'center',
   },
   cancelLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(9),
-    letterSpacing: s(2),
-    textTransform: 'uppercase',
-    color: colors.gray,
+    fontFamily: fonts.dmSansSemiBold,
+    fontSize: fs(13),
+    color: colors.navy,
+    textAlign: 'center',
+    fontWeight: '600',
   },
 });

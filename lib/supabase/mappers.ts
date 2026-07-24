@@ -35,6 +35,9 @@ export type RoutineRow = {
   time_of_day: string;
   active: boolean;
   schedule: Schedule;
+  notifications_enabled: boolean | null;
+  notification_mode: string | null;
+  notification_time: string | null;
   created_at: string;
 };
 
@@ -145,6 +148,12 @@ export function assembleRoutines(routineRows: RoutineRow[], stepRows: StepRow[])
       active: routine.active,
       schedule: routine.schedule,
       steps,
+      notificationsEnabled: Boolean(routine.notifications_enabled),
+      notificationMode:
+        routine.notification_mode === 'specific' || routine.notification_mode === 'timeOfDay'
+          ? routine.notification_mode
+          : undefined,
+      notificationTime: routine.notification_time?.trim() || undefined,
     };
   });
 }
@@ -176,6 +185,14 @@ export function flattenRoutinesToRows(routines: Routine[], userId: string) {
       time_of_day: routine.timeOfDay,
       active: routine.active,
       schedule: routine.schedule,
+      notifications_enabled: Boolean(routine.notificationsEnabled),
+      notification_mode: routine.notificationsEnabled
+        ? (routine.notificationMode ?? 'timeOfDay')
+        : null,
+      notification_time:
+        routine.notificationsEnabled && routine.notificationMode === 'specific'
+          ? routine.notificationTime?.trim() || null
+          : null,
     });
 
     routine.steps.forEach((step, index) => {

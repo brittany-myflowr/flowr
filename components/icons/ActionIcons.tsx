@@ -24,7 +24,12 @@ export function DragHandleIcon({ size = s(10), color = '#d1d5db' }: IconProps) {
   );
 }
 
-export function BellIcon({ size = s(13), color = colors.border }: IconProps) {
+export function BellIcon({
+  size = s(13),
+  color = colors.border,
+  filled = false,
+  struck = false,
+}: IconProps & { filled?: boolean; struck?: boolean }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -33,6 +38,7 @@ export function BellIcon({ size = s(13), color = colors.border }: IconProps) {
         strokeWidth={1.8}
         strokeLinecap="round"
         strokeLinejoin="round"
+        fill={filled ? color : 'none'}
       />
       <Path
         d="M13.73 21a2 2 0 0 1-3.46 0"
@@ -40,7 +46,19 @@ export function BellIcon({ size = s(13), color = colors.border }: IconProps) {
         strokeWidth={1.8}
         strokeLinecap="round"
         strokeLinejoin="round"
+        fill={filled ? color : 'none'}
       />
+      {struck ? (
+        <Line
+          x1={4}
+          y1={4}
+          x2={20}
+          y2={20}
+          stroke={color}
+          strokeWidth={1.8}
+          strokeLinecap="round"
+        />
+      ) : null}
     </Svg>
   );
 }
@@ -92,6 +110,17 @@ export function ShareIcon({ size = s(18), color = colors.navy }: IconProps) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </Svg>
+  );
+}
+
+export function MoreHorizontalIcon({ size = s(18), color = colors.navy }: IconProps) {
+  const r = 1.6;
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx={5} cy={12} r={r} fill={color} />
+      <Circle cx={12} cy={12} r={r} fill={color} />
+      <Circle cx={19} cy={12} r={r} fill={color} />
     </Svg>
   );
 }

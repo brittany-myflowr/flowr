@@ -1,8 +1,11 @@
-import { Share } from 'react-native';
+import { Platform, Share } from 'react-native';
 
 import { SHARE_BASE_URL } from '@/constants/appInfo';
 import { isSupabaseConfigured, supabase } from '@/constants/supabase';
-import { buildRoutineShareSnapshot } from '@/lib/shareRoutineSnapshot';
+import {
+  buildRoutineShareSnapshot,
+  formatSharedRoutineTitle,
+} from '@/lib/shareRoutineSnapshot';
 import type { Product, Routine } from '@/types';
 import type { SharedRoutineRow, SharedRoutineSnapshot } from '@/types/share';
 
@@ -16,12 +19,18 @@ export async function createRoutineShareLink(input: {
   routine: Routine;
   products: Product[];
   userId: string;
-}): Promise<{ url: string; shareId: string } | { error: string }> {
+  sharedByFirstName?: string;
+}): Promise<{ url: string; shareId: string; title: string } | { error: string }> {
   if (!isSupabaseConfigured()) {
     return { error: 'Sharing needs an online connection.' };
   }
 
-  const snapshot = buildRoutineShareSnapshot(input.routine, input.products);
+  const snapshot = buildRoutineShareSnapshot(
+    input.routine,
+    input.products,
+    input.sharedByFirstName,
+  );
+  const title = formatSharedRoutineTitle(snapshot.name, snapshot.sharedByFirstName);
 
   const { data, error } = await supabase
     .from('shared_routines')
@@ -37,7 +46,7 @@ export async function createRoutineShareLink(input: {
     return { error: error?.message ?? 'Could not create share link.' };
   }
 
-  return { url: buildRoutineShareUrl(data.id), shareId: data.id };
+  return { url: buildRoutineShareUrl(data.id), shareId: data.id, title };
 }
 
 export async function fetchSharedRoutineSnapshot(
@@ -55,11 +64,20 @@ export async function fetchSharedRoutineSnapshot(
   return data.snapshot as SharedRoutineSnapshot;
 }
 
-export async function shareRoutineLink(url: string, routineName: string): Promise<void> {
+/**
+ * iOS: share URL only so Messages shows one link card (not title text + URL twice).
+ * Android: message body includes the title + URL.
+ * Card title/description come from Open Graph tags on myflowr.co.
+ */
+export async function shareRoutineLink(url: string, title: string): Promise<void> {
+  if (Platform.OS === 'ios') {
+    await Share.share({ url, title });
+    return;
+  }
+
   await Share.share({
-    message: `Check out this flowr routine: ${routineName}\n${url}`,
-    url,
-    title: 'Share this routine',
+    message: `${title}\n${url}`,
+    title,
   });
 }
 

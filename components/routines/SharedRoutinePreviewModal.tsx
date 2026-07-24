@@ -14,6 +14,7 @@ import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardS
 import { formatSchedulePreview } from '@/constants/schedules';
 import { fonts } from '@/constants/typography';
 import { formatTaggedProductLabel } from '@/lib/formatTaggedProductLabel';
+import { formatSharedRoutineTitle } from '@/lib/shareRoutineSnapshot';
 import { s, vs, fs } from '@/lib/scale';
 import type { SharedRoutineSnapshot } from '@/types/share';
 
@@ -44,7 +45,7 @@ export function SharedRoutinePreviewModal({
         <Pressable style={styles.backdrop} onPress={onClose} />
         <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, s(24)) }]}>
           <View style={styles.handle} />
-          <Text style={styles.eyebrow}>Someone shared a routine with you</Text>
+          <Text style={styles.eyebrow}>Shared with you on flowr</Text>
 
           {loading ? (
             <View style={styles.centered}>
@@ -62,7 +63,9 @@ export function SharedRoutinePreviewModal({
             </View>
           ) : (
             <>
-              <Text style={styles.title}>{snapshot.name}</Text>
+              <Text style={styles.title}>
+                {formatSharedRoutineTitle(snapshot.name, snapshot.sharedByFirstName)}
+              </Text>
               {snapshot.description ? (
                 <Text style={styles.description}>{snapshot.description}</Text>
               ) : null}

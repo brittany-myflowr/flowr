@@ -2,15 +2,29 @@ import { cloneSchedule } from '@/constants/schedules';
 import type { Product, Routine } from '@/types';
 import type { SharedRoutineSnapshot } from '@/types/share';
 
+/** e.g. Brittany's Morning Skincare */
+export function formatSharedRoutineTitle(
+  routineName: string,
+  sharedByFirstName?: string,
+): string {
+  const name = routineName.trim() || 'Routine';
+  const person = sharedByFirstName?.trim();
+  if (!person) return name;
+  return `${person}'s ${name}`;
+}
+
 /** Build a privacy-safe snapshot for sharing (no verdicts / personal product notes). */
 export function buildRoutineShareSnapshot(
   routine: Routine,
   products: Product[],
+  sharedByFirstName?: string,
 ): SharedRoutineSnapshot {
   const productById = new Map(products.map((product) => [product.id, product]));
+  const firstName = sharedByFirstName?.trim();
 
   return {
     name: routine.name.trim(),
+    ...(firstName ? { sharedByFirstName: firstName } : {}),
     category: routine.category,
     description: routine.description?.trim() || undefined,
     timeOfDay: routine.timeOfDay,
