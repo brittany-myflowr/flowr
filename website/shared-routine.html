@@ -15,31 +15,27 @@
   <meta name="twitter:title" content="Shared on flowr" />
   <meta name="twitter:description" content="A self-care routine shared with you on flowr." />
   <meta name="twitter:image" content="https://myflowr.co/assets/app-store-icon.png" />
-  <meta name="theme-color" content="#faf8f6" />
+  <meta name="theme-color" content="#fafaf8" />
   <meta name="robots" content="noindex" />
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
   <link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon.png?v=4" />
   <link rel="apple-touch-icon" href="/assets/app-store-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Lora:ital,wght@1,700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Lora:ital,wght@1,700&display=swap" rel="stylesheet" />
   <script src="/config.js"></script>
   <style>
     :root {
-      --bg: #faf8f6;
       --navy: #1a1a2e;
-      --lavender: #c0b0d8;
-      --lavender-soft: rgba(192, 176, 216, 0.28);
-      --peach: #fceee0;
-      --peach-mid: #ecb090;
-      --periwinkle: #9eb0d4;
-      --muted: #6b6b7b;
-      --line: rgba(26, 26, 46, 0.08);
+      --blue: #7ba7c2;
+      --bg: #fafaf8;
+      --gray: #6b7280;
+      --muted: #9ca3af;
       --white: #ffffff;
-      --radius: 20px;
-      --max: 640px;
+      --border: rgba(26, 26, 46, 0.32);
       --font: "DM Sans", system-ui, sans-serif;
       --logo: "Lora", Georgia, serif;
+      --phone: 390px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,7 +44,7 @@
       font-family: var(--font);
       color: var(--navy);
       background: var(--bg);
-      line-height: 1.6;
+      line-height: 1.45;
       font-weight: 400;
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
@@ -56,211 +52,294 @@
 
     a { color: inherit; text-decoration: none; }
 
-    .atmosphere {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
-
-    .atmosphere::before,
-    .atmosphere::after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.5;
-    }
-
-    .atmosphere::before {
-      width: 55vw;
-      height: 55vw;
-      top: -12%;
-      right: -10%;
-      background: radial-gradient(circle, var(--peach) 0%, transparent 70%);
-    }
-
-    .atmosphere::after {
-      width: 45vw;
-      height: 45vw;
-      bottom: 10%;
-      left: -8%;
-      background: radial-gradient(circle, var(--lavender-soft) 0%, transparent 70%);
-    }
-
-    .page {
-      position: relative;
-      z-index: 1;
-      width: min(100% - 2rem, var(--max));
+    .shell {
+      width: min(100%, var(--phone));
       margin: 0 auto;
-      padding: 2.5rem 0 4rem;
+      min-height: 100vh;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
     }
 
-    .wordmark {
+    .brand-bar {
+      padding: 14px 14px 0;
+    }
+
+    .brand-bar a {
       font-family: var(--logo);
       font-style: italic;
       font-weight: 700;
-      font-size: 1.5rem;
-      letter-spacing: -0.02em;
+      font-size: 15px;
       color: var(--navy);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      margin-bottom: 2rem;
     }
 
-    .daisy {
-      width: 1.15rem;
-      height: 1.15rem;
-      flex-shrink: 0;
+    .header {
+      padding: 18px 14px 10px;
+      border-bottom: 1px solid var(--border);
     }
 
     .eyebrow {
-      font-size: 0.95rem;
+      font-size: 12px;
       color: var(--muted);
-      margin-bottom: 0.65rem;
+      margin-bottom: 8px;
+    }
+
+    .title-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .daisy {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .daisy svg {
+      display: block;
+      width: 100%;
+      height: 100%;
     }
 
     .title {
+      flex: 1;
       font-family: var(--logo);
       font-style: italic;
       font-weight: 700;
-      font-size: clamp(1.75rem, 5vw, 2.25rem);
-      letter-spacing: -0.02em;
-      line-height: 1.2;
-      margin-bottom: 0.5rem;
+      font-size: 18px;
+      line-height: 22px;
+      color: var(--navy);
+    }
+
+    .details {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-start;
     }
 
     .description {
-      color: #4a4a5a;
-      font-size: 1rem;
-      margin-bottom: 0.5rem;
+      font-size: 13px;
+      line-height: 18px;
+      color: var(--gray);
+      text-align: left;
     }
 
     .meta {
-      font-size: 0.9rem;
+      font-size: 12px;
       color: var(--muted);
-      margin-bottom: 1.75rem;
+      text-align: left;
+    }
+
+    .body {
+      flex: 1;
+      padding: 12px 12px 24px;
+    }
+
+    .section-label {
+      margin-bottom: 8px;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
     }
 
     .steps {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
-      margin-bottom: 2rem;
+      gap: 7px;
     }
 
-    .step {
-      display: grid;
-      grid-template-columns: 1.5rem 1fr;
-      gap: 0.75rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--line);
+    .step-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      overflow: hidden;
     }
 
-    .step:last-child { border-bottom: none; padding-bottom: 0; }
+    .step-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+    }
 
-    .step-index {
-      font-size: 0.85rem;
+    .step-badge {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      border: 1px solid var(--border);
+      background: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
       font-weight: 600;
-      color: var(--muted);
-      padding-top: 0.15rem;
+      color: var(--navy);
     }
+
+    .step-copy { flex: 1; min-width: 0; }
 
     .step-name {
-      font-weight: 600;
-      font-size: 1.05rem;
-      margin-bottom: 0.2rem;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--navy);
     }
 
-    .step-meta,
-    .step-note,
-    .step-product {
-      font-size: 0.9rem;
+    .step-note {
+      margin-top: 2px;
+      font-size: 12px;
       color: var(--muted);
     }
 
-    .step-note { color: #4a4a5a; margin-top: 0.2rem; }
-    .step-product { color: var(--periwinkle); margin-top: 0.25rem; }
+    .step-meta {
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .step-product {
+      margin-top: 3px;
+      font-size: 12px;
+      color: var(--navy);
+    }
+
+    .footer {
+      padding: 8px 14px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
 
     .cta {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
       width: 100%;
-      padding: 0.95rem 1.25rem;
-      border-radius: 999px;
+      padding: 12px 14px;
       background: var(--navy);
       color: var(--white);
+      font-size: 9px;
       font-weight: 600;
-      font-size: 0.95rem;
-      letter-spacing: 0.02em;
-      transition: opacity 0.15s ease;
+      letter-spacing: 2px;
+      text-transform: uppercase;
     }
 
-    .cta:hover { opacity: 0.9; }
+    .cta:hover { opacity: 0.92; }
 
     .hint {
-      margin-top: 0.85rem;
       text-align: center;
-      font-size: 0.85rem;
+      font-size: 12px;
       color: var(--muted);
+      line-height: 17px;
     }
 
     .state {
-      padding: 3rem 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
       text-align: center;
+      gap: 10px;
+    }
+
+    .state h1 {
+      font-family: var(--logo);
+      font-style: italic;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--navy);
     }
 
     .state p {
-      color: var(--muted);
-      margin-top: 0.5rem;
+      font-size: 13px;
+      line-height: 18px;
+      color: var(--gray);
+      max-width: 280px;
     }
 
     .hidden { display: none !important; }
+
+    @media (min-width: 480px) {
+      body {
+        background: #f0efec;
+        padding: 32px 16px;
+      }
+      .shell {
+        min-height: auto;
+        border: 1px solid var(--border);
+        box-shadow: 0 12px 40px rgba(26, 26, 46, 0.08);
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="atmosphere" aria-hidden="true"></div>
-  <main class="page">
-    <a class="wordmark" href="/">
-      <img class="daisy" src="/assets/daisy-icon.svg" alt="" />
-      flowr
-    </a>
+  <div class="shell">
+    <div class="brand-bar">
+      <a href="/">flowr</a>
+    </div>
 
     <div id="loading" class="state">
       <p>Loading routine…</p>
     </div>
 
     <div id="error" class="state hidden">
-      <h1 class="title" style="font-size:1.5rem">Routine unavailable</h1>
+      <h1>Routine unavailable</h1>
       <p>This share link may be out of date, or the routine was removed.</p>
-      <p style="margin-top:1.25rem">
-        <a class="cta" style="width:auto;padding-inline:1.5rem" href="https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497">Get flowr</a>
-      </p>
+      <a class="cta" style="width:auto;padding-inline:20px;margin-top:8px" href="https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497">Get flowr</a>
     </div>
 
     <div id="content" class="hidden">
-      <p class="eyebrow">Shared with you on flowr</p>
-      <h1 class="title" id="routine-name"></h1>
-      <p class="description hidden" id="routine-description"></p>
-      <p class="meta" id="routine-meta"></p>
-      <div class="steps" id="steps"></div>
-      <a
-        class="cta"
-        id="cta"
-        href="https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497"
-      >Add to flowr</a>
-      <p class="hint">Open the link in flowr to add this routine to yours.</p>
+      <header class="header">
+        <p class="eyebrow" id="eyebrow">Shared with you on flowr</p>
+        <div class="title-line">
+          <div class="daisy" id="daisy" aria-hidden="true"></div>
+          <h1 class="title" id="routine-name"></h1>
+        </div>
+        <div class="details">
+          <p class="description hidden" id="routine-description"></p>
+          <p class="meta" id="routine-meta"></p>
+        </div>
+      </header>
+
+      <div class="body">
+        <p class="section-label">Steps</p>
+        <div class="steps" id="steps"></div>
+      </div>
+
+      <div class="footer">
+        <a
+          class="cta"
+          id="cta"
+          href="https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497"
+        >Add to My Routines</a>
+        <p class="hint">Open this link in flowr to add the routine to yours.</p>
+      </div>
     </div>
-  </main>
+  </div>
 
   <script>
     (function () {
       var APP_STORE =
         (window.FLOWR_CONFIG && window.FLOWR_CONFIG.appStoreUrl) ||
         'https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497';
+
+      var CATEGORY_COLORS = {
+        Skincare: '#e8a0b0',
+        'Body Care': '#f0c0d0',
+        'Hair Care': '#c0b0d8',
+        'Nail Care': '#c4a8b8',
+        'Oral Care': '#c4d4b8',
+        Supplements: '#9eb0d4',
+        Medications: '#b0c8e0',
+        Exercise: '#ecb090',
+        Wellness: '#9cb088',
+        Other: '#e8d4a8',
+      };
 
       var cta = document.getElementById('cta');
       if (cta) cta.href = APP_STORE;
@@ -269,6 +348,16 @@
         ['loading', 'error', 'content'].forEach(function (key) {
           document.getElementById(key).classList.toggle('hidden', key !== id);
         });
+      }
+
+      function daisySvg(color) {
+        return (
+          '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+          '<circle cx="12" cy="12" r="3" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '<path d="M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '<path d="M12 7.5V9M7.5 12H9M16.5 12H15M12 16.5V15M8 8l1.88 1.88M14.12 9.88 16 8M8 16l1.88-1.88M14.12 14.12 16 16" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"/>' +
+          '</svg>'
+        );
       }
 
       function formatFrequency(frequency) {
@@ -356,8 +445,16 @@
       function render(snapshot) {
         var title = formatSharedTitle(snapshot);
         var socialDescription = formatSharedDescription(snapshot);
-        document.getElementById('routine-name').textContent = title;
+        document.getElementById('routine-name').textContent = snapshot.name || title;
         setPageTitle(title, socialDescription);
+
+        var person = (snapshot.sharedByFirstName || '').trim();
+        document.getElementById('eyebrow').textContent = person
+          ? 'Shared by ' + person
+          : 'Shared with you on flowr';
+
+        var color = CATEGORY_COLORS[snapshot.category] || CATEGORY_COLORS.Other;
+        document.getElementById('daisy').innerHTML = daisySvg(color);
 
         var descriptionEl = document.getElementById('routine-description');
         if (snapshot.description) {
@@ -366,41 +463,55 @@
         }
 
         var steps = Array.isArray(snapshot.steps) ? snapshot.steps : [];
+        var timeOfDay = formatTimeOfDay(
+          (snapshot.schedule && snapshot.schedule.timeOfDay) || snapshot.timeOfDay,
+        );
+        var frequency =
+          snapshot.schedule && snapshot.schedule.frequency === 'custom'
+            ? 'Every ' + (snapshot.schedule.customIntervalDays || 3) + ' days'
+            : formatFrequency(snapshot.schedule && snapshot.schedule.frequency);
+
         var metaParts = [
           snapshot.category,
           steps.length + (steps.length === 1 ? ' step' : ' steps'),
-          formatSchedule(snapshot.schedule),
+          frequency,
+          timeOfDay,
         ].filter(Boolean);
         document.getElementById('routine-meta').textContent = metaParts.join(' · ');
 
         var stepsEl = document.getElementById('steps');
         stepsEl.innerHTML = '';
         steps.forEach(function (step, index) {
-          var row = document.createElement('div');
-          row.className = 'step';
+          var card = document.createElement('div');
+          card.className = 'step-card';
 
-          var indexEl = document.createElement('div');
-          indexEl.className = 'step-index';
-          indexEl.textContent = String(index + 1);
+          var main = document.createElement('div');
+          main.className = 'step-main';
 
-          var body = document.createElement('div');
+          var badge = document.createElement('div');
+          badge.className = 'step-badge';
+          badge.textContent = String(index + 1);
+
+          var copy = document.createElement('div');
+          copy.className = 'step-copy';
+
           var nameEl = document.createElement('div');
           nameEl.className = 'step-name';
           nameEl.textContent = step.name || 'Step';
-          body.appendChild(nameEl);
-
-          if (step.schedule) {
-            var scheduleEl = document.createElement('div');
-            scheduleEl.className = 'step-meta';
-            scheduleEl.textContent = formatSchedule(step.schedule);
-            body.appendChild(scheduleEl);
-          }
+          copy.appendChild(nameEl);
 
           if (step.note) {
             var noteEl = document.createElement('div');
             noteEl.className = 'step-note';
             noteEl.textContent = step.note;
-            body.appendChild(noteEl);
+            copy.appendChild(noteEl);
+          }
+
+          if (step.schedule) {
+            var scheduleEl = document.createElement('div');
+            scheduleEl.className = 'step-meta';
+            scheduleEl.textContent = formatSchedule(step.schedule);
+            copy.appendChild(scheduleEl);
           }
 
           var label = productLabel(step.product);
@@ -408,12 +519,13 @@
             var productEl = document.createElement('div');
             productEl.className = 'step-product';
             productEl.textContent = label;
-            body.appendChild(productEl);
+            copy.appendChild(productEl);
           }
 
-          row.appendChild(indexEl);
-          row.appendChild(body);
-          stepsEl.appendChild(row);
+          main.appendChild(badge);
+          main.appendChild(copy);
+          card.appendChild(main);
+          stepsEl.appendChild(card);
         });
 
         show('content');
