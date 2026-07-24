@@ -16,6 +16,7 @@
   <meta name="twitter:description" content="A self-care routine shared with you on flowr." />
   <meta name="twitter:image" content="https://myflowr.co/assets/app-store-icon.png" />
   <meta name="theme-color" content="#fafaf8" />
+  <meta name="apple-itunes-app" content="app-id=6777282497" id="smart-banner" />
   <meta name="robots" content="noindex" />
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
   <link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon.png?v=4" />
@@ -321,6 +322,18 @@
       transform: translateY(-1px);
     }
 
+    .cta.secondary {
+      background: transparent;
+      color: var(--navy);
+      border: 1px solid var(--border);
+      box-shadow: none;
+    }
+
+    .cta.secondary:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.55);
+    }
+
     .hint {
       text-align: center;
       font-size: 13px;
@@ -415,12 +428,12 @@
       </div>
 
       <div class="footer">
-        <a
-          class="cta"
-          id="cta"
-          href="https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497"
-        >Add to My Routines</a>
-        <p class="hint">Open this link in flowr to add the routine to yours.</p>
+        <a class="cta" id="cta" href="#">Add to My Routines</a>
+        <a class="cta secondary hidden" id="open-app" href="#">Open in flowr</a>
+        <p class="hint" id="hint">
+          Already have flowr? We’ll try to open the app. Otherwise you’ll get the App Store — after
+          installing, open this link again or tap Open in flowr.
+        </p>
       </div>
     </div>
   </div>
@@ -430,6 +443,8 @@
       var APP_STORE =
         (window.FLOWR_CONFIG && window.FLOWR_CONFIG.appStoreUrl) ||
         'https://apps.apple.com/us/app/flowr-self-care-planner/id6777282497';
+      var PENDING_KEY = 'flowr_pending_share_id';
+      var CLIPBOARD_PREFIX = 'flowr-share:';
 
       var CATEGORY_COLORS = {
         Skincare: '#e8a0b0',
@@ -444,8 +459,106 @@
         Other: '#e8d4a8',
       };
 
+      var activeShareId = null;
       var cta = document.getElementById('cta');
-      if (cta) cta.href = APP_STORE;
+      var openAppBtn = document.getElementById('open-app');
+
+      function appDeepLink(shareId) {
+        return 'flowr://routine/' + shareId;
+      }
+
+      function webShareUrl(shareId) {
+        return (
+          window.location.origin +
+          '/shared-routine?id=' +
+          encodeURIComponent(shareId)
+        );
+      }
+
+      function rememberShare(shareId) {
+        try {
+          localStorage.setItem(PENDING_KEY, shareId);
+        } catch (err) {}
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(CLIPBOARD_PREFIX + shareId).catch(function () {});
+        }
+      }
+
+      function setSmartBanner(shareId) {
+        var meta = document.getElementById('smart-banner');
+        if (!meta || !shareId) return;
+        meta.setAttribute(
+          'content',
+          'app-id=6777282497, app-argument=' + webShareUrl(shareId),
+        );
+      }
+
+      function tryOpenApp(shareId, thenStore) {
+        rememberShare(shareId);
+        var deepLink = appDeepLink(shareId);
+        var fallbackTimer = setTimeout(function () {
+          if (document.hidden) return;
+          if (thenStore) window.location.href = APP_STORE;
+        }, 1200);
+
+        window.addEventListener(
+          'pagehide',
+          function () {
+            clearTimeout(fallbackTimer);
+          },
+          { once: true },
+        );
+        window.addEventListener(
+          'visibilitychange',
+          function onVis() {
+            if (document.hidden) {
+              clearTimeout(fallbackTimer);
+              window.removeEventListener('visibilitychange', onVis);
+            }
+          },
+        );
+
+        window.location.href = deepLink;
+      }
+
+      function refreshOpenAppVisibility() {
+        if (!openAppBtn) return;
+        var pending = null;
+        try {
+          pending = localStorage.getItem(PENDING_KEY);
+        } catch (err) {}
+        var show = Boolean(activeShareId || pending);
+        openAppBtn.classList.toggle('hidden', !show);
+        if (activeShareId) {
+          openAppBtn.href = appDeepLink(activeShareId);
+        }
+      }
+
+      if (cta) {
+        cta.addEventListener('click', function (event) {
+          event.preventDefault();
+          if (!activeShareId) {
+            window.location.href = APP_STORE;
+            return;
+          }
+          tryOpenApp(activeShareId, true);
+          refreshOpenAppVisibility();
+        });
+      }
+
+      if (openAppBtn) {
+        openAppBtn.addEventListener('click', function (event) {
+          event.preventDefault();
+          var id = activeShareId;
+          if (!id) {
+            try {
+              id = localStorage.getItem(PENDING_KEY);
+            } catch (err) {}
+          }
+          if (!id) return;
+          tryOpenApp(id, false);
+        });
+      }
 
       function show(id) {
         ['loading', 'error', 'content'].forEach(function (key) {
@@ -546,6 +659,10 @@
       }
 
       function render(snapshot) {
+        var shareId = shareIdFromUrl();
+        activeShareId = shareId;
+        if (shareId) setSmartBanner(shareId);
+
         var title = formatSharedTitle(snapshot);
         var socialDescription = formatSharedDescription(snapshot);
         document.getElementById('routine-name').textContent = snapshot.name || title;
@@ -635,6 +752,7 @@
         });
 
         show('content');
+        refreshOpenAppVisibility();
       }
 
       async function load() {

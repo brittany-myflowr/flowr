@@ -3,6 +3,11 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { SharedRoutinePreviewModal } from '@/components/routines/SharedRoutinePreviewModal';
+import {
+  consumePendingSharedRoutineId,
+  consumeSharedRoutineIdFromClipboard,
+  savePendingSharedRoutineId,
+} from '@/lib/pendingSharedRoutine';
 import { fetchSharedRoutineSnapshot } from '@/lib/shareRoutine';
 import { isSharedRoutineDeepLink, parseSharedRoutineIdFromUrl } from '@/lib/sharedRoutineLink';
 import { useAppStore, useRoutines } from '@/providers/AppStore';
@@ -25,15 +30,19 @@ export function SharedRoutineLinkHandler() {
   const [adding, setAdding] = useState(false);
 
   const handledUrlRef = useRef<string | null>(null);
-  const pendingShareIdRef = useRef<string | null>(null);
+  const clipboardCheckedRef = useRef(false);
+  const openedShareIdRef = useRef<string | null>(null);
 
-  const openShare = useCallback((id: string) => {
+  const openShare = useCallback(async (id: string) => {
+    if (openedShareIdRef.current === id && visible) return;
+    openedShareIdRef.current = id;
+    await savePendingSharedRoutineId(id);
     setShareId(id);
     setVisible(true);
     setSnapshot(null);
     setError(null);
     setLoading(true);
-  }, []);
+  }, [visible]);
 
   const close = useCallback(() => {
     setVisible(false);
@@ -42,8 +51,27 @@ export function SharedRoutineLinkHandler() {
     setError(null);
     setLoading(false);
     setAdding(false);
+    openedShareIdRef.current = null;
+    void consumePendingSharedRoutineId();
   }, []);
 
+  const queueOrOpenShare = useCallback(
+    async (id: string) => {
+      await savePendingSharedRoutineId(id);
+
+      if (!hydrated) return;
+
+      if (!checkAuthenticated() && !isLoggedIn) {
+        router.replace('/(auth)/splash');
+        return;
+      }
+
+      await openShare(id);
+    },
+    [hydrated, isLoggedIn, checkAuthenticated, router, openShare],
+  );
+
+  // Incoming Universal Link / custom scheme.
   useEffect(() => {
     if (!url || !isSharedRoutineDeepLink(url)) return;
     if (handledUrlRef.current === url) return;
@@ -52,29 +80,33 @@ export function SharedRoutineLinkHandler() {
     if (!id) return;
 
     handledUrlRef.current = url;
+    void queueOrOpenShare(id);
+  }, [url, queueOrOpenShare]);
 
-    if (!hydrated) {
-      pendingShareIdRef.current = id;
-      return;
-    }
-
-    if (!checkAuthenticated() && !isLoggedIn) {
-      pendingShareIdRef.current = id;
-      router.replace('/(auth)/splash');
-      return;
-    }
-
-    openShare(id);
-  }, [url, hydrated, isLoggedIn, checkAuthenticated, router, openShare]);
-
+  // After hydrate/login: open any pending share (deep link before auth, or clipboard reclaim).
   useEffect(() => {
     if (!hydrated) return;
-    const pending = pendingShareIdRef.current;
-    if (!pending) return;
     if (!checkAuthenticated() && !isLoggedIn) return;
 
-    pendingShareIdRef.current = null;
-    openShare(pending);
+    let cancelled = false;
+    void (async () => {
+      const pending = await consumePendingSharedRoutineId();
+      if (cancelled) return;
+      if (pending) {
+        await openShare(pending);
+        return;
+      }
+
+      if (clipboardCheckedRef.current) return;
+      clipboardCheckedRef.current = true;
+      const fromClipboard = await consumeSharedRoutineIdFromClipboard();
+      if (cancelled || !fromClipboard) return;
+      await openShare(fromClipboard);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [hydrated, isLoggedIn, checkAuthenticated, openShare]);
 
   useEffect(() => {

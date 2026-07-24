@@ -4,11 +4,23 @@ export function parseSharedRoutineIdFromUrl(url: string): string | null {
     const normalized = url.trim();
     if (!normalized) return null;
 
+    // Clipboard / deferred token pasted as a pseudo-URL
+    if (normalized.startsWith('flowr-share:')) {
+      const id = normalized.slice('flowr-share:'.length).trim();
+      return /^[0-9a-f-]{36}$/i.test(id) ? id : null;
+    }
+
     // Custom scheme: flowr://routine/<id> or flowr:///routine/<id>
     const customMatch = normalized.match(
-      /^(?:flowr|com\.brittanytheodore\.flowr):\/\/(?:\/)?routine\/([0-9a-f-]{36})/i,
+      /^(?:flowr|com\.brittanytheodore\.flowr):\/\/(?:\/)?(?:routine|shared-routine)\/([0-9a-f-]{36})/i,
     );
     if (customMatch?.[1]) return customMatch[1];
+
+    // flowr://shared-routine?id=<uuid>
+    const customQuery = normalized.match(
+      /^(?:flowr|com\.brittanytheodore\.flowr):\/\/(?:\/)?shared-routine\/?\?[^#]*id=([0-9a-f-]{36})/i,
+    );
+    if (customQuery?.[1]) return customQuery[1];
 
     const parsed = new URL(normalized.includes('://') ? normalized : `https://${normalized}`);
     const host = parsed.hostname.replace(/^www\./, '').toLowerCase();

@@ -2,7 +2,7 @@
   "expo": {
     "name": "flowr",
     "slug": "flowr",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/app-store-icon.png",
     "userInterfaceStyle": "light",
@@ -24,6 +24,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.brittanytheodore.flowr",
       "usesAppleSignIn": true,
+      "associatedDomains": [
+        "applinks:myflowr.co",
+        "applinks:www.myflowr.co"
+      ],
       "splash": {
         "image": "./assets/splash-icon.png",
         "resizeMode": "contain",
@@ -85,7 +89,10 @@
             "buildReactNativeFromSource": true
           }
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-notifications",
+      "./plugins/withLocalNotificationsOnly"
     ],
     "extra": {
       "router": {},

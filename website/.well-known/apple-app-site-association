@@ -3,8 +3,12 @@
     "apps": [],
     "details": [
       {
-        "appID": "TEAMID.com.brittanytheodore.flowr",
-        "paths": ["/routine/*", "/shared-routine", "/shared-routine?*"]
+        "appID": "28HQ273C26.com.brittanytheodore.flowr",
+        "paths": [
+          "/shared-routine",
+          "/shared-routine*",
+          "/routine/*"
+        ]
       }
     ]
   }
