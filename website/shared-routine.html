@@ -32,10 +32,11 @@
       --gray: #6b7280;
       --muted: #9ca3af;
       --white: #ffffff;
-      --border: rgba(26, 26, 46, 0.32);
+      --border: rgba(26, 26, 46, 0.22);
       --font: "DM Sans", system-ui, sans-serif;
       --logo: "Lora", Georgia, serif;
-      --phone: 390px;
+      --phone: 440px;
+      --accent: #e8a0b0;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -43,57 +44,129 @@
     body {
       font-family: var(--font);
       color: var(--navy);
-      background: var(--bg);
+      background: #f3f1ec;
       line-height: 1.45;
       font-weight: 400;
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
     }
 
     a { color: inherit; text-decoration: none; }
 
+    .atmosphere {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .atmosphere::before,
+    .atmosphere::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.55;
+    }
+
+    .atmosphere::before {
+      width: min(70vw, 520px);
+      height: min(70vw, 520px);
+      top: -18%;
+      right: -12%;
+      background: radial-gradient(circle, #fceee0 0%, transparent 70%);
+    }
+
+    .atmosphere::after {
+      width: min(55vw, 420px);
+      height: min(55vw, 420px);
+      bottom: 5%;
+      left: -14%;
+      background: radial-gradient(circle, rgba(158, 176, 212, 0.45) 0%, transparent 70%);
+    }
+
     .shell {
-      width: min(100%, var(--phone));
-      margin: 0 auto;
-      min-height: 100vh;
-      background: var(--bg);
+      position: relative;
+      z-index: 1;
+      width: min(100% - 1.5rem, var(--phone));
+      margin: 1.25rem auto 2rem;
+      min-height: calc(100vh - 3.25rem);
+      background: linear-gradient(180deg, #f7f0f2 0%, var(--bg) 30%, var(--bg) 100%);
+      background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent) 14%, var(--bg)) 0%,
+        var(--bg) 28%,
+        var(--bg) 100%
+      );
       display: flex;
       flex-direction: column;
+      border: 1px solid rgba(26, 26, 46, 0.1);
+      border-radius: 28px;
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        0 18px 50px rgba(26, 26, 46, 0.1);
+      overflow: hidden;
+      animation: rise 0.55s ease-out both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .brand-bar {
-      padding: 14px 14px 0;
+      padding: 20px 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .brand-bar a {
       font-family: var(--logo);
       font-style: italic;
       font-weight: 700;
-      font-size: 15px;
+      font-size: 20px;
       color: var(--navy);
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      width: 16px;
+      height: 16px;
+      color: var(--accent);
+    }
+
+    .brand-mark svg {
+      display: block;
+      width: 100%;
+      height: 100%;
     }
 
     .header {
-      padding: 18px 14px 10px;
-      border-bottom: 1px solid var(--border);
+      padding: 22px 20px 16px;
+      border-bottom: 1px solid rgba(26, 26, 46, 0.12);
     }
 
     .eyebrow {
-      font-size: 12px;
+      font-size: 13px;
       color: var(--muted);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .title-line {
       display: flex;
-      align-items: center;
-      gap: 8px;
+      align-items: flex-start;
+      gap: 10px;
     }
 
     .daisy {
-      width: 18px;
-      height: 18px;
+      width: 24px;
+      height: 24px;
       flex-shrink: 0;
+      margin-top: 2px;
     }
 
     .daisy svg {
@@ -107,41 +180,43 @@
       font-family: var(--logo);
       font-style: italic;
       font-weight: 700;
-      font-size: 18px;
-      line-height: 22px;
+      font-size: 24px;
+      line-height: 1.25;
       color: var(--navy);
+      letter-spacing: -0.02em;
     }
 
     .details {
-      margin-top: 8px;
+      margin-top: 10px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
       align-items: flex-start;
     }
 
     .description {
-      font-size: 13px;
-      line-height: 18px;
+      font-size: 15px;
+      line-height: 22px;
       color: var(--gray);
       text-align: left;
     }
 
     .meta {
-      font-size: 12px;
+      font-size: 13px;
+      line-height: 18px;
       color: var(--muted);
       text-align: left;
     }
 
     .body {
       flex: 1;
-      padding: 12px 12px 24px;
+      padding: 18px 16px 12px;
     }
 
     .section-label {
-      margin-bottom: 8px;
-      font-size: 10px;
-      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+      font-size: 11px;
+      letter-spacing: 1.6px;
       text-transform: uppercase;
       color: var(--muted);
     }
@@ -149,33 +224,42 @@
     .steps {
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 10px;
     }
 
     .step-card {
-      background: var(--white);
+      background: rgba(255, 255, 255, 0.92);
       border: 1px solid var(--border);
+      border-radius: 14px;
       overflow: hidden;
+      box-shadow: 0 6px 18px rgba(26, 26, 46, 0.04);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .step-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(26, 26, 46, 0.07);
     }
 
     .step-main {
       display: flex;
       align-items: flex-start;
-      gap: 8px;
-      padding: 10px 12px;
+      gap: 12px;
+      padding: 14px 14px;
     }
 
     .step-badge {
-      width: 20px;
-      height: 20px;
+      width: 26px;
+      height: 26px;
       flex-shrink: 0;
       margin-top: 1px;
       border: 1px solid var(--border);
+      border-radius: 8px;
       background: var(--white);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 9px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--navy);
     }
@@ -183,34 +267,36 @@
     .step-copy { flex: 1; min-width: 0; }
 
     .step-name {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 500;
+      line-height: 1.35;
       color: var(--navy);
     }
 
     .step-note {
-      margin-top: 2px;
-      font-size: 12px;
+      margin-top: 4px;
+      font-size: 14px;
+      line-height: 20px;
       color: var(--muted);
     }
 
     .step-meta {
-      margin-top: 2px;
-      font-size: 11px;
+      margin-top: 4px;
+      font-size: 13px;
       color: var(--muted);
     }
 
     .step-product {
-      margin-top: 3px;
-      font-size: 12px;
-      color: var(--navy);
+      margin-top: 5px;
+      font-size: 13px;
+      color: var(--blue);
     }
 
     .footer {
-      padding: 8px 14px 28px;
+      padding: 12px 16px 28px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
 
     .cta {
@@ -218,22 +304,28 @@
       align-items: center;
       justify-content: center;
       width: 100%;
-      padding: 12px 14px;
+      padding: 16px 18px;
       background: var(--navy);
       color: var(--white);
-      font-size: 9px;
+      font-size: 12px;
       font-weight: 600;
-      letter-spacing: 2px;
+      letter-spacing: 1.8px;
       text-transform: uppercase;
+      border-radius: 14px;
+      box-shadow: 0 10px 28px rgba(26, 26, 46, 0.18);
+      transition: transform 0.15s ease, opacity 0.15s ease;
     }
 
-    .cta:hover { opacity: 0.92; }
+    .cta:hover {
+      opacity: 0.94;
+      transform: translateY(-1px);
+    }
 
     .hint {
       text-align: center;
-      font-size: 12px;
+      font-size: 13px;
       color: var(--muted);
-      line-height: 17px;
+      line-height: 18px;
     }
 
     .state {
@@ -242,44 +334,55 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 48px 24px;
+      padding: 56px 28px;
       text-align: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .state h1 {
       font-family: var(--logo);
       font-style: italic;
       font-weight: 700;
-      font-size: 18px;
+      font-size: 22px;
       color: var(--navy);
     }
 
     .state p {
-      font-size: 13px;
-      line-height: 18px;
+      font-size: 15px;
+      line-height: 22px;
       color: var(--gray);
-      max-width: 280px;
+      max-width: 300px;
     }
 
     .hidden { display: none !important; }
 
-    @media (min-width: 480px) {
-      body {
-        background: #f0efec;
-        padding: 32px 16px;
-      }
+    @media (min-width: 560px) {
+      body { padding: 40px 20px; }
       .shell {
+        margin: 0 auto;
         min-height: auto;
-        border: 1px solid var(--border);
-        box-shadow: 0 12px 40px rgba(26, 26, 46, 0.08);
+      }
+    }
+
+    @media (max-width: 479px) {
+      body { background: var(--bg); }
+      .atmosphere { opacity: 0.7; }
+      .shell {
+        width: 100%;
+        margin: 0;
+        min-height: 100vh;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
       }
     }
   </style>
 </head>
 <body>
-  <div class="shell">
+  <div class="atmosphere" aria-hidden="true"></div>
+  <div class="shell" id="shell">
     <div class="brand-bar">
+      <span class="brand-mark" id="brand-mark" aria-hidden="true"></span>
       <a href="/">flowr</a>
     </div>
 
@@ -454,7 +557,10 @@
           : 'Shared with you on flowr';
 
         var color = CATEGORY_COLORS[snapshot.category] || CATEGORY_COLORS.Other;
+        document.documentElement.style.setProperty('--accent', color);
         document.getElementById('daisy').innerHTML = daisySvg(color);
+        var brandMark = document.getElementById('brand-mark');
+        if (brandMark) brandMark.innerHTML = daisySvg(color);
 
         var descriptionEl = document.getElementById('routine-description');
         if (snapshot.description) {
