@@ -3,8 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Shared routine — flowr</title>
-  <meta name="description" content="Someone shared a self-care routine with you on flowr." />
+  <title>Shared on flowr</title>
+  <meta name="description" content="A self-care routine shared with you on flowr." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="flowr" />
+  <meta property="og:title" content="Shared on flowr" />
+  <meta property="og:description" content="A self-care routine shared with you on flowr." />
+  <meta property="og:image" content="https://myflowr.co/assets/app-store-icon.png" />
+  <meta property="og:url" content="https://myflowr.co/shared-routine" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Shared on flowr" />
+  <meta name="twitter:description" content="A self-care routine shared with you on flowr." />
+  <meta name="twitter:image" content="https://myflowr.co/assets/app-store-icon.png" />
   <meta name="theme-color" content="#faf8f6" />
   <meta name="robots" content="noindex" />
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
@@ -232,7 +242,7 @@
     </div>
 
     <div id="content" class="hidden">
-      <p class="eyebrow">Someone shared a routine with you</p>
+      <p class="eyebrow">Shared with you on flowr</p>
       <h1 class="title" id="routine-name"></h1>
       <p class="description hidden" id="routine-description"></p>
       <p class="meta" id="routine-meta"></p>
@@ -306,9 +316,48 @@
         return match ? match[1] : null;
       }
 
+      function formatSharedTitle(snapshot) {
+        var name = (snapshot && snapshot.name ? String(snapshot.name) : '').trim() || 'Routine';
+        var person = (snapshot && snapshot.sharedByFirstName
+          ? String(snapshot.sharedByFirstName)
+          : '').trim();
+        if (!person) return name;
+        return person + "'s " + name;
+      }
+
+      function formatSharedDescription(snapshot) {
+        var steps = snapshot && Array.isArray(snapshot.steps) ? snapshot.steps : [];
+        var stepLabel = steps.length + (steps.length === 1 ? ' step' : ' steps');
+        var schedule = (snapshot && snapshot.schedule) || {};
+        var frequency =
+          schedule.frequency === 'custom'
+            ? 'Every ' + (schedule.customIntervalDays || 3) + ' days'
+            : formatFrequency(schedule.frequency);
+        var timeOfDay = formatTimeOfDay(schedule.timeOfDay || (snapshot && snapshot.timeOfDay));
+        return [stepLabel, frequency, timeOfDay].filter(Boolean).join(' · ');
+      }
+
+      function setMeta(selector, attr, value) {
+        var el = document.querySelector(selector);
+        if (el) el.setAttribute(attr, value);
+      }
+
+      function setPageTitle(title, description) {
+        document.title = title + ' — flowr';
+        setMeta('meta[property="og:title"]', 'content', title);
+        setMeta('meta[name="twitter:title"]', 'content', title);
+        if (description) {
+          setMeta('meta[name="description"]', 'content', description);
+          setMeta('meta[property="og:description"]', 'content', description);
+          setMeta('meta[name="twitter:description"]', 'content', description);
+        }
+      }
+
       function render(snapshot) {
-        document.getElementById('routine-name').textContent = snapshot.name || 'Routine';
-        document.title = (snapshot.name || 'Shared routine') + ' — flowr';
+        var title = formatSharedTitle(snapshot);
+        var socialDescription = formatSharedDescription(snapshot);
+        document.getElementById('routine-name').textContent = title;
+        setPageTitle(title, socialDescription);
 
         var descriptionEl = document.getElementById('routine-description');
         if (snapshot.description) {
