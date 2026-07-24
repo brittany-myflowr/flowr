@@ -5,6 +5,7 @@ import { BellIcon, MoreHorizontalIcon, ShareIcon } from '@/components/icons/Acti
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { plannerCardBorder } from '@/constants/plannerCardStyles';
+import { compactCardSizes } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import {
   formatFrequency,
@@ -13,7 +14,7 @@ import {
 import type { Routine } from '@/types';
 import { s, fs } from '@/lib/scale';
 
-const FLOWER_SIZE = s(18);
+const FLOWER_SIZE = s(16);
 const TITLE_GAP = s(8);
 
 type RoutineDetailHeaderProps = {
@@ -102,8 +103,8 @@ export function RoutineDetailHeader({
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: s(18),
-    paddingHorizontal: s(14),
+    paddingTop: s(14),
+    paddingHorizontal: s(12),
     paddingBottom: s(10),
     borderBottomWidth: 1,
     borderBottomColor: plannerCardBorder,
@@ -145,25 +146,25 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontFamily: fonts.lora,
-    fontSize: fs(18),
-    lineHeight: fs(22),
+    fontSize: fs(16),
+    lineHeight: fs(20),
     color: colors.navy,
   },
   details: {
-    marginTop: s(8),
+    marginTop: s(6),
     alignItems: 'flex-start',
-    gap: s(4),
+    gap: s(2),
   },
   description: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(13),
-    lineHeight: fs(18),
+    fontSize: compactCardSizes.meta,
+    lineHeight: fs(16),
     color: colors.gray,
     textAlign: 'left',
   },
   subtitle: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     color: colors.muted,
     textAlign: 'left',
   },

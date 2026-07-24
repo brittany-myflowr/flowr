@@ -6,9 +6,10 @@ import type { ReorderableDragTouchHandlers } from '@/components/ui/ReorderableLi
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { todayGlassCard } from '@/constants/todayCardStyles';
+import { compactCardSizes } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import type { TodayRoutineGroup } from '@/lib/todayGroups';
-import { s, vs, fs } from '@/lib/scale';
+import { s, vs } from '@/lib/scale';
 
 type TodayRoutineSectionProps = {
   group: TodayRoutineGroup;
@@ -109,8 +110,8 @@ export function TodayRoutineSection({
 
 const styles = StyleSheet.create({
   card: {
-    padding: s(10),
-    marginBottom: s(6),
+    padding: compactCardSizes.padding,
+    marginBottom: compactCardSizes.gap,
   },
   cardCompleted: {
     opacity: 0.72,
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: fonts.cardTitle,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.title,
     color: colors.navy,
   },
   nameCompleted: {
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     color: colors.muted,
     textTransform: 'capitalize',
   },
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
   },
   progress: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     fontWeight: '600',
     color: colors.blue,
     flexShrink: 0,

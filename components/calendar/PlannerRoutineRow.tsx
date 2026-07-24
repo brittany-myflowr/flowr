@@ -6,9 +6,10 @@ import { TodayStepRow } from '@/components/today/TodayStepRow';
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { plannerCard } from '@/constants/plannerCardStyles';
+import { compactCardSizes } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import type { PlannerRoutineGroup } from '@/hooks/usePlannerDay';
-import { s, vs, fs } from '@/lib/scale';
+import { s } from '@/lib/scale';
 
 type PlannerRoutineRowProps = {
   group: PlannerRoutineGroup;
@@ -65,8 +66,8 @@ export function PlannerRoutineRow({ group, expanded, onToggleExpanded }: Planner
 
 const styles = StyleSheet.create({
   card: {
-    padding: s(10),
-    marginBottom: s(6),
+    padding: compactCardSizes.padding,
+    marginBottom: compactCardSizes.gap,
   },
   cardCompleted: {
     opacity: 0.72,
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: fonts.cardTitle,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.title,
     color: colors.navy,
   },
   nameCompleted: {
@@ -94,13 +95,13 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     color: colors.muted,
     textTransform: 'capitalize',
   },
   progress: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     fontWeight: '600',
     color: colors.blue,
     flexShrink: 0,

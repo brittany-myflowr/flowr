@@ -8,11 +8,12 @@ import {
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { plannerCard } from '@/constants/plannerCardStyles';
+import { compactCardSizes } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import { resolveProductCategory } from '@/lib/filterProducts';
 import type { ProductTagLink } from '@/lib/productLinks';
 import type { Product, Verdict } from '@/types';
-import { s, vs, fs } from '@/lib/scale';
+import { s, fs } from '@/lib/scale';
 
 export const verdictColors: Record<Verdict, string> = {
   'Love It': colors.blue,
@@ -143,9 +144,8 @@ export function ProductPickRow({ product, selected = false, onPress }: ProductPi
 
 const styles = StyleSheet.create({
   card: {
-    paddingHorizontal: s(12),
-    paddingVertical: vs(11),
-    marginBottom: s(6),
+    padding: compactCardSizes.padding,
+    marginBottom: compactCardSizes.gap,
   },
   headerRow: {
     flexDirection: 'row',
@@ -173,20 +173,20 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: fonts.cardTitle,
-    fontSize: fs(13),
+    fontSize: compactCardSizes.title,
     color: colors.navy,
   },
   brand: {
-    marginTop: s(2),
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(11),
+    fontSize: compactCardSizes.secondary,
     color: colors.muted,
   },
   tagRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: s(6),
-    marginTop: s(8),
+    marginTop: s(6),
   },
   tagChip: {
     flexDirection: 'row',
@@ -196,41 +196,40 @@ const styles = StyleSheet.create({
   },
   tagRoutine: {
     fontFamily: fonts.dmSansSemiBold,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     color: colors.navy,
     fontWeight: '600',
   },
   tagSeparator: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     color: colors.muted,
   },
   tagStep: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     color: colors.gray,
     flexShrink: 1,
   },
   untaggedHint: {
-    marginTop: s(8),
+    marginTop: s(6),
     fontFamily: fonts.dmSans,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     color: colors.muted,
     fontStyle: 'italic',
   },
   notes: {
-    marginTop: s(8),
+    marginTop: s(6),
     fontFamily: fonts.dmSans,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     color: colors.gray,
-    lineHeight: fs(17),
+    lineHeight: fs(16),
   },
   pickRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: s(11),
-    paddingVertical: vs(9),
-    marginBottom: s(5),
+    padding: compactCardSizes.padding,
+    marginBottom: compactCardSizes.gap,
   },
   pickRowSelected: {
     backgroundColor: colors.light,
@@ -241,13 +240,13 @@ const styles = StyleSheet.create({
   },
   pickName: {
     fontFamily: fonts.cardTitle,
-    fontSize: fs(13),
+    fontSize: compactCardSizes.title,
     color: colors.navy,
   },
   pickVerdict: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     fontWeight: '500',
   },
 });

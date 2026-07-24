@@ -6,9 +6,10 @@ import { ChevronRightIcon } from '@/components/icons/ProfileIcons';
 import { categoryColors } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { todayGlassCard, todayCornerRadius } from '@/constants/todayCardStyles';
+import { compactCardSizes } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import type { TodayRoutineGroup } from '@/lib/todayGroups';
-import { s, vs, fs } from '@/lib/scale';
+import { s, vs } from '@/lib/scale';
 
 type TodayCompletedRoutineRowProps = {
   group: TodayRoutineGroup;
@@ -77,9 +78,8 @@ export function TodayCompletedRoutineRow({
 
 const styles = StyleSheet.create({
   card: {
-    paddingHorizontal: s(10),
-    paddingVertical: vs(8),
-    marginBottom: s(5),
+    padding: compactCardSizes.padding,
+    marginBottom: compactCardSizes.gap,
   },
   headerPressable: {
     flexDirection: 'row',
@@ -92,13 +92,13 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: fonts.cardTitle,
-    fontSize: fs(13),
+    fontSize: compactCardSizes.title,
     color: colors.navy,
   },
   subtitle: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(11),
+    fontSize: compactCardSizes.secondary,
     color: colors.muted,
     textTransform: 'capitalize',
   },
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   progress: {
     fontFamily: fonts.dmSans,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     color: colors.muted,
     flexShrink: 0,
   },

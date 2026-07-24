@@ -138,9 +138,9 @@ const styles = StyleSheet.create({
     color: colors.navy,
   },
   productLabel: {
-    marginTop: s(3),
+    marginTop: s(2),
     fontFamily: fonts.dmSans,
-    fontSize: fs(12),
+    fontSize: fs(11),
     color: colors.navy,
   },
   productLabelDone: {

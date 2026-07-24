@@ -6,10 +6,11 @@ import { StepNumberBadge } from '@/components/steps/StepNumberBadge';
 import { StepProductLabel } from '@/components/steps/StepProductChip';
 import { colors } from '@/constants/colors';
 import { plannerCardBorder, plannerCornerRadius } from '@/constants/plannerCardStyles';
+import { compactCardSizes } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import type { PhaseKey } from '@/constants/phases';
 import type { Step } from '@/types';
-import { s, vs, fs } from '@/lib/scale';
+import { s, vs } from '@/lib/scale';
 
 type TodayStepRowProps = {
   step: Step;
@@ -78,15 +79,14 @@ const styles = StyleSheet.create({
     borderRadius: plannerCornerRadius,
     borderWidth: 1,
     borderColor: plannerCardBorder,
-    marginBottom: s(7),
+    marginBottom: compactCardSizes.gap,
     overflow: 'hidden',
   },
   mainRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: s(8),
-    paddingHorizontal: s(12),
-    paddingVertical: vs(10),
+    padding: compactCardSizes.padding,
   },
   mainRowEmbedded: {
     paddingHorizontal: s(0),
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   },
   stepName: {
     fontFamily: fonts.cardTitle,
-    fontSize: fs(13),
+    fontSize: compactCardSizes.title,
     color: colors.navy,
   },
   stepNameDone: {
@@ -111,9 +111,9 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   noteText: {
-    marginTop: s(2),
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     color: colors.muted,
   },
   noteTextDone: {
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: s(5),
-    paddingHorizontal: s(12),
+    paddingHorizontal: compactCardSizes.padding,
     paddingBottom: s(8),
   },
   chipsEmbedded: {

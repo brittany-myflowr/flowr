@@ -34,9 +34,9 @@ export const guidedFlowTypography = {
   body: fs(14.4),
   link: fs(12),
   stepNumber: fs(11),
-  reviewName: fs(14.4),
+  reviewName: fs(12),
   reviewMeta: fs(12),
-  reviewStepName: fs(13.3),
+  reviewStepName: fs(12),
 } as const;
 
 export const guidedFlowSizes = {
@@ -48,11 +48,21 @@ export const guidedFlowSizes = {
   progressBarCurrentWidth: s(22),
   stepBadge: s(22),
   stepRowRadius: 0,
-  stepRowPaddingH: s(12),
-  stepRowPaddingV: vs(10),
+  /** Matches RoutineCard / TodayRoutineSection compact list cards. */
+  stepRowPaddingH: s(10),
+  stepRowPaddingV: s(10),
   reviewIcon: s(19),
   reviewIconWrap: s(36),
   reviewStepBadge: s(20),
+} as const;
+
+/** Shared compact card scale used by list, step, and product cards. */
+export const compactCardSizes = {
+  padding: s(10),
+  title: fs(12),
+  meta: fs(12),
+  secondary: fs(11),
+  gap: s(6),
 } as const;
 
 export const tabPageStyles = StyleSheet.create({

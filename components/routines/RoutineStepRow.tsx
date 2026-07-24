@@ -6,9 +6,10 @@ import { StepProductLabel } from '@/components/steps/StepProductChip';
 import type { ReorderableDragTouchHandlers } from '@/components/ui/ReorderableList';
 import { colors } from '@/constants/colors';
 import { plannerCard, plannerCardBorder } from '@/constants/plannerCardStyles';
+import { compactCardSizes } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import type { Step } from '@/types';
-import { s, vs, fs } from '@/lib/scale';
+import { s, vs } from '@/lib/scale';
 
 type RoutineStepRowProps = {
   step: Step;
@@ -31,7 +32,7 @@ export function RoutineStepRow({
 }: RoutineStepRowProps) {
   const body = (
     <>
-      <StepNumberBadge number={index + 1} style={styles.stepBadge} />
+      <StepNumberBadge number={index + 1} />
       <View style={styles.copy}>
         <Text style={styles.stepName}>{step.name}</Text>
         {step.note ? <Text style={styles.noteText}>{step.note}</Text> : null}
@@ -73,7 +74,7 @@ export function RoutineStepRow({
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: s(7),
+    marginBottom: compactCardSizes.gap,
     overflow: 'hidden',
   },
   cardDragging: {
@@ -88,36 +89,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: s(8),
-    paddingHorizontal: s(12),
-    paddingVertical: vs(10),
+    padding: compactCardSizes.padding,
   },
   dragArea: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: s(8),
-  },
-  stepBadge: {
-    marginTop: s(1),
   },
   copy: {
     flex: 1,
   },
   stepName: {
     fontFamily: fonts.cardTitle,
-    fontSize: fs(14),
+    fontSize: compactCardSizes.title,
     color: colors.navy,
   },
   noteText: {
-    marginTop: s(2),
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     color: colors.muted,
   },
   editHint: {
-    marginTop: s(2),
+    marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(11),
+    fontSize: compactCardSizes.secondary,
     color: colors.muted,
   },
   actions: {

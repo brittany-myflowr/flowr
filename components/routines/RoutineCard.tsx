@@ -8,12 +8,13 @@ import { categoryColors, type Category } from '@/constants/categories';
 import { colors } from '@/constants/colors';
 import { plannerCard } from '@/constants/plannerCardStyles';
 import {
+  compactCardSizes,
   guidedFlowSizes,
   guidedFlowTypography,
 } from '@/constants/tabPageTypography';
 import { fonts } from '@/constants/typography';
 import type { Routine } from '@/types';
-import { s, vs, fs } from '@/lib/scale';
+import { s, vs } from '@/lib/scale';
 
 type RoutineCardProps = {
   routine: Routine;
@@ -112,14 +113,14 @@ export function RoutineReviewCard({
 
 const styles = StyleSheet.create({
   card: {
-    padding: s(10),
-    marginBottom: s(6),
+    padding: compactCardSizes.padding,
+    marginBottom: compactCardSizes.gap,
   },
   cardInactive: {
     opacity: 0.55,
   },
   reviewCard: {
-    padding: s(14),
+    padding: compactCardSizes.padding,
   },
   headerRow: {
     flexDirection: 'row',
@@ -132,13 +133,13 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: fonts.cardTitle,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.title,
     color: colors.navy,
   },
   subtitle: {
     marginTop: s(1),
     fontFamily: fonts.dmSans,
-    fontSize: fs(12),
+    fontSize: compactCardSizes.meta,
     color: colors.muted,
     textTransform: 'capitalize',
   },
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: s(8),
-    paddingVertical: vs(7),
+    paddingVertical: vs(6),
     borderTopWidth: 1,
     borderTopColor: colors.inputBg,
   },
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
   },
   reviewStepCopy: {
     flex: 1,
-    gap: s(4),
+    gap: s(2),
   },
   reviewStepName: {
     fontFamily: fonts.cardTitle,
