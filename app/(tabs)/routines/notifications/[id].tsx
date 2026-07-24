@@ -1,6 +1,6 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Platform,
   Pressable,
@@ -54,6 +54,28 @@ export default function RoutineNotificationSettingsScreen() {
     [routine?.notificationTime],
   );
 
+  /**
+   * After reinstall, cloud can still have notificationsEnabled=true while iOS
+   * permission was reset. Changing the time used to skip the permission prompt.
+   */
+  useEffect(() => {
+    if (!routine?.notificationsEnabled) return;
+
+    let cancelled = false;
+    void (async () => {
+      const granted = await requestNotificationPermission();
+      if (cancelled) return;
+      if (!granted) {
+        updateRoutine(routine.id, { notificationsEnabled: false });
+        alertNotificationsPermissionDenied();
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [routine?.id, routine?.notificationsEnabled, updateRoutine]);
+
   if (!routine) {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
@@ -67,13 +89,18 @@ export default function RoutineNotificationSettingsScreen() {
     );
   }
 
-  const enableReminders = async () => {
+  const ensurePermission = async (): Promise<boolean> => {
     const granted = await requestNotificationPermission();
     if (!granted) {
       updateRoutine(routine.id, { notificationsEnabled: false });
       alertNotificationsPermissionDenied();
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const enableReminders = async () => {
+    if (!(await ensurePermission())) return;
     updateRoutine(routine.id, {
       notificationsEnabled: true,
       notificationMode: routine.notificationMode ?? 'timeOfDay',
@@ -93,22 +120,28 @@ export default function RoutineNotificationSettingsScreen() {
   };
 
   const selectMode = (nextMode: 'specific' | 'timeOfDay') => {
-    updateRoutine(routine.id, {
-      notificationsEnabled: true,
-      notificationMode: nextMode,
-      notificationTime:
-        nextMode === 'specific' ? routine.notificationTime ?? formatHhMm(timeValue) : undefined,
-    });
+    void (async () => {
+      if (!(await ensurePermission())) return;
+      updateRoutine(routine.id, {
+        notificationsEnabled: true,
+        notificationMode: nextMode,
+        notificationTime:
+          nextMode === 'specific' ? routine.notificationTime ?? formatHhMm(timeValue) : undefined,
+      });
+    })();
   };
 
   const onTimeChange = (_: unknown, date?: Date) => {
     if (Platform.OS === 'android') setShowPicker(false);
     if (!date) return;
-    updateRoutine(routine.id, {
-      notificationsEnabled: true,
-      notificationMode: 'specific',
-      notificationTime: formatHhMm(date),
-    });
+    void (async () => {
+      if (!(await ensurePermission())) return;
+      updateRoutine(routine.id, {
+        notificationsEnabled: true,
+        notificationMode: 'specific',
+        notificationTime: formatHhMm(date),
+      });
+    })();
   };
 
   return (
