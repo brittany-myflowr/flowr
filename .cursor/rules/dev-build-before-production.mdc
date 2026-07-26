@@ -1,0 +1,21 @@
+---
+description: Require a tested dev build before production EAS builds when native changes exist
+alwaysApply: true
+---
+
+# Dev build before production
+
+Before running any `eas build --profile production` command, check whether the changes since the last production build include any of the following:
+
+- New or updated native modules / packages (anything requiring native linking)
+- New or changed Expo config plugins in `app.json`
+- New or changed permissions (notifications, camera, location, etc.)
+- Any change to native config (`Info.plist`, entitlements, `AndroidManifest`, etc.)
+
+If any of the above apply and a **dev build has not yet been built and tested on-device** with these specific changes, **STOP** and tell the user:
+
+> These changes touch native code/plugins. Recommend running a dev build first (`eas build --profile development`) and testing on-device before a production build.
+
+Do **not** proceed to a production build until the user confirms a dev build was tested, or confirms the changes are pure JS/TS with no native impact.
+
+Apply this same check before suggesting or running any `eas submit` command.

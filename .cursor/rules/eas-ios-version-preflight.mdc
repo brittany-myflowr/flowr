@@ -1,0 +1,13 @@
+---
+description: Preflight checklist before any EAS iOS production build
+alwaysApply: true
+---
+
+# EAS iOS build version preflight
+
+Before running any `eas build` command for **iOS** (especially production):
+
+1. **Know the live/approved App Store version.** Check conversation memory, Asc/EAS, or ask the user to confirm if unknown.
+2. **Bump `expo.version` in `app.json` if needed.** It must be **higher** than the last approved/live version string (e.g. live `1.0.0` → build with `1.0.1`). Never submit a new binary with the same or lower marketing version than what’s already approved when Apple requires an increase.
+3. **Do not rely on `eas.json` `autoIncrement` alone.** With `cli.appVersionSource: "remote"` and production `"autoIncrement": true`, EAS only increments the native **build number** (`CFBundleVersion` / `ios.buildNumber`). It does **not** bump `expo.version` (`CFBundleShortVersionString`).
+4. **Report before starting the build:** final `expo.version` (from `app.json`) and the expected/next **build number** (from EAS remote / last build + 1). Only then run `eas build`.
