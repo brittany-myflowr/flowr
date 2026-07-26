@@ -72,7 +72,10 @@ import { DEFAULT_CYCLE_SETTINGS } from '@/types';
 import type { SharedRoutineSnapshot } from '@/types/share';
 import { sharedProductKey } from '@/lib/shareRoutineSnapshot';
 import { runPremiumMutation, runPremiumMutationVoid } from '@/lib/premiumGate';
-import { syncTodayNotifications } from '@/lib/routineNotifications';
+import {
+  cancelNotificationsForRoutine,
+  syncUpcomingNotifications,
+} from '@/lib/routineNotifications';
 import {
   collectStepIds,
   EMPTY_TODAY_STEP_ORDERS,
@@ -666,9 +669,10 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
         void flushRemoteSync();
       }
       if (nextState === 'active' && hydrated) {
-        void syncTodayNotifications({
+        void syncUpcomingNotifications({
           routines: routinesRef.current,
           cycleSettings: cycleSettingsRef.current,
+          dailyCompletions: dailyCompletionsRef.current,
         });
       }
     });
@@ -717,7 +721,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
     if (__DEV__) {
-      console.log('[flowr/notifications] AppStore effect → syncTodayNotifications', {
+      console.log('[flowr/notifications] AppStore effect → syncUpcomingNotifications', {
         routineCount: routines.length,
         enabled: routines
           .filter((r) => r.notificationsEnabled)
@@ -730,9 +734,10 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
           })),
       });
     }
-    void syncTodayNotifications({
+    void syncUpcomingNotifications({
       routines,
       cycleSettings,
+      dailyCompletions,
     });
   }, [hydrated, routines, dailyCompletions, cycleSettings]);
 
@@ -1140,6 +1145,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const removeRoutine = useCallback(
     (id: string) => {
       runPremiumMutationVoid(() => {
+        void cancelNotificationsForRoutine(id);
         applyRoutineUpdate((current) => current.filter((routine) => routine.id !== id));
       });
     },
@@ -1294,6 +1300,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
             if (updates.notificationsEnabled === false) {
               nextRoutine.notificationMode = undefined;
               nextRoutine.notificationTime = undefined;
+              void cancelNotificationsForRoutine(routineId);
             }
 
             if (updates.category && updates.category !== routine.category) {

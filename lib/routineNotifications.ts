@@ -4,11 +4,39 @@ import { Alert, Linking, Platform } from 'react-native';
 
 import { getTimeOfDayWindowBounds } from '@/hooks/useTimeOfDay';
 import { getApplicableSteps } from '@/lib/applicableSteps';
+import {
+  type DailyCompletionMap,
+  normalizeDailyCompletionEntry,
+} from '@/lib/completion';
+import { formatDateKey } from '@/lib/dateKey';
 import type { CycleSettings, Routine } from '@/types';
 
-const IDS_STORAGE_KEY = '@flowr/v2/notification-ids';
+/**
+ * Rolling forward window (today inclusive).
+ * iOS allows ~64 pending local notifications per app — see MAX_PENDING_NOTIFICATIONS.
+ */
+export const NOTIFICATION_WINDOW_DAYS = 10;
 
-type StoredIds = Record<string, { startId?: string; finishId?: string }>;
+/** Leave headroom under iOS’s ~64 pending limit. Nearest fire times win when capped. */
+export const MAX_PENDING_NOTIFICATIONS = 60;
+
+const IDS_STORAGE_KEY = '@flowr/v3/notification-ids';
+const LOG_PREFIX = '[flowr/notifications]';
+const TITLE = 'Routine Reminder 🌸';
+
+/** Map of `{routineId}_{YYYY-MM-DD}_{start|finish}` → expo notification id */
+type StoredIds = Record<string, string>;
+
+type ReminderKind = 'start' | 'finish';
+
+type Candidate = {
+  key: string;
+  routineId: string;
+  dateKey: string;
+  kind: ReminderKind;
+  when: Date;
+  body: string;
+};
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -69,11 +97,45 @@ function addHours(date: Date, hours: number): Date {
   return new Date(date.getTime() + hours * 60 * 60 * 1000);
 }
 
+function addDays(date: Date, days: number): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+}
+
+export function notificationStorageKey(
+  routineId: string,
+  dateKey: string,
+  kind: ReminderKind,
+): string {
+  return `${routineId}_${dateKey}_${kind}`;
+}
+
+function parseStorageKey(
+  key: string,
+): { routineId: string; dateKey: string; kind: ReminderKind } | null {
+  const match = key.match(/^(.+)_(\d{4}-\d{2}-\d{2})_(start|finish)$/);
+  if (!match) return null;
+  return {
+    routineId: match[1],
+    dateKey: match[2],
+    kind: match[3] as ReminderKind,
+  };
+}
+
 async function loadStoredIds(): Promise<StoredIds> {
   try {
     const raw = await AsyncStorage.getItem(IDS_STORAGE_KEY);
     if (!raw) return {};
-    return JSON.parse(raw) as StoredIds;
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    // Drop legacy v2 shape `{ [routineId]: { startId, finishId } }`
+    const entries = Object.entries(parsed as Record<string, unknown>);
+    const next: StoredIds = {};
+    for (const [key, value] of entries) {
+      if (typeof value === 'string' && parseStorageKey(key)) {
+        next[key] = value;
+      }
+    }
+    return next;
   } catch {
     return {};
   }
@@ -83,17 +145,13 @@ async function saveStoredIds(ids: StoredIds): Promise<void> {
   await AsyncStorage.setItem(IDS_STORAGE_KEY, JSON.stringify(ids));
 }
 
-async function cancelStored(ids: StoredIds): Promise<void> {
-  const all = Object.values(ids).flatMap((entry) =>
-    [entry.startId, entry.finishId].filter((id): id is string => Boolean(id)),
+async function cancelNotificationIds(ids: string[]): Promise<void> {
+  await Promise.all(
+    ids.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => undefined)),
   );
-  await Promise.all(all.map((id) => Notifications.cancelScheduledNotificationAsync(id)));
 }
 
-const LOG_PREFIX = '[flowr/notifications]';
-
 function isPermissionGranted(perms: Notifications.NotificationPermissionsStatus): boolean {
-  // Expo docs: on iOS prefer ios.status over the root status/granted fields.
   if (Platform.OS === 'ios' && perms.ios?.status != null) {
     const { IosAuthorizationStatus } = Notifications;
     return (
@@ -179,15 +237,15 @@ async function scheduleOneShot(
   }
 }
 
-function reminderTimesForRoutine(routine: Routine, today: Date): {
-  start: Date | null;
-  finish: Date | null;
-} {
+function reminderTimesForRoutine(
+  routine: Routine,
+  day: Date,
+): { start: Date | null; finish: Date | null } {
   const mode = routine.notificationMode ?? 'timeOfDay';
 
   if (mode === 'specific') {
     const start = routine.notificationTime
-      ? atLocalTime(today, routine.notificationTime)
+      ? atLocalTime(day, routine.notificationTime)
       : null;
     return {
       start,
@@ -195,51 +253,95 @@ function reminderTimesForRoutine(routine: Routine, today: Date): {
     };
   }
 
-  const bounds = getTimeOfDayWindowBounds(routine.timeOfDay, today);
+  const bounds = getTimeOfDayWindowBounds(routine.timeOfDay, day);
   return { start: bounds.start, finish: bounds.end };
 }
 
+function completedCountForDay(
+  routine: Routine,
+  day: Date,
+  cycleSettings: CycleSettings,
+  dailyCompletions: DailyCompletionMap | undefined,
+  now: Date,
+): { total: number; completed: number } {
+  const applicable = getApplicableSteps([routine], day, { cycleSettings });
+  const total = applicable.length;
+  if (total === 0) return { total: 0, completed: 0 };
+
+  const dayKey = formatDateKey(day);
+  const todayKey = formatDateKey(now);
+
+  if (dayKey === todayKey) {
+    return {
+      total,
+      completed: applicable.filter(({ step }) => step.done).length,
+    };
+  }
+
+  const entry = normalizeDailyCompletionEntry(dailyCompletions?.[dayKey]);
+  if (!entry) return { total, completed: 0 };
+
+  const applicableIds = new Set(applicable.map(({ step }) => step.id));
+  const completed = entry.completed.filter((id) => applicableIds.has(id)).length;
+  return { total, completed };
+}
+
+/** Cancel every stored notification for one routine (disable / delete). */
+export async function cancelNotificationsForRoutine(routineId: string): Promise<void> {
+  const stored = await loadStoredIds();
+  const prefix = `${routineId}_`;
+  const toCancel: string[] = [];
+  const next: StoredIds = {};
+
+  for (const [key, id] of Object.entries(stored)) {
+    if (key.startsWith(prefix) && parseStorageKey(key)?.routineId === routineId) {
+      toCancel.push(id);
+    } else {
+      next[key] = id;
+    }
+  }
+
+  await cancelNotificationIds(toCancel);
+  await saveStoredIds(next);
+
+  if (__DEV__) {
+    console.log(LOG_PREFIX, 'cancelNotificationsForRoutine', {
+      routineId,
+      cancelled: toCancel.length,
+    });
+  }
+}
+
 /**
- * Cancel previous one-shot reminders and schedule today's start/finish
- * reminders for opted-in routines that still have work today.
+ * Reconcile a rolling forward window of local reminders.
+ * Cancels prior managed ids, then schedules start/finish for each eligible day
+ * in [today, today + WINDOW_DAYS). Nearest fire times are preferred when
+ * approaching the iOS pending-notification limit.
  */
-export async function syncTodayNotifications(input: {
+export async function syncUpcomingNotifications(input: {
   routines: Routine[];
   cycleSettings: CycleSettings;
-  date?: Date;
+  dailyCompletions?: DailyCompletionMap;
+  now?: Date;
+  windowDays?: number;
 }): Promise<void> {
-  const today = input.date ?? new Date();
+  const now = input.now ?? new Date();
+  const windowDays = input.windowDays ?? NOTIFICATION_WINDOW_DAYS;
   const previous = await loadStoredIds();
-  await cancelStored(previous);
+  await cancelNotificationIds(Object.values(previous));
 
   const perms = await Notifications.getPermissionsAsync();
   const permissionOk = isPermissionGranted(perms);
 
   if (__DEV__) {
-    console.log(LOG_PREFIX, 'syncTodayNotifications start', {
-      now: today.toISOString(),
-      localNow: today.toString(),
+    console.log(LOG_PREFIX, 'syncUpcomingNotifications start', {
+      now: now.toISOString(),
+      localNow: now.toString(),
+      windowDays,
+      maxPending: MAX_PENDING_NOTIFICATIONS,
       routineCount: input.routines.length,
       enabledCount: input.routines.filter((r) => r.notificationsEnabled).length,
       permissionOk,
-      permission: {
-        status: perms.status,
-        granted: perms.granted,
-        canAskAgain: perms.canAskAgain,
-        ios: perms.ios
-          ? {
-              status: perms.ios.status,
-              allowsAlert: perms.ios.allowsAlert,
-              allowsSound: perms.ios.allowsSound,
-              allowsBadge: perms.ios.allowsBadge,
-              allowsDisplayInNotificationCenter:
-                perms.ios.allowsDisplayInNotificationCenter,
-              allowsDisplayOnLockScreen: perms.ios.allowsDisplayOnLockScreen,
-              alertStyle: perms.ios.alertStyle,
-            }
-          : undefined,
-        android: perms.android,
-      },
     });
   }
 
@@ -251,123 +353,119 @@ export async function syncTodayNotifications(input: {
     return;
   }
 
-  const nextIds: StoredIds = {};
-  const title = 'Routine Reminder 🌸';
+  const candidates: Candidate[] = [];
 
-  for (const routine of input.routines) {
-    if (!routine.notificationsEnabled) {
-      continue;
-    }
-    if (!routine.active) {
-      if (__DEV__) {
-        console.log(LOG_PREFIX, 'skip — routine inactive', {
-          id: routine.id,
-          name: routine.name,
-        });
-      }
-      continue;
-    }
+  for (let offset = 0; offset < windowDays; offset += 1) {
+    const day = addDays(now, offset);
+    const dateKey = formatDateKey(day);
 
-    const applicable = getApplicableSteps([routine], today, {
-      cycleSettings: input.cycleSettings,
-    });
-    if (applicable.length === 0) {
-      if (__DEV__) {
-        console.log(LOG_PREFIX, 'skip — no steps applicable today', {
-          id: routine.id,
-          name: routine.name,
-          frequency: routine.schedule.frequency,
-          daysOfWeek: routine.schedule.daysOfWeek,
-          timeOfDay: routine.timeOfDay,
-          stepCount: routine.steps.length,
-          mode: routine.notificationMode,
-          notificationTime: routine.notificationTime,
-        });
-      }
-      continue;
-    }
+    for (const routine of input.routines) {
+      if (!routine.notificationsEnabled || !routine.active) continue;
 
-    const completed = applicable.filter(({ step }) => step.done).length;
-    const total = applicable.length;
-    const allDone = completed === total;
-    if (allDone) {
-      if (__DEV__) {
-        console.log(LOG_PREFIX, 'skip — all applicable steps done', {
-          id: routine.id,
-          name: routine.name,
-          completed,
-          total,
-        });
-      }
-      continue;
-    }
-
-    const { start, finish } = reminderTimesForRoutine(routine, today);
-    if (__DEV__) {
-      console.log(LOG_PREFIX, 'candidate routine', {
-        id: routine.id,
-        name: routine.name,
-        mode: routine.notificationMode ?? 'timeOfDay',
-        notificationTime: routine.notificationTime,
-        completed,
-        total,
-        start: start?.toISOString() ?? null,
-        startLocal: start?.toString() ?? null,
-        finish: finish?.toISOString() ?? null,
-        msUntilStart: start ? start.getTime() - Date.now() : null,
+      const applicable = getApplicableSteps([routine], day, {
+        cycleSettings: input.cycleSettings,
       });
-    }
+      if (applicable.length === 0) continue;
 
-    const entry: { startId?: string; finishId?: string } = {};
-
-    if (completed === 0 && start) {
-      const startId = await scheduleOneShot(start, title, `Time to start ${routine.name}`, {
-        routineId: routine.id,
-        kind: 'start',
-      });
-      if (startId) entry.startId = startId;
-    } else if (__DEV__ && completed > 0) {
-      console.log(LOG_PREFIX, 'skip start reminder — some steps already done', {
-        id: routine.id,
-        completed,
-      });
-    } else if (__DEV__ && !start) {
-      console.log(LOG_PREFIX, 'skip start reminder — no start time', {
-        id: routine.id,
-        mode: routine.notificationMode,
-        notificationTime: routine.notificationTime,
-      });
-    }
-
-    if (completed < total && finish) {
-      const finishId = await scheduleOneShot(
-        finish,
-        title,
-        `Don't forget to finish ${routine.name}`,
-        { routineId: routine.id, kind: 'finish' },
+      const { total, completed } = completedCountForDay(
+        routine,
+        day,
+        input.cycleSettings,
+        input.dailyCompletions,
+        now,
       );
-      if (finishId) entry.finishId = finishId;
-    }
 
-    if (entry.startId || entry.finishId) {
-      nextIds[routine.id] = entry;
+      // Live-day completion: if every applicable step is done, skip this day
+      // entirely (cancels start + finish for that day on reconcile).
+      if (total > 0 && completed >= total) {
+        if (__DEV__) {
+          console.log(LOG_PREFIX, 'skip day — routine complete', {
+            routineId: routine.id,
+            dateKey,
+            completed,
+            total,
+          });
+        }
+        continue;
+      }
+
+      const { start, finish } = reminderTimesForRoutine(routine, day);
+
+      // Start only when nothing is done yet for that day.
+      if (completed === 0 && start) {
+        candidates.push({
+          key: notificationStorageKey(routine.id, dateKey, 'start'),
+          routineId: routine.id,
+          dateKey,
+          kind: 'start',
+          when: start,
+          body: `Time to start ${routine.name}`,
+        });
+      }
+
+      // Finish: schedule whenever the day still has incomplete work.
+      // Future days (never opened) always get finish if applicable.
+      if (finish) {
+        candidates.push({
+          key: notificationStorageKey(routine.id, dateKey, 'finish'),
+          routineId: routine.id,
+          dateKey,
+          kind: 'finish',
+          when: finish,
+          body: `Don't forget to finish ${routine.name}`,
+        });
+      }
     }
+  }
+
+  const future = candidates
+    .filter((c) => c.when.getTime() > Date.now())
+    .sort((a, b) => a.when.getTime() - b.when.getTime());
+
+  const capped = future.slice(0, MAX_PENDING_NOTIFICATIONS);
+  if (__DEV__ && future.length > capped.length) {
+    console.warn(LOG_PREFIX, 'capped pending notifications under iOS limit', {
+      candidates: future.length,
+      scheduled: capped.length,
+      max: MAX_PENDING_NOTIFICATIONS,
+      windowDays,
+    });
+  }
+
+  const nextIds: StoredIds = {};
+
+  for (const candidate of capped) {
+    const id = await scheduleOneShot(candidate.when, TITLE, candidate.body, {
+      routineId: candidate.routineId,
+      dateKey: candidate.dateKey,
+      kind: candidate.kind,
+    });
+    if (id) nextIds[candidate.key] = id;
   }
 
   await saveStoredIds(nextIds);
 
   if (__DEV__) {
     const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-    console.log(LOG_PREFIX, 'syncTodayNotifications done', {
-      storedIds: nextIds,
+    console.log(LOG_PREFIX, 'syncUpcomingNotifications done', {
+      storedCount: Object.keys(nextIds).length,
       osScheduledCount: scheduled.length,
-      osScheduled: scheduled.map((item) => ({
-        id: item.identifier,
-        title: item.content.title,
-        body: item.content.body,
-        data: item.content.data,
-        trigger: item.trigger,
-      })),
+      storedKeys: Object.keys(nextIds),
     });
   }
+}
+
+/** @deprecated Use syncUpcomingNotifications — kept for call-site compatibility. */
+export async function syncTodayNotifications(input: {
+  routines: Routine[];
+  cycleSettings: CycleSettings;
+  dailyCompletions?: DailyCompletionMap;
+  date?: Date;
+}): Promise<void> {
+  return syncUpcomingNotifications({
+    routines: input.routines,
+    cycleSettings: input.cycleSettings,
+    dailyCompletions: input.dailyCompletions,
+    now: input.date,
+  });
 }
