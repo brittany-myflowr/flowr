@@ -24,7 +24,6 @@ export default function SplashScreen() {
         flowerStrokeWidth={1.1}
         style={styles.brandMark}
       />
-      <Text style={styles.tagline}>Self-Care, Beautifully Organized</Text>
 
       <View style={styles.actions}>
         <Button
@@ -41,13 +40,13 @@ export default function SplashScreen() {
       </View>
 
       <Text style={styles.legal}>
-        By continuing you agree to our{' '}
+        By continuing you agree to our{'\n'}
         <Text style={styles.legalLink} onPress={() => openExternalUrl(TERMS_URL)}>
           Terms
-        </Text>{' '}
-        and{' '}
+        </Text>
+        {'\u00A0'}and{'\u00A0'}
         <Text style={styles.legalLink} onPress={() => openExternalUrl(PRIVACY_POLICY_URL)}>
-          Privacy Policy
+          Privacy{'\u00A0'}Policy
         </Text>
       </Text>
     </BrandGradientCanvas>
@@ -63,16 +62,7 @@ const styles = StyleSheet.create({
     paddingVertical: vs(40),
   },
   brandMark: {
-    marginBottom: s(8),
-  },
-  tagline: {
-    fontFamily: fonts.dmSans,
-    fontSize: fs(10),
-    letterSpacing: s(2.5),
-    textTransform: 'uppercase',
-    color: colors.muted,
-    marginBottom: s(52),
-    textAlign: 'center',
+    marginBottom: s(60),
   },
   actions: {
     width: '100%',
