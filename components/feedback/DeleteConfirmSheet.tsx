@@ -32,7 +32,7 @@ export function DeleteConfirmSheet({
   const insets = useSafeAreaInsets();
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onCancel}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <View style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onCancel} />
         <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, s(36)) }]}>
