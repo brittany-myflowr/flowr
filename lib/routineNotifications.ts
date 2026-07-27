@@ -237,6 +237,12 @@ async function scheduleOneShot(
   }
 }
 
+/** Specific-time finish fires this many hours after the chosen start time. */
+const SPECIFIC_FINISH_OFFSET_HOURS = 2;
+
+/** Time-of-day finish fires this many hours after the window start. */
+const TIME_OF_DAY_FINISH_OFFSET_HOURS = 3;
+
 function reminderTimesForRoutine(
   routine: Routine,
   day: Date,
@@ -249,12 +255,15 @@ function reminderTimesForRoutine(
       : null;
     return {
       start,
-      finish: start ? addHours(start, 2) : null,
+      finish: start ? addHours(start, SPECIFIC_FINISH_OFFSET_HOURS) : null,
     };
   }
 
   const bounds = getTimeOfDayWindowBounds(routine.timeOfDay, day);
-  return { start: bounds.start, finish: bounds.end };
+  return {
+    start: bounds.start,
+    finish: addHours(bounds.start, TIME_OF_DAY_FINISH_OFFSET_HOURS),
+  };
 }
 
 function completedCountForDay(
