@@ -17,8 +17,10 @@ export type SharedRoutineStep = {
 /** JSON snapshot stored in shared_routines.snapshot — no verdicts or personal notes. */
 export type SharedRoutineSnapshot = {
   name: string;
-  /** First name of the person who shared — used for display titles only. */
+  /** First name of the person who shared — used for possessive titles only. */
   sharedByFirstName?: string;
+  /** Last name of the person who shared — used with first name for “Shared by”. */
+  sharedByLastName?: string;
   category: Category;
   description?: string;
   timeOfDay: TimeOfDay;

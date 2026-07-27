@@ -2,7 +2,7 @@ import { cloneSchedule } from '@/constants/schedules';
 import type { Product, Routine } from '@/types';
 import type { SharedRoutineSnapshot } from '@/types/share';
 
-/** e.g. Brittany's Morning Skincare */
+/** e.g. Brittany's Morning Skincare — first name only */
 export function formatSharedRoutineTitle(
   routineName: string,
   sharedByFirstName?: string,
@@ -13,18 +13,31 @@ export function formatSharedRoutineTitle(
   return `${person}'s ${name}`;
 }
 
+/** e.g. Brittany Theodore — for “Shared by” attribution */
+export function formatSharedByName(
+  sharedByFirstName?: string,
+  sharedByLastName?: string,
+): string {
+  return [sharedByFirstName, sharedByLastName]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(' ');
+}
+
 /** Build a privacy-safe snapshot for sharing (no verdicts / personal product notes). */
 export function buildRoutineShareSnapshot(
   routine: Routine,
   products: Product[],
-  sharedByFirstName?: string,
+  sharedBy?: { firstName?: string; lastName?: string },
 ): SharedRoutineSnapshot {
   const productById = new Map(products.map((product) => [product.id, product]));
-  const firstName = sharedByFirstName?.trim();
+  const firstName = sharedBy?.firstName?.trim();
+  const lastName = sharedBy?.lastName?.trim();
 
   return {
     name: routine.name.trim(),
     ...(firstName ? { sharedByFirstName: firstName } : {}),
+    ...(lastName ? { sharedByLastName: lastName } : {}),
     category: routine.category,
     description: routine.description?.trim() || undefined,
     timeOfDay: routine.timeOfDay,
