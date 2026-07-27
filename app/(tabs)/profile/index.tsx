@@ -81,6 +81,7 @@ export default function ProfileScreen() {
         {user ? (
           <ProfileUserCard
             firstName={user.firstName}
+            lastName={user.lastName}
             email={user.email}
             flowerColor={flowerColor.stroke}
             onEdit={() => router.push('/(tabs)/profile/edit')}

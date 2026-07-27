@@ -42,6 +42,7 @@ export function ProfileMenuRow({
 
 type ProfileUserCardProps = {
   firstName: string;
+  lastName?: string;
   email: string;
   flowerColor: string;
   onEdit?: () => void;
@@ -49,17 +50,20 @@ type ProfileUserCardProps = {
 
 export function ProfileUserCard({
   firstName,
+  lastName,
   email,
   flowerColor,
   onEdit,
 }: ProfileUserCardProps) {
+  const displayName = [firstName, lastName].map((part) => part?.trim()).filter(Boolean).join(' ');
+
   return (
     <View style={styles.card}>
       <View style={styles.flowerWrap}>
         <Daisy color={flowerColor} size={s(24)} />
       </View>
       <View style={styles.copy}>
-        <Text style={styles.name}>{firstName}</Text>
+        <Text style={styles.name}>{displayName || firstName}</Text>
         <Text style={styles.email}>{email}</Text>
       </View>
       <Pressable
