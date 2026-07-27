@@ -134,10 +134,10 @@ export default function EditRoutineScreen() {
             />
 
             <FormField
-              label="Description"
+              label="Description + Notes"
               value={description}
               onChangeText={setDescription}
-              placeholder="Add a description (optional)"
+              placeholder="Add a description or notes (optional)"
               autoCapitalize="sentences"
               autoCorrect
               multiline

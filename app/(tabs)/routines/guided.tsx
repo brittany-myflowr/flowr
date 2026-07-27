@@ -254,11 +254,11 @@ export default function GuidedSetupScreen() {
               autoCapitalize="words"
               style={styles.nameInput}
             />
-            <Text style={styles.fieldLabel}>Description</Text>
+            <Text style={styles.fieldLabel}>Description + Notes</Text>
             <Input
               value={description}
               onChangeText={setDescription}
-              placeholder="Add a description (optional)"
+              placeholder="Add a description or notes (optional)"
               autoCapitalize="sentences"
               autoCorrect
               multiline
