@@ -318,18 +318,6 @@
       transform: translateY(-1px);
     }
 
-    .cta.secondary {
-      background: transparent;
-      color: var(--navy);
-      border: 1px solid var(--border);
-      box-shadow: none;
-    }
-
-    .cta.secondary:hover {
-      opacity: 1;
-      background: rgba(255, 255, 255, 0.55);
-    }
-
     .hint {
       text-align: center;
       font-size: 13px;
@@ -441,10 +429,9 @@
 
       <div class="footer">
         <a class="cta" id="cta" href="#">Add to My Routines</a>
-        <a class="cta secondary hidden" id="open-app" href="#">Open in flowr</a>
         <p class="hint" id="hint">
-          Already have flowr? We’ll try to open the app. Otherwise you’ll get the App Store — after
-          installing, open this link again or tap Open in flowr.
+          Opens flowr if you have it — otherwise the App Store. After installing, open this
+          link again to add the routine.
         </p>
       </div>
     </div>
@@ -473,7 +460,6 @@
 
       var activeShareId = null;
       var cta = document.getElementById('cta');
-      var openAppBtn = document.getElementById('open-app');
 
       function appDeepLink(shareId) {
         return 'flowr://routine/' + shareId;
@@ -533,19 +519,6 @@
         window.location.href = deepLink;
       }
 
-      function refreshOpenAppVisibility() {
-        if (!openAppBtn) return;
-        var pending = null;
-        try {
-          pending = localStorage.getItem(PENDING_KEY);
-        } catch (err) {}
-        var show = Boolean(activeShareId || pending);
-        openAppBtn.classList.toggle('hidden', !show);
-        if (activeShareId) {
-          openAppBtn.href = appDeepLink(activeShareId);
-        }
-      }
-
       if (cta) {
         cta.addEventListener('click', function (event) {
           event.preventDefault();
@@ -554,21 +527,6 @@
             return;
           }
           tryOpenApp(activeShareId, true);
-          refreshOpenAppVisibility();
-        });
-      }
-
-      if (openAppBtn) {
-        openAppBtn.addEventListener('click', function (event) {
-          event.preventDefault();
-          var id = activeShareId;
-          if (!id) {
-            try {
-              id = localStorage.getItem(PENDING_KEY);
-            } catch (err) {}
-          }
-          if (!id) return;
-          tryOpenApp(id, false);
         });
       }
 
@@ -764,7 +722,6 @@
         });
 
         show('content');
-        refreshOpenAppVisibility();
       }
 
       async function load() {
