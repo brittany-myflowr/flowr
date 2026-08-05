@@ -12,7 +12,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 5 0 R /Resources << /Font << /F1 3 0 R >> >> >>
 endobj
 5 0 obj
-<< /Length 1487 >>
+<< /Length 1263 >>
 stream
 BT
 /F1 11 Tf
@@ -40,37 +40,27 @@ T*
 T*
 (What flowr does) Tj
 T*
-(? Build routines across 10 categories ? Skincare, Body Care, Hair Care,) Tj
+(? Your Today Dashboard ? Up next, morning through evening, check off) Tj
 T*
-(  Nail Care, Oral Care, Supplements, Medications, Exercise, Wellness,) Tj
+(  steps, hold to reorder your day) Tj
 T*
-(  and Other) Tj
+(? Routine Planning & Scheduling ? 10 categories; daily, weekly, every) Tj
 T*
-(? Schedule each routine your way ? daily, weekly, every 2 weeks,) Tj
+(  2 weeks, monthly, or by cycle phase; toggle and duplicate) Tj
 T*
-(  monthly, or by cycle phase) Tj
+(? Step-Level Customization ? default schedule plus per-step fine-tuning) Tj
 T*
-(? Customize each step individually) Tj
-T*
-(? Guided routine builder ? name, schedule, steps, and products) Tj
-T*
-(? Tag products to routine steps and rate them Love It, Like It,) Tj
+(? Your Product Shelf ? tag products to steps; Love It, Like It,) Tj
 T*
 (  or Not For Me) Tj
 T*
-(? Sync routines to your cycle ? menstrual and lunar tracking) Tj
+(? Cycle Syncing ? menstrual and lunar cycle tracking) Tj
 T*
-(? See what's coming up today ? Up next, plus morning, afternoon,) Tj
+(? Your Self-Care Calendar ? plan ahead and look back) Tj
 T*
-(  and evening. Hold to reorder your day) Tj
+(? Share Routines ? privacy-safe link; Add to My Routines) Tj
 T*
-(? Opt into gentle start and finish reminders) Tj
-T*
-(? Share a routine with a privacy-safe link ? Add to My Routines) Tj
-T*
-(? Toggle or duplicate routines without starting from scratch) Tj
-T*
-(? Browse your full self-care calendar) Tj
+(? Never Forget Your Routines ? notifications at the time you choose) Tj
 T*
 (? 14-day free trial, no credit card required) Tj
 ET
@@ -80,7 +70,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 7 0 R /Resources << /Font << /F1 3 0 R >> >> >>
 endobj
 7 0 obj
-<< /Length 943 >>
+<< /Length 967 >>
 stream
 BT
 /F1 11 Tf
@@ -105,6 +95,8 @@ T*
 (Developer: Petal Studios LLC) Tj
 T*
 (Platform: iOS) Tj
+T*
+(Age Rating: 13+) Tj
 T*
 (Availability: Worldwide) Tj
 T*
@@ -138,10 +130,10 @@ xref
 0000000121 00000 n 
 0000000191 00000 n 
 0000000317 00000 n 
-0000001856 00000 n 
-0000001982 00000 n 
+0000001632 00000 n 
+0000001758 00000 n 
 trailer
 << /Size 8 /Root 1 0 R >>
 startxref
-2976
+2776
 %%EOF
