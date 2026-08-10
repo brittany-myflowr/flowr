@@ -1,6 +1,6 @@
 /**
  * Public website config for shared routine previews.
- * Anon key is safe with RLS (public SELECT on shared_routines by id only).
+ * Anon key is safe with RLS + get_shared_routine RPC (no open table SELECT).
  */
 window.FLOWR_CONFIG = {
   supabaseUrl: 'https://ayzrexnnqsxzausobhmb.supabase.co',

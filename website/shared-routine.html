@@ -740,17 +740,17 @@
 
         try {
           var endpoint =
-            config.supabaseUrl.replace(/\/$/, '') +
-            '/rest/v1/shared_routines?id=eq.' +
-            encodeURIComponent(shareId) +
-            '&select=snapshot';
+            config.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/get_shared_routine';
 
           var response = await fetch(endpoint, {
+            method: 'POST',
             headers: {
               apikey: config.supabaseAnonKey,
               Authorization: 'Bearer ' + config.supabaseAnonKey,
               Accept: 'application/json',
+              'Content-Type': 'application/json',
             },
+            body: JSON.stringify({ share_id: shareId }),
           });
 
           if (!response.ok) {
@@ -758,13 +758,13 @@
             return;
           }
 
-          var rows = await response.json();
-          if (!rows || !rows.length || !rows[0].snapshot) {
+          var snapshot = await response.json();
+          if (!snapshot || typeof snapshot !== 'object') {
             show('error');
             return;
           }
 
-          render(rows[0].snapshot);
+          render(snapshot);
         } catch (err) {
           console.error(err);
           show('error');

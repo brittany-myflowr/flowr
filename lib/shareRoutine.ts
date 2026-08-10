@@ -31,22 +31,20 @@ export async function createRoutineShareLink(input: {
     lastName: input.sharedByLastName,
   });
   const title = formatSharedRoutineTitle(snapshot.name, snapshot.sharedByFirstName);
+  const shareId = createShareId();
 
-  const { data, error } = await supabase
-    .from('shared_routines')
-    .insert({
-      routine_id: input.routine.id,
-      user_id: input.userId,
-      snapshot,
-    })
-    .select('id')
-    .single();
+  const { error } = await supabase.from('shared_routines').insert({
+    id: shareId,
+    routine_id: input.routine.id,
+    user_id: input.userId,
+    snapshot,
+  });
 
-  if (error || !data?.id) {
-    return { error: error?.message ?? 'Could not create share link.' };
+  if (error) {
+    return { error: error.message ?? 'Could not create share link.' };
   }
 
-  return { url: buildRoutineShareUrl(data.id), shareId: data.id, title };
+  return { url: buildRoutineShareUrl(shareId), shareId, title };
 }
 
 export async function fetchSharedRoutineSnapshot(
@@ -54,14 +52,24 @@ export async function fetchSharedRoutineSnapshot(
 ): Promise<SharedRoutineSnapshot | null> {
   if (!isSupabaseConfigured() || !shareId.trim()) return null;
 
-  const { data, error } = await supabase
-    .from('shared_routines')
-    .select('snapshot')
-    .eq('id', shareId.trim())
-    .maybeSingle();
+  const { data, error } = await supabase.rpc('get_shared_routine', {
+    share_id: shareId.trim(),
+  });
 
-  if (error || !data?.snapshot) return null;
-  return data.snapshot as SharedRoutineSnapshot;
+  if (error || !data) return null;
+  return data as SharedRoutineSnapshot;
+}
+
+function createShareId(): string {
+  if (typeof globalThis.crypto?.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID();
+  }
+  // RFC4122 v4 fallback
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
+    const rand = (Math.random() * 16) | 0;
+    const value = char === 'x' ? rand : (rand & 0x3) | 0x8;
+    return value.toString(16);
+  });
 }
 
 /**

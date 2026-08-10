@@ -74,18 +74,20 @@ function formatDescription(snapshot) {
 }
 
 async function fetchSnapshot(shareId) {
-  const endpoint =
-    `${SUPABASE_URL}/rest/v1/shared_routines?id=eq.${encodeURIComponent(shareId)}&select=snapshot`;
+  const endpoint = `${SUPABASE_URL}/rest/v1/rpc/get_shared_routine`;
   const response = await fetch(endpoint, {
+    method: 'POST',
     headers: {
       apikey: SUPABASE_ANON_KEY,
       Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       Accept: 'application/json',
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify({ share_id: shareId }),
   });
   if (!response.ok) return null;
-  const rows = await response.json();
-  return rows?.[0]?.snapshot ?? null;
+  const snapshot = await response.json();
+  return snapshot ?? null;
 }
 
 function replaceMeta(html, attr, value) {
