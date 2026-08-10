@@ -63,6 +63,7 @@
       "expo-router",
       "expo-font",
       "expo-apple-authentication",
+      "expo-secure-store",
       [
         "expo-splash-screen",
         {
@@ -88,7 +89,8 @@
       ],
       "@react-native-community/datetimepicker",
       "expo-notifications",
-      "./plugins/withLocalNotificationsOnly"
+      "./plugins/withLocalNotificationsOnly",
+      "expo-secure-store"
     ],
     "extra": {
       "router": {},
