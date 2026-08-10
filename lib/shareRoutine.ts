@@ -20,16 +20,22 @@ export async function createRoutineShareLink(input: {
   products: Product[];
   userId: string;
   sharedByFirstName?: string;
-  sharedByLastName?: string;
+  includeDescription?: boolean;
+  includeStepNotes?: boolean;
 }): Promise<{ url: string; shareId: string; title: string } | { error: string }> {
   if (!isSupabaseConfigured()) {
     return { error: 'Sharing needs an online connection.' };
   }
 
-  const snapshot = buildRoutineShareSnapshot(input.routine, input.products, {
-    firstName: input.sharedByFirstName,
-    lastName: input.sharedByLastName,
-  });
+  const snapshot = buildRoutineShareSnapshot(
+    input.routine,
+    input.products,
+    { firstName: input.sharedByFirstName },
+    {
+      includeDescription: input.includeDescription,
+      includeStepNotes: input.includeStepNotes,
+    },
+  );
   const title = formatSharedRoutineTitle(snapshot.name, snapshot.sharedByFirstName);
   const shareId = createShareId();
 

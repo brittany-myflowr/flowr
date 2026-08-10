@@ -14,14 +14,13 @@ export type SharedRoutineStep = {
   product?: SharedRoutineProduct;
 };
 
-/** JSON snapshot stored in shared_routines.snapshot — no verdicts or personal notes. */
+/** JSON snapshot stored in shared_routines.snapshot — no verdicts, last name, or cycle phases. */
 export type SharedRoutineSnapshot = {
   name: string;
-  /** First name of the person who shared — used for possessive titles only. */
+  /** First name of the person who shared — used for titles and “Shared by”. */
   sharedByFirstName?: string;
-  /** Last name of the person who shared — used with first name for “Shared by”. */
-  sharedByLastName?: string;
   category: Category;
+  /** Opt-in when creating the share; omitted by default. */
   description?: string;
   timeOfDay: TimeOfDay;
   schedule: Schedule;

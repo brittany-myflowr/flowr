@@ -78,7 +78,6 @@ export default function RoutineDetailScreen() {
         products,
         userId: user.id,
         sharedByFirstName: user.firstName,
-        sharedByLastName: user.lastName,
       });
       if ('error' in result) {
         showToast(result.error, 'destructive');

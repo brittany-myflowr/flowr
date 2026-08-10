@@ -1,5 +1,5 @@
 import { cloneSchedule } from '@/constants/schedules';
-import type { Product, Routine } from '@/types';
+import type { Product, Routine, Schedule } from '@/types';
 import type { SharedRoutineSnapshot } from '@/types/share';
 
 /** e.g. Brittany's Morning Skincare — first name only */
@@ -13,49 +13,60 @@ export function formatSharedRoutineTitle(
   return `${person}'s ${name}`;
 }
 
-/** e.g. Brittany Theodore — for “Shared by” attribution */
-export function formatSharedByName(
-  sharedByFirstName?: string,
-  sharedByLastName?: string,
-): string {
-  return [sharedByFirstName, sharedByLastName]
-    .map((part) => part?.trim())
-    .filter(Boolean)
-    .join(' ');
+/** First name only for “Shared by” attribution */
+export function formatSharedByName(sharedByFirstName?: string): string {
+  return sharedByFirstName?.trim() || '';
 }
 
-/** Build a privacy-safe snapshot for sharing (no verdicts / personal product notes). */
+export type BuildShareSnapshotOptions = {
+  /** Include routine description — off by default (opt-in). */
+  includeDescription?: boolean;
+  /** Include per-step notes — off by default (opt-in). */
+  includeStepNotes?: boolean;
+};
+
+/** Build a privacy-safe snapshot for sharing (no verdicts, last name, or cycle phases). */
 export function buildRoutineShareSnapshot(
   routine: Routine,
   products: Product[],
-  sharedBy?: { firstName?: string; lastName?: string },
+  sharedBy?: { firstName?: string },
+  options: BuildShareSnapshotOptions = {},
 ): SharedRoutineSnapshot {
   const productById = new Map(products.map((product) => [product.id, product]));
   const firstName = sharedBy?.firstName?.trim();
-  const lastName = sharedBy?.lastName?.trim();
+  const includeDescription = options.includeDescription === true;
+  const includeStepNotes = options.includeStepNotes === true;
+  const description = includeDescription ? routine.description?.trim() || undefined : undefined;
 
   return {
     name: routine.name.trim(),
     ...(firstName ? { sharedByFirstName: firstName } : {}),
-    ...(lastName ? { sharedByLastName: lastName } : {}),
     category: routine.category,
-    description: routine.description?.trim() || undefined,
+    ...(description ? { description } : {}),
     timeOfDay: routine.timeOfDay,
-    schedule: cloneSchedule(routine.schedule),
+    schedule: cloneScheduleForShare(routine.schedule),
     steps: routine.steps.map((step) => {
       const product = step.productId ? productById.get(step.productId) : undefined;
       const sharedProduct = product
         ? { name: product.name.trim(), brand: product.brand.trim() }
         : parseProductLabel(step.productName);
+      const note = includeStepNotes ? step.note?.trim() || undefined : undefined;
 
       return {
         name: step.name.trim(),
-        note: step.note?.trim() || undefined,
-        schedule: step.schedule ? cloneSchedule(step.schedule) : undefined,
+        ...(note ? { note } : {}),
+        schedule: step.schedule ? cloneScheduleForShare(step.schedule) : undefined,
         product: sharedProduct,
       };
     }),
   };
+}
+
+/** Copy schedule for sharing without cycle phase details. */
+function cloneScheduleForShare(schedule: Schedule): Schedule {
+  const cloned = cloneSchedule(schedule);
+  const { phases: _phases, ...rest } = cloned;
+  return rest;
 }
 
 function parseProductLabel(

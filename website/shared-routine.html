@@ -639,10 +639,8 @@
         setPageTitle(title, socialDescription);
 
         var person = (snapshot.sharedByFirstName || '').trim();
-        var lastName = (snapshot.sharedByLastName || '').trim();
-        var sharedBy = [person, lastName].filter(Boolean).join(' ');
-        document.getElementById('eyebrow').textContent = sharedBy
-          ? 'Shared by ' + sharedBy
+        document.getElementById('eyebrow').textContent = person
+          ? 'Shared by ' + person
           : 'Shared with you on flowr';
 
         var color = CATEGORY_COLORS[snapshot.category] || CATEGORY_COLORS.Other;
