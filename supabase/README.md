@@ -14,9 +14,13 @@ Restart the Expo dev server after changing env vars.
 In the [Supabase SQL Editor](https://supabase.com/dashboard/project/_/sql), run migrations in order:
 
 1. `supabase/migrations/001_initial_schema.sql` — tables, RLS, sign-up profile trigger, account purge
-2. Later numbered files under `supabase/migrations/` (e.g. `003_routine_description.sql`, `004_shared_routines.sql`, `005_notification_fields.sql`)
+2. Later numbered files under `supabase/migrations/` (e.g. `003_routine_description.sql`, `004_shared_routines.sql`, `005_notification_fields.sql`, `006_restrict_security_definer_execute.sql`)
 
 For an existing project, only run migrations you have not applied yet.
+
+### SECURITY DEFINER execute grants (`006_restrict_security_definer_execute.sql`)
+
+Revokes public/`anon`/`authenticated`/`service_role` execute on internal helpers (`handle_new_user`, `purge_scheduled_account_deletions`, `rls_auto_enable`) so they cannot be called via the Data API. Triggers and `postgres` retain access.
 
 ### Routine sharing (`004_shared_routines.sql`)
 
@@ -36,7 +40,7 @@ For password reset emails, configure SMTP or use Supabase's built-in email (Auth
 
 ## 4. Account deletion purge (optional)
 
-Schedule daily execution of `purge_scheduled_account_deletions()` via [pg_cron](https://supabase.com/docs/guides/database/extensions/pg_cron) to permanently remove accounts after the 30-day grace period.
+Schedule daily execution of `purge_scheduled_account_deletions()` via [pg_cron](https://supabase.com/docs/guides/database/extensions/pg_cron) (runs as `postgres`) to permanently remove accounts after the 30-day grace period. This function is not callable with the anon or authenticated keys.
 
 ## 5. Offline sync
 
