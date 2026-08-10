@@ -35,7 +35,7 @@ export function parseAuthParamsFromUrl(url: string): Record<string, string> {
   }
 
   // Some parsers drop hash fragments; normalize and re-read query params.
-  if (hashIndex !== -1 && !params.access_token && !params.code && !params.token_hash) {
+  if (hashIndex !== -1 && !params.code) {
     try {
       const normalized = url.replace('#', '?');
       const parsed = new URL(normalized);
@@ -50,41 +50,24 @@ export function parseAuthParamsFromUrl(url: string): Record<string, string> {
   return params;
 }
 
+/**
+ * Establish a recovery session only via PKCE code exchange.
+ * Existing sessions and raw access/refresh tokens in the URL are not accepted.
+ */
 export async function establishRecoverySessionFromUrl(
   url?: string | null,
 ): Promise<string | null> {
-  if (url && isRecoveryDeepLink(url)) {
-    const params = parseAuthParamsFromUrl(url);
-    const { access_token: accessToken, refresh_token: refreshToken, code, token_hash: tokenHash } =
-      params;
-
-    if (code) {
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (error) return mapAuthError(error.message);
-      return null;
-    }
-
-    if (tokenHash) {
-      const { error } = await supabase.auth.verifyOtp({
-        type: 'recovery',
-        token_hash: tokenHash,
-      });
-      if (error) return mapAuthError(error.message);
-      return null;
-    }
-
-    if (accessToken && refreshToken) {
-      const { error } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
-      if (error) return mapAuthError(error.message);
-      return null;
-    }
+  if (!url || !isRecoveryDeepLink(url)) {
+    return 'This reset link is invalid or has expired.';
   }
 
-  const { data } = await supabase.auth.getSession();
-  if (data.session) return null;
+  const params = parseAuthParamsFromUrl(url);
+  const code = params.code?.trim();
+  if (!code) {
+    return 'This reset link is invalid or has expired.';
+  }
 
-  return 'This reset link is invalid or has expired.';
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (error) return mapAuthError(error.message);
+  return null;
 }
