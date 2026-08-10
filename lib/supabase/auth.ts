@@ -170,7 +170,9 @@ export async function signUpWithSupabase(input: SignUpInput): Promise<{
 
   const trialStartedAt = startTrialIso();
 
-  console.log('[signUpWithSupabase] starting sign-up', { email });
+  if (__DEV__) {
+    console.log('[signUpWithSupabase] starting sign-up');
+  }
 
   const { data, error } = await supabase.auth.signUp({
     email,

@@ -14,7 +14,7 @@ Restart the Expo dev server after changing env vars.
 In the [Supabase SQL Editor](https://supabase.com/dashboard/project/_/sql), run migrations in order:
 
 1. `supabase/migrations/001_initial_schema.sql` — tables, RLS, sign-up profile trigger, account purge
-2. Later numbered files under `supabase/migrations/` (e.g. `003_routine_description.sql`, `004_shared_routines.sql`, `005_notification_fields.sql`, `006_restrict_security_definer_execute.sql`, `007_shared_routine_rpc.sql`)
+2. Later numbered files under `supabase/migrations/` (e.g. `003_routine_description.sql` through `008_revoke_unused_table_grants.sql`)
 
 For an existing project, only run migrations you have not applied yet.
 
