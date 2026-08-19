@@ -22,6 +22,7 @@ export type SignInInput = {
 
 export type GoogleAuthCredential = {
   identityToken: string;
+  nonce?: string;
   email?: string | null;
   firstName?: string;
   lastName?: string;
@@ -29,6 +30,7 @@ export type GoogleAuthCredential = {
 
 export type AppleAuthCredential = {
   identityToken: string;
+  nonce: string;
   email?: string | null;
   firstName?: string;
   lastName?: string;
@@ -376,6 +378,7 @@ export async function signInWithAppleFromCredential(input: AppleAuthCredential):
   const { data, error } = await supabase.auth.signInWithIdToken({
     provider: 'apple',
     token: input.identityToken,
+    nonce: input.nonce,
   });
 
   if (error) {
@@ -483,6 +486,7 @@ export async function signInWithGoogleFromCredential(input: GoogleAuthCredential
   const { data, error } = await supabase.auth.signInWithIdToken({
     provider: 'google',
     token: input.identityToken,
+    ...(input.nonce ? { nonce: input.nonce } : {}),
   });
 
   if (error) {
