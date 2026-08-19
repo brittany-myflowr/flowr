@@ -1,7 +1,7 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Matches Supabase Auth "digits, lower and uppercase letters, and symbols" character sets. */
-export const PASSWORD_SPECIAL_CHARS = `!@#$%^&*()_+-=[]{};'\\:"|<>?,./\`~`;
+export const PASSWORD_SPECIAL_CHARS = "!@#$%^&*()_+-=[]{};'\\:\"|<>?,./`~";
 
 export const PASSWORD_MIN_LENGTH = 8;
 
