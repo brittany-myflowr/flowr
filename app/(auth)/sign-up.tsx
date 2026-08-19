@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { AppleSignInButton } from '@/components/auth/AppleSignInButton';
 import { AuthFormLayout } from '@/components/auth/AuthFormLayout';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
+import { PasswordRequirements } from '@/components/auth/PasswordRequirements';
 import { FullWidthButton } from '@/components/ui/Button';
 import { Divider } from '@/components/ui/Divider';
 import { FormField } from '@/components/ui/FormField';
@@ -14,7 +15,7 @@ import { PRIVACY_POLICY_URL, TERMS_URL } from '@/constants/appInfo';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { openExternalUrl } from '@/lib/appLinking';
-import { isValidEmail } from '@/lib/validation';
+import { isStrongPassword, isValidEmail } from '@/lib/validation';
 import { useAuth } from '@/providers/AppStore';
 import { s, fs } from '@/lib/scale';
 
@@ -92,7 +93,7 @@ export default function SignUpScreen() {
     firstName.trim().length > 0 &&
     lastName.trim().length > 0 &&
     isValidEmail(email) &&
-    password.length >= 8 &&
+    isStrongPassword(password) &&
     confirmPassword.length > 0;
 
   return (
@@ -131,17 +132,29 @@ export default function SignUpScreen() {
       />
       <FormField
         label="Password"
-        placeholder="Min. 8 characters"
+        placeholder="Create a strong password"
         value={password}
-        onChangeText={setPassword}
+        onChangeText={(value) => {
+          setPassword(value);
+          if (error) setError(null);
+        }}
         secureTextEntry
+        textContentType="newPassword"
+        autoComplete="password-new"
+        passwordRules="minlength: 8; required: upper; required: digit; required: special;"
       />
+      <PasswordRequirements password={password} />
       <FormField
         label="Confirm Password"
         placeholder="Repeat password"
         value={confirmPassword}
-        onChangeText={setConfirmPassword}
+        onChangeText={(value) => {
+          setConfirmPassword(value);
+          if (error) setError(null);
+        }}
         secureTextEntry
+        textContentType="newPassword"
+        autoComplete="password-new"
       />
 
       {error ? <Text style={styles.error}>{error}</Text> : null}

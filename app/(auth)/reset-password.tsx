@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { AuthFormLayout } from '@/components/auth/AuthFormLayout';
+import { PasswordRequirements } from '@/components/auth/PasswordRequirements';
 import { FullWidthButton } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { TextLink } from '@/components/ui/TextLink';
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { establishSessionFromRecoveryUrl, getCurrentSessionEmail } from '@/lib/supabase/auth';
+import { isStrongPassword } from '@/lib/validation';
 import { useAuth } from '@/providers/AppStore';
 import { s, fs } from '@/lib/scale';
 
@@ -60,10 +62,7 @@ export default function ResetPasswordScreen() {
   }, [linkingUrl]);
 
   const canSubmit =
-    sessionReady &&
-    password.length >= 8 &&
-    confirmPassword.length > 0 &&
-    !isSubmitting;
+    sessionReady && isStrongPassword(password) && confirmPassword.length > 0 && !isSubmitting;
 
   const handleSubmit = async () => {
     if (password !== confirmPassword) {
@@ -126,11 +125,13 @@ export default function ResetPasswordScreen() {
       <TextLink onPress={() => router.replace('/(auth)/log-in')}>← Back to log in</TextLink>
 
       <Text style={styles.title}>Choose a new password</Text>
-      <Text style={styles.description}>Enter and confirm your new password below.</Text>
+      <Text style={styles.description}>
+        Use at least 8 characters with an uppercase letter, a number, and a special character.
+      </Text>
 
       <FormField
         label="New password"
-        placeholder="At least 8 characters"
+        placeholder="Create a strong password"
         value={password}
         onChangeText={(value) => {
           setPassword(value);
@@ -139,9 +140,10 @@ export default function ResetPasswordScreen() {
         secureTextEntry
         textContentType="newPassword"
         autoComplete="password-new"
-        passwordRules="minlength: 8;"
+        passwordRules="minlength: 8; required: upper; required: digit; required: special;"
         importantForAutofill="yes"
       />
+      <PasswordRequirements password={password} />
       <FormField
         label="Confirm password"
         placeholder="Re-enter your password"

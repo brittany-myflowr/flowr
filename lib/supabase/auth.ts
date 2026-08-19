@@ -1,7 +1,7 @@
 import { defaultFlowerColor } from '@/constants/flowerColors';
 import { PASSWORD_RESET_REDIRECT_URL, supabase } from '@/constants/supabase';
 import { startTrialIso } from '@/lib/subscription';
-import { isValidEmail } from '@/lib/validation';
+import { getPasswordPolicyError, isValidEmail } from '@/lib/validation';
 
 import { mapAuthError } from './errors';
 import { profileRowToUser, type ProfileRow } from './mappers';
@@ -159,12 +159,13 @@ export async function signUpWithSupabase(input: SignUpInput): Promise<{
   if (!isValidEmail(email)) {
     return { userId: '', user: null as never, trialStartedAt: '', error: 'Enter a valid email address.' };
   }
-  if (input.password.length < 8) {
+  const passwordError = getPasswordPolicyError(input.password);
+  if (passwordError) {
     return {
       userId: '',
       user: null as never,
       trialStartedAt: '',
-      error: 'Password must be at least 8 characters.',
+      error: passwordError,
     };
   }
 
@@ -600,9 +601,8 @@ export async function requestPasswordReset(email: string): Promise<string | null
 export { establishRecoverySessionFromUrl as establishSessionFromRecoveryUrl } from './recoveryLink';
 
 export async function updatePassword(password: string): Promise<string | null> {
-  if (password.length < 8) {
-    return 'Password must be at least 8 characters.';
-  }
+  const passwordError = getPasswordPolicyError(password);
+  if (passwordError) return passwordError;
 
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return mapAuthError(error.message);
