@@ -148,11 +148,8 @@ function idTokenNonceMatches(identityToken: string, hashedNonce: string): boolea
     if (!payload) return false;
     const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
     const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=');
-    const json =
-      typeof globalThis.atob === 'function'
-        ? globalThis.atob(padded)
-        : Buffer.from(padded, 'base64').toString('utf8');
-    const claims = JSON.parse(json) as { nonce?: unknown };
+    if (typeof globalThis.atob !== 'function') return false;
+    const claims = JSON.parse(globalThis.atob(padded)) as { nonce?: unknown };
     return typeof claims.nonce === 'string' && claims.nonce === hashedNonce;
   } catch {
     return false;
