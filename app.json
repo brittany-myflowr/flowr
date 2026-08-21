@@ -2,7 +2,7 @@
   "expo": {
     "name": "flowr",
     "slug": "flowr",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/app-store-icon.png",
     "userInterfaceStyle": "light",
